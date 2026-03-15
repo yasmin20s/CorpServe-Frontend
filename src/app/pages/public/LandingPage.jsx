@@ -51,7 +51,7 @@ export default function LandingPage() {
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[rgb(95,111,232)] rounded-lg flex items-center justify-center">
               <span className="text-white text-xl font-bold">CS</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">CorpServe</h1>
@@ -234,7 +234,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-[rgb(95,111,232)] rounded-lg flex items-center justify-center">
                   <span className="text-white text-xl font-bold">CS</span>
                 </div>
                 <h4 className="text-xl font-bold">CorpServe</h4>

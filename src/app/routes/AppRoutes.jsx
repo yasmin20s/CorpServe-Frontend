@@ -18,6 +18,7 @@ import VendorApprovals from '../pages/admin/VendorApprovals';
 
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import Login from '../pages/auth/Login';
+import ResetPassword from '../pages/auth/ResetPassword';
 import Signup from '../pages/auth/Signup';
 import VendorVerification from '../pages/auth/VendorVerification';
 
@@ -39,6 +40,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/vendor-verification" element={<VendorVerification />} />
 
       <Route path="/client">
