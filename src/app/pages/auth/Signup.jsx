@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -7,21 +7,14 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { ArrowLeft, Briefcase, Eye, EyeOff, Sparkles, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../hooks/useAuth';
-
-const SERVICE_CATEGORIES = [
-  'IT Support',
-  'Maintenance',
-  'Marketing',
-  'Cleaning',
-  'Security',
-  'Consulting',
-  'Design',
-  'Device Maintenance',
-];
+import { getCategoriesApi } from '../../services/categoriesApi';
 
 export default function Signup() {
   const navigate = useNavigate();
   const { signup } = useAuth();
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [categoriesError, setCategoriesError] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -29,12 +22,47 @@ export default function Signup() {
     password: '',
     confirmPassword: '',
     role: 'client',
-    category: '',
+    categoryId: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    setCategoriesError('');
+    try {
+      const data = await getCategoriesApi();
+      const normalized = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.value)
+            ? data.value
+            : [];
+      setCategories(normalized);
+      if (normalized.length === 0) {
+        setCategoriesError('No categories found. Please contact admin to create categories first.');
+      }
+    } catch (error) {
+      const message = error.message || 'Failed to load categories';
+      setCategoriesError(message);
+      toast.error(message);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    if (formData.role === 'vendor' && categories.length === 0 && !loadingCategories) {
+      loadCategories();
+    }
+  }, [formData.role]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Phone validation: starts with 01, max 11 digits
@@ -49,17 +77,24 @@ export default function Signup() {
       return;
     }
 
-    if (formData.role === 'vendor' && !formData.category) {
+    if (formData.role === 'vendor' && !formData.categoryId) {
       toast.error('Please select a service category');
       return;
     }
 
-    const payload = {
-      ...formData,
-      category: formData.role === 'vendor' ? formData.category : '',
-    };
-
-    const result = signup(payload);
+    const result = await signup({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      role: formData.role === 'vendor' ? 'Vendor' : 'Client',
+      categoryIds: formData.role === 'vendor' ? [formData.categoryId] : [],
+    });
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
     toast.success(result.message);
     navigate(result.redirectTo);
   };
@@ -242,18 +277,26 @@ export default function Signup() {
                   </Label>
                   <select
                     id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                     className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-200 sm:text-base"
                     required={formData.role === 'vendor'}
+                    disabled={loadingCategories}
                   >
-                    <option value="">Select your service category</option>
-                    {SERVICE_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
+                    <option value="">
+                      {loadingCategories
+                        ? 'Loading categories...'
+                        : categories.length === 0
+                          ? 'No categories available'
+                          : 'Select your service category'}
+                    </option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </select>
+                  {categoriesError && <p className="text-xs text-red-600">{categoriesError}</p>}
                 </div>
               )}
 
@@ -261,7 +304,9 @@ export default function Signup() {
                 <Label className="text-sm font-semibold text-slate-800 sm:text-base">Account Type</Label>
                 <RadioGroup
                   value={formData.role}
-                  onValueChange={(value) => setFormData({ ...formData, role: value, category: value === 'vendor' ? formData.category : '' })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value, categoryId: value === 'vendor' ? formData.categoryId : '' })
+                  }
                   className="grid grid-cols-1 gap-8 sm:grid-cols-2"
                 >
                   <Label

@@ -10,14 +10,16 @@ import { useAuth } from '../../hooks/useAuth';
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [resetUrl, setResetUrl] = useState('');
   const { requestPasswordReset } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = requestPasswordReset(email);
-    setResetUrl(result.resetUrl || '');
-    toast.success('Password reset link sent to your email');
+    const result = await requestPasswordReset(email);
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
+    toast.success(result.message);
     setSubmitted(true);
   };
 
@@ -120,16 +122,6 @@ export default function ForgotPassword() {
                   We&apos;ve sent a password reset link to <span className="font-semibold">{email}</span>. Please check
                   your inbox and follow the instructions.
                 </div>
-                {resetUrl && (
-                  <Link to={resetUrl} className="block">
-                    <Button
-                      type="button"
-                      className="h-10 w-full rounded-xl border border-violet-200 bg-violet-50 text-sm font-bold text-violet-700 hover:bg-violet-100 sm:h-11"
-                    >
-                      Open Reset Password Page
-                    </Button>
-                  </Link>
-                )}
                 <Link to="/login" className="block">
                   <Button
                     type="button"

@@ -15,9 +15,9 @@ export default function Login() {
     password: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = login(formData);
+    const result = await login(formData);
     if (!result.success) {
       toast.error(result.message);
       return;
@@ -138,25 +138,8 @@ export default function Login() {
               </p>
             </form>
 
-            <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-slate-900">Demo Credentials</h3>
-              <div className="space-y-2 text-sm">
-              <div>
-                  <p className="font-medium text-gray-900">Client:</p>
-                  <p className="text-gray-600">Email: client@demo.com</p>
-                  <p className="text-gray-600">Password: demo123</p>
-              </div>
-              <div>
-                  <p className="font-medium text-gray-900">Vendor:</p>
-                  <p className="text-gray-600">Email: vendor@demo.com</p>
-                  <p className="text-gray-600">Password: demo123</p>
-              </div>
-              <div>
-                  <p className="font-medium text-gray-900">Admin:</p>
-                  <p className="text-gray-600">Email: admin@demo.com</p>
-                  <p className="text-gray-600">Password: demo123</p>
-                </div>
-              </div>
+            <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-slate-700">
+              Use your registered account credentials to sign in.
             </div>
           </div>
         </div>

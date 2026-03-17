@@ -1,175 +1,205 @@
 import { createContext, useMemo, useState } from 'react';
+import { forgotPasswordApi, loginApi, registerApi, resetPasswordApi } from '../services/authApi';
+import { ApiError } from '../services/apiClient';
+import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
+
+const AUTH_STORAGE_KEY = 'corpserve-auth';
 
 const initialUserState = {
+  fullName: '',
+  email: '',
   role: 'client',
+  token: '',
   isAuthenticated: false,
-  isVendorApproved: false,
 };
 
-const DEMO_USERS = {
-  'client@demo.com': { password: 'demo123', role: 'client', welcome: 'Client' },
-  'vendor@demo.com': { password: 'demo123', role: 'vendor', welcome: 'Vendor' },
-  'admin@demo.com': { password: 'demo123', role: 'admin', welcome: 'Admin' },
-};
+function toClientRole(role) {
+  return (role || '').toLowerCase();
+}
 
-const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
+function redirectPathForRole(role) {
+  switch (toClientRole(role)) {
+    case 'admin':
+      return '/admin/dashboard';
+    case 'vendor':
+      return '/vendor/dashboard';
+    case 'client':
+    default:
+      return '/client/dashboard';
+  }
+}
 
-function createResetToken() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+function parseVerificationStatus(raw) {
+  if (typeof raw === 'number') return raw;
+  if (typeof raw === 'string') {
+    const normalized = raw.trim().toLowerCase();
+    if (normalized === 'pending') return 1;
+    if (normalized === 'approved') return 2;
+    if (normalized === 'rejected') return 3;
+    const numeric = Number.parseInt(raw, 10);
+    if (!Number.isNaN(numeric)) return numeric;
+  }
+  return 0;
+}
+
+function readStoredAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return initialUserState;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed?.token) return initialUserState;
+
+    return {
+      fullName: parsed.fullName || '',
+      email: parsed.email || '',
+      role: toClientRole(parsed.role) || 'client',
+      token: parsed.token,
+      isAuthenticated: true,
+    };
+  } catch {
+    return initialUserState;
+  }
+}
+
+function persistAuth(user) {
+  if (!user?.token) {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return;
   }
 
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  localStorage.setItem(
+    AUTH_STORAGE_KEY,
+    JSON.stringify({
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      token: user.token,
+    }),
+  );
 }
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(initialUserState);
-  const [demoUsers, setDemoUsers] = useState(DEMO_USERS);
-  const [resetTokens, setResetTokens] = useState({});
+  const [user, setUser] = useState(() => readStoredAuth());
 
-  const login = ({ email, password }) => {
-    const normalizedEmail = email.toLowerCase();
-    const demoUser = demoUsers[normalizedEmail];
-
-    if (!demoUser || demoUser.password !== password) {
-      return {
-        success: false,
-        message: 'Invalid credentials. Please use demo credentials.',
-      };
-    }
-
-    setUser({
-      role: demoUser.role,
-      isAuthenticated: true,
-      isVendorApproved: true,
-    });
-
-    return {
-      success: true,
-      message: `Login successful! Welcome ${demoUser.welcome}`,
-      redirectTo: `/${demoUser.role}/dashboard`,
-    };
-  };
-
-  const signup = ({ role }) => {
-    if (role === 'client') {
-      setUser({
-        role: 'client',
-        isAuthenticated: true,
-        isVendorApproved: true,
+  const login = async ({ email, password }) => {
+    try {
+      const authResponse = await loginApi({
+        email: email.trim(),
+        password,
       });
+
+      const nextUser = {
+        fullName: authResponse.fullName || '',
+        email: authResponse.email || '',
+        role: toClientRole(authResponse.role) || 'client',
+        token: authResponse.token || '',
+        isAuthenticated: true,
+      };
+
+      setUser(nextUser);
+      persistAuth(nextUser);
+
+      let redirectTo = redirectPathForRole(authResponse.role);
+      if (toClientRole(authResponse.role) === 'vendor' && nextUser.token) {
+        try {
+          const verificationStatus = await getVendorVerificationStatusApi(nextUser.token);
+          const statusCode = parseVerificationStatus(verificationStatus?.status);
+          if (statusCode === 1 || statusCode === 3) {
+            redirectTo = '/vendor-verification';
+          }
+        } catch (statusError) {
+          if (statusError?.status !== 404) {
+            console.warn('Vendor verification status check failed.', statusError);
+          }
+        }
+      }
 
       return {
         success: true,
-        message: 'Account created successfully!',
-        redirectTo: '/client/dashboard',
+        message: `Login successful! Welcome ${authResponse.fullName || ''}`.trim(),
+        redirectTo,
       };
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Login failed. Please try again.';
+      return { success: false, message };
     }
+  };
 
-    setUser({
-      role: 'vendor',
-      isAuthenticated: false,
-      isVendorApproved: false,
-    });
+  const signup = async ({ fullName, email, phone, password, confirmPassword, role, categoryIds }) => {
+    try {
+      const authResponse = await registerApi({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        confirmPassword,
+        role,
+        categoryIds,
+      });
 
-    return {
-      success: true,
-      message: 'Account created successfully!',
-      redirectTo: '/vendor-verification',
-    };
+      const normalizedRole = toClientRole(authResponse.role || role);
+      const nextUser = {
+        fullName: authResponse.fullName || fullName.trim(),
+        email: authResponse.email || email.trim(),
+        role: normalizedRole || 'client',
+        token: authResponse.token || '',
+        isAuthenticated: !!authResponse.token,
+      };
+
+      if (nextUser.isAuthenticated) {
+        setUser(nextUser);
+        persistAuth(nextUser);
+      }
+
+      return {
+        success: true,
+        message:
+          normalizedRole === 'vendor'
+            ? 'Account created successfully. Continue with vendor verification.'
+            : 'Account created successfully. Please login to continue.',
+        redirectTo: normalizedRole === 'vendor' ? '/vendor-verification' : '/login',
+      };
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Signup failed. Please try again.';
+      return { success: false, message };
+    }
   };
 
   const logout = () => {
     setUser(initialUserState);
+    persistAuth(null);
   };
 
-  const requestPasswordReset = (email) => {
-    const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = demoUsers[normalizedEmail];
+  const requestPasswordReset = async (email) => {
+    try {
+      await forgotPasswordApi({ email: email.trim() });
+      return { success: true, message: 'Password reset link sent successfully.' };
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : 'Could not send reset instructions. Please try again.';
+      return { success: false, message };
+    }
+  };
 
-    // Keep the response generic for unknown accounts.
-    if (!existingUser) {
+  const resetPassword = async ({ email, token, password, confirmPassword }) => {
+    try {
+      await resetPasswordApi({
+        email: email.trim(),
+        token,
+        newPassword: password,
+        confirmNewPassword: confirmPassword,
+      });
       return {
         success: true,
-        message: 'If this email exists, a reset link has been sent.',
+        message: 'Password reset successful. Please log in with your new password.',
       };
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Could not reset password. Please try again.';
+      return { success: false, message };
     }
-
-    const token = createResetToken();
-    const expiresAt = Date.now() + RESET_TOKEN_TTL_MS;
-
-    setResetTokens((prev) => ({
-      ...prev,
-      [token]: {
-        email: normalizedEmail,
-        expiresAt,
-        used: false,
-      },
-    }));
-
-    return {
-      success: true,
-      message: 'Reset link generated successfully.',
-      token,
-      resetUrl: `/reset-password?token=${encodeURIComponent(token)}`,
-    };
-  };
-
-  const validateResetToken = (token) => {
-    if (!token) {
-      return { valid: false, message: 'Reset token is missing.' };
-    }
-
-    const entry = resetTokens[token];
-
-    if (!entry) {
-      return { valid: false, message: 'Invalid reset token.' };
-    }
-
-    if (entry.used) {
-      return { valid: false, message: 'This reset link has already been used.' };
-    }
-
-    if (Date.now() > entry.expiresAt) {
-      return { valid: false, message: 'This reset link has expired.' };
-    }
-
-    return { valid: true, email: entry.email };
-  };
-
-  const resetPassword = ({ token, password }) => {
-    const tokenValidation = validateResetToken(token);
-    if (!tokenValidation.valid) {
-      return {
-        success: false,
-        message: tokenValidation.message,
-      };
-    }
-
-    const email = tokenValidation.email;
-
-    setDemoUsers((prev) => ({
-      ...prev,
-      [email]: {
-        ...prev[email],
-        password,
-      },
-    }));
-
-    setResetTokens((prev) => ({
-      ...prev,
-      [token]: {
-        ...prev[token],
-        used: true,
-      },
-    }));
-
-    return {
-      success: true,
-      message: 'Password reset successful. Please log in with your new password.',
-    };
   };
 
   const value = useMemo(
@@ -179,10 +209,9 @@ export function AuthProvider({ children }) {
       signup,
       logout,
       requestPasswordReset,
-      validateResetToken,
       resetPassword,
     }),
-    [demoUsers, resetTokens, user],
+    [user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

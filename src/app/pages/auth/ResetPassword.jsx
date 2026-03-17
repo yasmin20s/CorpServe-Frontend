@@ -19,17 +19,26 @@ function isStrongPassword(password) {
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { resetPassword, validateResetToken } = useAuth();
+  const { resetPassword } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const email = searchParams.get('email') || '';
   const token = searchParams.get('token') || '';
-  const tokenState = useMemo(() => validateResetToken(token), [token, validateResetToken]);
+  const tokenState = useMemo(() => {
+    if (!email) {
+      return { valid: false, message: 'Reset email is missing from the link.' };
+    }
+    if (!token) {
+      return { valid: false, message: 'Reset token is missing from the link.' };
+    }
+    return { valid: true, message: '' };
+  }, [email, token]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!tokenState.valid) {
@@ -47,14 +56,19 @@ export default function ResetPassword() {
       return;
     }
 
-    const result = resetPassword({ token, password });
+    const result = await resetPassword({
+      email,
+      token,
+      password,
+      confirmPassword,
+    });
 
     if (!result.success) {
       toast.error(result.message);
       return;
     }
 
-    toast.success('Password reset successfully. Please log in.');
+    toast.success(result.message);
     navigate('/login', { replace: true });
   };
 
