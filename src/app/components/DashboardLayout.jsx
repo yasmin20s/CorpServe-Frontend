@@ -76,11 +76,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {!isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to={`/${userRole}/profile`}>Profile Settings</Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to={`/${userRole}/profile`}>Profile Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                {!isAdmin && <DropdownMenuSeparator />}
                 <DropdownMenuItem asChild>
                   <Link
                     to="/login"
