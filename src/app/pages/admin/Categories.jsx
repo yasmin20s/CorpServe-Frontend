@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Plus, Edit, Trash } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -86,3 +86,4 @@ export default function Categories() {
       </div>
     </DashboardLayout>);
 }
+
