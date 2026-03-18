@@ -170,6 +170,7 @@ export default function VendorVerification() {
         documents: uploadedFiles,
         token: user.token,
       });
+      setSubmittedCertificates([...uploadedFiles]);
       setStatus('pending');
       setRejectReason('');
       setShowFirstApprovedAction(false);
