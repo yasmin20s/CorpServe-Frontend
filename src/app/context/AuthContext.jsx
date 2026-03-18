@@ -85,9 +85,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => readStoredAuth());
 
   const login = async ({ email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       const authResponse = await loginApi({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
       });
 

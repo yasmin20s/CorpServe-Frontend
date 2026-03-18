@@ -8,10 +8,10 @@ export default function AppFooter() {
         <div className="mb-7 grid gap-8 md:grid-cols-3">
           <div>
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[rgb(95,111,232)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#6f74ea]">
                 <span className="text-xl font-bold text-white">CS</span>
               </div>
-              <h4 className="text-xl font-bold">CorpServe</h4>
+              <h4 className="text-xl font-bold text-white">CorpServe</h4>
             </div>
             <p className="text-sm text-gray-400">Your trusted B2B Enterprise Service Management System</p>
           </div>
