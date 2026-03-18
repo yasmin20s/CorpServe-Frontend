@@ -9,7 +9,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, MessageSquare, Star } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -241,3 +241,4 @@ export default function Proposals() {
       </div>
     </DashboardLayout>);
 }
+

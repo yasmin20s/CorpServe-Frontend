@@ -8,7 +8,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, Eye, CheckSquare, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
@@ -106,3 +106,4 @@ export default function AvailableRequests() {
       </div>
     </DashboardLayout>);
 }
+

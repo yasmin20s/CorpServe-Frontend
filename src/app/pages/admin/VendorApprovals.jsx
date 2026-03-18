@@ -4,6 +4,8 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Eye, CheckCircle, X, File } from 'lucide-react';
+import { toast } from '../../lib/toast';
 import { Textarea } from '../../components/ui/textarea';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Eye, CheckCircle, X, File, Mail, CalendarDays, FolderOpen, Clock3, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -363,3 +365,4 @@ export default function VendorApprovals() {
       </div>
     </DashboardLayout>);
 }
+
