@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, } from 'lucide-react';
+import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, Menu, X, } from 'lucide-react';
 import { ImageWithFallback } from '../../components/ui/ImageWithFallback';
+import { BubbleBackgroundDemo } from '../../components/backgrounds/BubbleBackgroundDemo';
 export default function LandingPage() {
   const [activeSection, setActiveSection] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 useEffect(() => {
   const handleScroll = () => {
@@ -42,6 +44,46 @@ useEffect(() => {
   window.addEventListener('scroll', handleScroll);
   return () => window.removeEventListener('scroll', handleScroll);
 }, []);
+
+useEffect(() => {
+  const revealElements = document.querySelectorAll('[data-reveal]');
+  if (!revealElements.length) return;
+
+  if (!('IntersectionObserver' in window)) {
+    revealElements.forEach((element) => element.classList.add('is-visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const delay = entry.target.getAttribute('data-reveal-delay');
+        if (delay) {
+          entry.target.style.transitionDelay = `${delay}ms`;
+        }
+
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      threshold: 0.15,
+      rootMargin: '0px 0px -60px 0px',
+    },
+  );
+
+  revealElements.forEach((element) => observer.observe(element));
+
+  return () => observer.disconnect();
+}, []);
+    const navLinks = [
+      { id: 'how-it-works', label: 'How works' },
+      { id: 'services', label: 'Categories' },
+      { id: 'costestimation', label: 'AI Estimation' },
+      { id: 'about', label: 'About us' },
+    ];
     const services = [
         {
             title: 'IT Support',
@@ -85,43 +127,110 @@ useEffect(() => {
         },
     ];
     return (<div className="min-h-screen bg-white">
+      <style>
+        {`
+          .reveal-item {
+            opacity: 0;
+            transform: translateY(34px);
+            transition: opacity 700ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+          }
+
+          .reveal-item.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .reveal-item,
+            .reveal-item.is-visible {
+              opacity: 1;
+              transform: none;
+              transition: none;
+            }
+          }
+        `}
+      </style>
+
       {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
+      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#6f74ea] rounded-lg flex items-center justify-center">
               <span className="text-white text-xl font-bold">CS</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">CorpServe</h1>
+            <h1 className="text-2xl font-bold text-black">CorpServe</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link to="/signup">
-              <Button>Get Started</Button>
-            </Link>
+
+          <div className="hidden items-center gap-3 sm:gap-5 md:flex">
+            {navLinks.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className={`text-sm font-semibold capitalize transition-colors sm:text-base ${
+                  activeSection === item.id ? 'text-[#6f74ea]' : 'text-slate-700 hover:text-[#6f74ea]'
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
           </div>
+
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-50 md:hidden"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+
+        {isMobileMenuOpen && (
+          <div className="border-t border-gray-200 px-6 py-3 md:hidden">
+            <div className="flex flex-col gap-2">
+              {navLinks.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold capitalize transition-colors ${
+                    activeSection === item.id
+                      ? 'bg-[#6f74ea]/10 text-[#6f74ea]'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-[#6f74ea]'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 bg-gradient-to-br from-blue-50 to-white ">
-       
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-5xl font-bold text-gray-900 mb-6">
+      <section className="relative min-h-[80vh] overflow-hidden py-16 bg-white">
+        <div className="absolute inset-0 h-full w-full">
+          <BubbleBackgroundDemo interactive={true} />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-[88rem] px-7 pt-3 sm:pt-8 lg:pt-10">
+          <div className="grid gap-12 items-center lg:grid-cols-2">
+            <div className="reveal-item mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-3xl lg:text-left" data-reveal data-reveal-delay="40">
+              <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
                 Connect with Verified Service Providers
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
-                CorpServe is your B2B Enterprise Service Management System that connects companies
-                with verified vendors to manage corporate service requests, SLA contracts, and
-                payments.
+              <p className="mx-auto mb-8 text-lg font-medium text-fuchsia-50 sm:text-xl lg:mx-0 lg:max-w-2xl">
+                CorpServe is a B2B platform that connects companies with verified vendors to manage services, SLAs, and payments.
+
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
                 <Link to="/signup">
-                  <Button size="lg" className="gap-2">
+                  <Button
+                    size="lg"
+                    className="gap-2 bg-[#6f74ea] text-white hover:bg-indigo-300 hover:text-gray-900"
+                  >
                     Get Started <ArrowRight className="w-4 h-4"/>
                   </Button>
                 </Link>
@@ -132,6 +241,15 @@ useEffect(() => {
                 </Link>
               </div>
             </div>
+            <div className="reveal-item mx-auto w-full max-w-md lg:max-w-xl" data-reveal data-reveal-delay="120">
+              <div className="overflow-hidden rounded-lg border border-white/15 bg-black/20 shadow-2xl shadow-black/35 backdrop-blur-[1px]">
+                <ImageWithFallback
+                  src="/mike-kononov-lFv0V3_2H6s-unsplash.jpg"
+                  alt="Corporate office at night"
+                  className="h-[320px] w-full object-cover sm:h-[360px] lg:h-[400px]"
+                />
+              </div>
+            </div>
             
           </div>
         </div>
@@ -140,13 +258,13 @@ useEffect(() => {
       {/* How It Works */}
       <section id="how-it-works" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h3>
+          <div className="reveal-item text-center mb-16" data-reveal>
+            <h3 className="text-4xl font-bold text-indigo-500 mb-4">How It Works</h3>
             <p className="text-xl text-gray-600">Simple, efficient, and transparent process</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card>
+            <Card className="reveal-item border-2 border-blue-200" data-reveal data-reveal-delay="0">
               <CardHeader>
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                   <MessageSquare className="w-8 h-8 text-blue-600"/>
@@ -158,7 +276,7 @@ useEffect(() => {
               </CardHeader>
             </Card>
 
-            <Card>
+            <Card className="reveal-item border-2 border-green-200" data-reveal data-reveal-delay="90">
               <CardHeader>
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                   <Clock className="w-8 h-8 text-green-600"/>
@@ -170,7 +288,7 @@ useEffect(() => {
               </CardHeader>
             </Card>
 
-            <Card>
+            <Card className="reveal-item border-2 border-purple-200" data-reveal data-reveal-delay="180">
               <CardHeader>
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="w-8 h-8 text-purple-600"/>
@@ -189,8 +307,8 @@ useEffect(() => {
       {/* Services Categories */}
       <section id="services" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4">Service Categories</h3>
+          <div className="reveal-item text-center mb-16" data-reveal>
+            <h3 className="text-4xl font-bold text-indigo-500 mb-4">Service Categories</h3>
             <p className="text-xl text-gray-600">
               Wide range of enterprise services from verified vendors
             </p>
@@ -199,19 +317,20 @@ useEffect(() => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {services.map((service) => {
             const Icon = service.icon;
-            return (<Card key={service.title} className="hover:shadow-lg transition-shadow cursor-pointer">
+            return (<Card key={service.title} className="reveal-item group cursor-pointer overflow-hidden border border-indigo-100/80 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-[0_22px_44px_rgba(139,92,246,0.34)]" data-reveal data-reveal-delay="60">
                   <CardContent className="p-0">
                     <div className="relative h-32 overflow-hidden rounded-t-lg">
-                      <ImageWithFallback src={service.image} alt={service.title} className="w-full h-full object-cover"/>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"/>
+                      <ImageWithFallback src={service.image} alt={service.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"/>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"/>
                       <div className="absolute bottom-3 left-3">
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-blue-600"/>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/95 shadow-md ring-1 ring-indigo-100">
+                          <Icon className="h-5 w-5 text-[#6f74ea]"/>
                         </div>
                       </div>
                     </div>
                     <div className="p-4">
-                      <h4 className="font-semibold text-gray-900">{service.title}</h4>
+                      <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">{service.title}</h4>
+                      <p className="mt-1 text-xs font-medium text-slate-500">Verified enterprise vendors</p>
                     </div>
                   </CardContent>
                 </Card>);
@@ -221,8 +340,8 @@ useEffect(() => {
       </section>
 
       {/* AI Cost Estimation Highlight */}
-      <section id="costestimation" className="py-20 bg-[#6b76f6]">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="costestimation" className="py-20 bg-[#3a419b]">
+        <div className="reveal-item max-w-7xl mx-auto px-6" data-reveal>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <ImageWithFallback src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMGFuYWx5dGljcyUyMGRhc2hib2FyZHxlbnwxfHx8fDE3NzI1OTkxNzR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="AI Analytics" className="rounded-2xl shadow-2xl w-full"/>
@@ -235,15 +354,15 @@ useEffect(() => {
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1"/>
+                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1 text-green-400"/>
                   <span className="text-lg">Instant cost predictions based on historical data</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1"/>
+                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1 text-green-400"/>
                   <span className="text-lg">Accurate time estimates for project planning</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1"/>
+                  <CheckCircle className="w-6 h-6 flex-shrink-0 mt-1 text-green-400"/>
                   <span className="text-lg">Budget optimization recommendations</span>
                 </li>
               </ul>
@@ -254,27 +373,76 @@ useEffect(() => {
 
       {/* About Us */}
       <section id="about" className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h3 className="text-4xl font-bold text-gray-900 mb-6">About CorpServe</h3>
-          <p className="text-xl text-gray-600 mb-8">
-            CorpServe is a comprehensive B2B Enterprise Service Management System designed to
-            streamline the way companies connect with verified service providers. Our platform
-            ensures transparency, efficiency, and quality in every business transaction.
-          </p>
-          <ImageWithFallback src="https://images.unsplash.com/photo-1696861273647-92dfe8bb697c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZXJ2aWNlcyUyMGhhbmRzaGFrZXxlbnwxfHx8fDE3NzI2Njg0NDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="Professional handshake" className="rounded-2xl shadow-xl w-full max-w-2xl mx-auto"/>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="reveal-item relative overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-white via-indigo-50/70 to-violet-50/70 p-8 shadow-xl shadow-indigo-100/60 lg:p-12" data-reveal>
+            <div className="pointer-events-none absolute -right-14 -top-16 h-56 w-56 rounded-full bg-violet-200/40 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-16 h-60 w-60 rounded-full bg-indigo-200/40 blur-3xl" />
+
+            <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+              <div>
+                <span className="inline-flex rounded-full border border-indigo-300 bg-white/80 px-4 py-1 text-sm font-semibold text-[#6f74ea]">
+                  About CorpServe
+                </span>
+                <h3 className="mt-4 text-4xl font-bold leading-tight text-slate-900 lg:text-5xl">
+                  Built for modern teams that need trusted services fast.
+                </h3>
+                <p className="mt-5 max-w-2xl text-lg text-slate-600 lg:text-xl">
+                  CorpServe is a comprehensive B2B Enterprise Service Management System designed to
+                  streamline how companies connect with verified service providers. We bring
+                  transparency, speed, and quality into every business transaction.
+                </p>
+
+                <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
+                    <p className="text-2xl font-black text-slate-900">24/7</p>
+                    <p className="text-sm font-medium text-slate-500">Request tracking</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
+                    <p className="text-2xl font-black text-slate-900">SLA</p>
+                    <p className="text-sm font-medium text-slate-500">Driven workflows</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm col-span-2 sm:col-span-1">
+                    <p className="text-2xl font-black text-slate-900">Secure</p>
+                    <p className="text-sm font-medium text-slate-500">Payments & records</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="overflow-hidden rounded-2xl border border-white/80 bg-indigo-100/60 shadow-xl shadow-indigo-200/50">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1696861273647-92dfe8bb697c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZXJ2aWNlcyUyMGhhbmRzaGFrZXxlbnwxfHx8fDE3NzI2Njg0NDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                    alt="Professional handshake"
+                    className="h-[320px] w-full object-cover transition-transform duration-500 hover:scale-105 sm:h-[380px]"
+                  />
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <Shield className="h-4 w-4 text-[#6f74ea]" />
+                    Verified Network
+                  </div>
+                  <div className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700">
+                    <Users className="h-4 w-4 text-[#6f74ea]" />
+                    B2B Focused
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer id="contactus" className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
+          <div className="reveal-item grid md:grid-cols-3 gap-8 mb-8" data-reveal>
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-[#6f74ea] rounded-lg flex items-center justify-center">
                   <span className="text-white text-xl font-bold">CS</span>
                 </div>
-                <h4 className="text-xl font-bold">CorpServe</h4>
+                <h4 className="text-xl font-bold text-white">CorpServe</h4>
               </div>
               <p className="text-gray-400">
                 Your trusted B2B Enterprise Service Management System
@@ -316,7 +484,7 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="reveal-item border-t border-gray-800 pt-8 text-center text-gray-400" data-reveal data-reveal-delay="60">
             <p>&copy; 2026 CorpServe. All rights reserved.</p>
           </div>
         </div>
