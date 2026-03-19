@@ -70,6 +70,7 @@ export default function AppRoutes() {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="vendor-approvals" element={<VendorApprovals />} />
         <Route path="users" element={<UsersManagement />} />
+        <Route path="profile" element={<UserProfile />} />
         <Route path="categories" element={<Categories />} />
         <Route path="requests-monitor" element={<RequestsMonitor />} />
         <Route path="sla-monitor" element={<SLAMonitor />} />

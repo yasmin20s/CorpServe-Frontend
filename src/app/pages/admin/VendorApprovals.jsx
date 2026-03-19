@@ -6,7 +6,14 @@ import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Textarea } from '../../components/ui/textarea';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Eye, CheckCircle, X, File, Mail, CalendarDays, FolderOpen, Clock3, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
+import { useAuth } from '../../hooks/useAuth';
+import { getApiBaseUrl } from '../../services/apiClient';
+import {
+  approveVendorVerificationApi,
+  getPendingVendorVerificationsApi,
+  rejectVendorVerificationApi,
+} from '../../services/adminVendorApi';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -17,41 +24,60 @@ const menuItems = [
     { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5"/> },
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
-const initialVendorRequests = [
-    {
-        id: '1',
-        vendorName: 'Ahmed Nasser',
-        organizationName: 'TechSolutions Pro',
-        email: 'contact@techsolutions.com',
-        category: 'IT Support',
-        submittedAt: '2026-03-02 10:15 AM',
-        status: 'pending',
-        documents: [
-            { name: 'Commercial_Registration.pdf', size: '2.3 MB' },
-            { name: 'Tax_Card.pdf', size: '1.8 MB' },
-            { name: 'Portfolio.pdf', size: '4.5 MB' },
-        ],
-    },
-    {
-        id: '2',
-        vendorName: 'Mona Adel',
-        organizationName: 'SecureGuard Elite',
-        email: 'info@secureguard.com',
-        category: 'Security',
-        submittedAt: '2026-03-03 02:40 PM',
-        status: 'pending',
-        documents: [
-            { name: 'Company_License.pdf', size: '1.9 MB' },
-            { name: 'Tax_Document.pdf', size: '1.2 MB' },
-        ],
-    },
-];
+
+function getDisplayFileName(fileUrl) {
+  const rawName = fileUrl?.split('/').pop() || 'document';
+  if (!rawName.includes('_')) {
+    return rawName;
+  }
+
+  const [prefix, ...rest] = rawName.split('_');
+  const isGuidPrefix = /^[0-9a-fA-F-]{32,}$/.test(prefix);
+  if (!isGuidPrefix || rest.length === 0) {
+    return rawName;
+  }
+
+  return rest.join('_');
+}
+
+function formatSubmittedAt(dateLike) {
+  if (!dateLike) return '-';
+  const date = new Date(dateLike);
+  if (Number.isNaN(date.getTime())) return dateLike;
+  return date.toLocaleString();
+}
+
 export default function VendorApprovals() {
-  const [vendorRequests, setVendorRequests] = useState(initialVendorRequests);
+  const { user } = useAuth();
+  const [vendorRequests, setVendorRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingVendorId, setProcessingVendorId] = useState('');
   const [openRejectDialogId, setOpenRejectDialogId] = useState(null);
   const [rejectReasonDraft, setRejectReasonDraft] = useState({});
   const [recentActions, setRecentActions] = useState([]);
   const actionTimeoutsRef = useRef([]);
+
+  useEffect(() => {
+    const loadPendingVerifications = async () => {
+      if (!user?.token) {
+        setVendorRequests([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const response = await getPendingVendorVerificationsApi(user.token);
+        setVendorRequests(Array.isArray(response) ? response : []);
+      } catch (error) {
+        toast.error(error.message || 'Failed to load vendor approvals.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPendingVerifications();
+  }, [user?.token]);
 
   useEffect(() => {
     return () => {
@@ -80,29 +106,87 @@ export default function VendorApprovals() {
       actionTimeoutsRef.current.push(timeoutId);
     };
 
-    const handleApprove = (vendor) => {
-        setVendorRequests((prev) => prev.filter((request) => request.id !== vendor.id));
-        addRecentAction(vendor, 'accepted');
-        toast.success(`${vendor.organizationName} approved successfully!`);
+    const handleApprove = async (vendor) => {
+        if (!user?.token) {
+          toast.error('You are not authorized. Please log in again.');
+          return;
+        }
+
+        setProcessingVendorId(vendor.id);
+        try {
+          await approveVendorVerificationApi({ id: vendor.id, token: user.token });
+          setVendorRequests((prev) => prev.filter((request) => request.id !== vendor.id));
+          addRecentAction(vendor, 'accepted');
+          toast.success(`${vendor.organizationName} approved successfully!`);
+        } catch (error) {
+          toast.error(error.message || 'Failed to approve vendor.');
+        } finally {
+          setProcessingVendorId('');
+        }
     };
 
-  const handleReject = (vendor) => {
+  const handleReject = async (vendor) => {
     const reason = (rejectReasonDraft[vendor.id] || '').trim();
     if (!reason) {
       toast.error('Please add a rejection reason first.');
       return;
     }
 
-    setVendorRequests((prev) => prev.filter((request) => request.id !== vendor.id));
-    addRecentAction(vendor, 'rejected', reason);
-    setRejectReasonDraft((prev) => ({ ...prev, [vendor.id]: '' }));
+    if (!user?.token) {
+      toast.error('You are not authorized. Please log in again.');
+      return;
+    }
 
-    setOpenRejectDialogId(null);
-    toast.error(`${vendor.organizationName} rejected. Reason sent to vendor.`);
+    setProcessingVendorId(vendor.id);
+    try {
+      await rejectVendorVerificationApi({
+        id: vendor.id,
+        rejectReason: reason,
+        token: user.token,
+      });
+      setVendorRequests((prev) => prev.filter((request) => request.id !== vendor.id));
+      addRecentAction(vendor, 'rejected', reason);
+      setRejectReasonDraft((prev) => ({ ...prev, [vendor.id]: '' }));
+      setOpenRejectDialogId(null);
+      toast.error(`${vendor.organizationName} rejected. Reason sent to vendor.`);
+    } catch (error) {
+      toast.error(error.message || 'Failed to reject vendor.');
+    } finally {
+      setProcessingVendorId('');
+    }
     };
-  const pendingRequests = vendorRequests.filter((request) => request.status === 'pending');
+  const handleOpenDocument = (fileUrl) => {
+    if (!fileUrl) return;
+    const absoluteUrl = fileUrl.startsWith('http')
+      ? fileUrl
+      : `${getApiBaseUrl()}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+    window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const normalizedRequests = vendorRequests.map((request) => {
+    const assignedCategories = Array.isArray(request.assignedCategories)
+      ? request.assignedCategories.filter((category) => Boolean(category))
+      : [];
+
+    return {
+      ...request,
+      email: request.vendorEmail || request.email || '-',
+      assignedCategories,
+      categoriesDisplay: assignedCategories.length > 0 ? assignedCategories.join(', ') : '-',
+      submittedAtDisplay: formatSubmittedAt(request.submittedAt),
+      documents: Array.isArray(request.certificates)
+        ? request.certificates.map((certificate) => ({
+            name: getDisplayFileName(certificate.fileUrl),
+            size: certificate.certificateType || 'Document',
+            fileUrl: certificate.fileUrl,
+          }))
+        : [],
+    };
+  });
+
+  const pendingRequests = normalizedRequests.filter((request) => (request.status || '').toLowerCase() === 'pending');
   const totalDocuments = pendingRequests.reduce((count, vendor) => count + vendor.documents.length, 0);
-  const uniqueCategories = new Set(pendingRequests.map((vendor) => vendor.category)).size;
+  const uniqueCategories = new Set(pendingRequests.flatMap((vendor) => vendor.assignedCategories)).size;
 
     return (<DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-6">
@@ -205,11 +289,11 @@ export default function VendorApprovals() {
                       </p>
                       <p className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4 text-[#6f74ea]" />
-                        <span>{vendor.category}</span>
+                        <span>{vendor.categoriesDisplay}</span>
                       </p>
                       <p className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-[#6f74ea]" />
-                        <span>Submitted At: {vendor.submittedAt}</span>
+                        <span>Submitted At: {vendor.submittedAtDisplay}</span>
                       </p>
                     </div>
                   </div>
@@ -254,22 +338,37 @@ export default function VendorApprovals() {
                                   <p className="text-sm text-slate-500">{doc.size}</p>
                                 </div>
                               </div>
-                              <Button size="sm" variant="outline">Download</Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenDocument(doc.fileUrl)}
+                                disabled={!doc.fileUrl}
+                              >
+                                Download
+                              </Button>
                             </div>
                           </div>))}
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]" onClick={() => handleApprove(vendor)}>
+                  <Button
+                    className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]"
+                    onClick={() => handleApprove(vendor)}
+                    disabled={processingVendorId === vendor.id}
+                  >
                     <CheckCircle className="w-4 h-4"/>
-                    Approve
+                    {processingVendorId === vendor.id ? 'Processing...' : 'Approve'}
                   </Button>
                   <Dialog
                     open={openRejectDialogId === vendor.id}
                     onOpenChange={(isOpen) => setOpenRejectDialogId(isOpen ? vendor.id : null)}
                   >
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="gap-2 border-red-200 text-red-600 hover:bg-red-50">
+                      <Button
+                        variant="outline"
+                        className="gap-2 border-red-200 text-red-600 hover:bg-red-50"
+                        disabled={processingVendorId === vendor.id}
+                      >
                         <X className="w-4 h-4"/>
                         Reject
                       </Button>
@@ -306,8 +405,9 @@ export default function VendorApprovals() {
                             type="button"
                             className="bg-red-600 text-white hover:bg-red-700"
                             onClick={() => handleReject(vendor)}
+                            disabled={processingVendorId === vendor.id}
                           >
-                            Confirm Rejection
+                            {processingVendorId === vendor.id ? 'Processing...' : 'Confirm Rejection'}
                           </Button>
                         </div>
                       </div>
@@ -318,7 +418,15 @@ export default function VendorApprovals() {
               </CardContent>
             </Card>))}
 
-          {pendingRequests.length === 0 && (
+          {isLoading && (
+            <Card className="border border-slate-200 bg-white">
+              <CardContent className="p-8 text-center">
+                <p className="text-lg font-semibold text-slate-900">Loading pending vendor requests...</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoading && pendingRequests.length === 0 && (
             <Card className="border border-slate-200 bg-white">
               <CardContent className="p-8 text-center">
                 <CheckCircle className="mx-auto mb-3 h-8 w-8 text-emerald-600" />
@@ -363,3 +471,4 @@ export default function VendorApprovals() {
       </div>
     </DashboardLayout>);
 }
+
