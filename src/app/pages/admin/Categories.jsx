@@ -4,9 +4,10 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Plus, Edit, Trash } from 'lucide-react';
-import { toast } from '../../lib/toast';
+import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Plus, Edit, Trash, Search, FolderTree, Sparkles, Flame, ArrowUpRight, Activity } from 'lucide-react';
+import { toast } from 'sonner';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -135,11 +136,11 @@ export default function Categories() {
           if (!open)
               closeEditDialog();
       }}>
-        <DialogContent className="border border-indigo-100">
+        <DialogContent className="border border-indigo-100" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>Update the category name then save to apply changes.</DialogDescription>
           </DialogHeader>
+          <p className="text-sm text-slate-600">Update the category name then save to apply changes.</p>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Category Name</Label>
@@ -158,15 +159,15 @@ export default function Categories() {
           if (!open)
               closeDeleteDialog();
       }}>
-        <DialogContent className="border border-red-100">
+        <DialogContent className="border border-red-100" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
-            <DialogDescription>
-              {deletingCategory
-                  ? `Are you sure you want to delete "${deletingCategory.name}"? This action cannot be undone.`
-                  : 'Are you sure you want to delete this category?'}
-            </DialogDescription>
           </DialogHeader>
+          <p className="text-sm text-slate-600">
+            {deletingCategory
+                ? `Are you sure you want to delete "${deletingCategory.name}"? This action cannot be undone.`
+                : 'Are you sure you want to delete this category?'}
+          </p>
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={closeDeleteDialog}>Cancel</Button>
             <Button className="flex-1 bg-red-600 text-white hover:bg-red-700" onClick={handleDelete}>Delete</Button>
@@ -269,11 +270,11 @@ export default function Categories() {
                     Add Category
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="border border-indigo-100">
+                <DialogContent className="border border-indigo-100" aria-describedby={undefined}>
                   <DialogHeader>
                     <DialogTitle>Add New Category</DialogTitle>
-                    <DialogDescription>Create a new service category to organize incoming requests.</DialogDescription>
                   </DialogHeader>
+                  <p className="text-sm text-slate-600">Create a new service category to organize incoming requests.</p>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label>Category Name</Label>

@@ -215,18 +215,18 @@ export default function UserProfile() {
 
   return (
     <DashboardLayout menuItems={menuItems} userRole={role}>
-      <div className="min-h-screen px-4 pb-8 pt-0">
-        <div className="mx-auto max-w-4xl -mt-4">
+      <div className="w-full pb-8">
+        <div className="mx-auto w-full max-w-6xl">
 
-          <div className="mb-8 text-center">
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <h1 className="text-4xl font-bold text-gray-900">User Profile</h1>
-              <span className="text-3xl text-purple-500">✨</span>
+          <div className="mb-6 text-center md:mb-8 md:text-left">
+            <div className="mb-2 flex items-center justify-center gap-2 md:justify-start">
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">User Profile</h1>
+              <span className="text-2xl text-purple-500 sm:text-3xl">✨</span>
             </div>
-            <p className="text-gray-600">Manage your account settings and preferences.</p>
+            <p className="text-sm text-gray-600 sm:text-base">Manage your account settings and preferences.</p>
           </div>
 
-          <div className="space-y-8 rounded-2xl bg-white p-8 shadow-lg">
+          <div className="space-y-6 rounded-xl bg-white p-4 shadow-lg sm:space-y-8 sm:rounded-2xl sm:p-6 lg:p-8">
             {isProfileLoading && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
                 Loading profile data...
@@ -287,7 +287,7 @@ export default function UserProfile() {
                   type="button"
                   onClick={handleSavePersonalInfo}
                   disabled={isProfileLoading || isSavingProfile}
-                  className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2 font-semibold text-white shadow-md animate-pulse transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg sm:w-fit sm:px-6"
                 >
                   <Save className="h-4 w-4" />
                   {isSavingProfile ? 'Saving...' : 'Save Personal Information'}
@@ -317,7 +317,7 @@ export default function UserProfile() {
                     />
                   </div>
                 </div>
-                <div />
+                <div className="hidden md:block" />
                 <div>
                   <Label htmlFor="newPassword" className="font-medium text-gray-700">
                     New Password
@@ -370,7 +370,7 @@ export default function UserProfile() {
                   type="button"
                   onClick={handleChangePassword}
                   disabled={isProfileLoading || isChangingPassword}
-                  className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2 font-semibold text-white shadow-md animate-pulse transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg sm:w-fit sm:px-6"
                 >
                   <Save className="h-4 w-4" />
                   {isChangingPassword ? 'Changing...' : 'Change Password'}
@@ -384,7 +384,7 @@ export default function UserProfile() {
                 User Preferences
               </h2>
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-gray-50">
+                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium text-gray-900">Email Notifications</p>
                     <p className="text-sm text-gray-500">Receive updates via email</p>
@@ -395,7 +395,7 @@ export default function UserProfile() {
                     disabled={isProfileLoading || isSavingPreferences}
                   />
                 </div>
-                <div className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-gray-50">
+                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-medium text-gray-900">System Notifications</p>
                     <p className="text-sm text-gray-500">Receive system alerts in the app</p>
@@ -412,7 +412,7 @@ export default function UserProfile() {
                   type="button"
                   onClick={handleSavePreferences}
                   disabled={isProfileLoading || isSavingPreferences}
-                  className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2 font-semibold text-white shadow-md animate-pulse transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-all duration-200 hover:from-purple-700 hover:to-blue-700 hover:shadow-lg sm:w-fit sm:px-6"
                 >
                   <Save className="h-4 w-4" />
                   {isSavingPreferences ? 'Saving...' : 'Save Preferences'}
@@ -421,7 +421,7 @@ export default function UserProfile() {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600 sm:text-base">
             Need help?{' '}
             <a href="#" className="font-medium text-purple-600 hover:text-purple-700">
               Contact Support

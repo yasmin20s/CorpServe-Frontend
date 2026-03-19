@@ -7,7 +7,7 @@ import { Badge } from '../../components/ui/badge';
 import { Progress } from '../../components/ui/progress';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Search, MessageSquare, Eye, ClipboardList, CheckCircle2, Clock3, Layers3, Type, Shapes, CircleDollarSign, User, Gauge, Star, MessageSquareText } from 'lucide-react';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -166,11 +166,11 @@ export default function MyRequests() {
           if (!open)
               setSelectedRequest(null);
       }}>
-        <DialogContent className="border border-indigo-100">
+        <DialogContent className="border border-indigo-100" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>View My Request</DialogTitle>
-            <DialogDescription>Request details and current execution status.</DialogDescription>
           </DialogHeader>
+          <p className="text-sm text-slate-600">Request details and current execution status.</p>
 
           {selectedRequest && (
             <div className="space-y-4 py-2">
