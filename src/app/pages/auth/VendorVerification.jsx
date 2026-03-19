@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ArrowLeft, CheckCircle2, FileBadge2, FileText, ShieldCheck, Upload, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getApiBaseUrl } from '../../services/apiClient';
 import { getVendorVerificationStatusApi, submitVendorVerificationApi } from '../../services/vendorVerifyApi';
@@ -170,6 +170,7 @@ export default function VendorVerification() {
         documents: uploadedFiles,
         token: user.token,
       });
+      setSubmittedCertificates([...uploadedFiles]);
       setStatus('pending');
       setRejectReason('');
       setShowFirstApprovedAction(false);
@@ -191,18 +192,18 @@ export default function VendorVerification() {
     <div className="min-h-dvh bg-[#f4f5f8] px-4 pb-8 pt-5 sm:px-6 sm:pb-10 sm:pt-6 lg:px-8 lg:pb-12 lg:pt-5 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-300/30 bg-[rgb(95,111,232)] text-2xl font-black text-white shadow-[0_10px_28px_rgba(99,102,241,0.4)] sm:h-[52px] sm:w-[52px] sm:text-2xl">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-300/30 bg-[#6f74ea] text-2xl font-black text-white shadow-[0_10px_28px_rgba(99,102,241,0.4)] sm:h-[52px] sm:w-[52px] sm:text-2xl">
             CS
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">CorpServe</h1>
+          <h1 className="text-2xl font-black tracking-tight text-black sm:text-3xl">CorpServe</h1>
         </div>
 
         <Link
-          to="/signup"
+          to="/login"
           className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-200 sm:text-sm"
         >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          Back to Signup
+          Go to Login
         </Link>
       </div>
 
@@ -446,3 +447,4 @@ export default function VendorVerification() {
     </div>
   );
 }
+

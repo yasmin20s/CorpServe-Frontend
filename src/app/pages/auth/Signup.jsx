@@ -5,7 +5,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { ArrowLeft, Briefcase, Eye, EyeOff, Sparkles, UserRound } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getCategoriesApi } from '../../services/categoriesApi';
 
@@ -108,10 +108,10 @@ export default function Signup() {
 
         <div className="absolute inset-x-0 top-0 p-6 xl:p-8 [@media(max-height:820px)]:p-4">
           <div className="flex items-center gap-4 text-white">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgb(95,111,232)] text-xl font-black text-white shadow-md shadow-blue-900/30">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6f74ea] text-xl font-black text-white shadow-md shadow-blue-900/30">
               CS
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-black xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>
           </div>
         </div>
 
@@ -367,3 +367,4 @@ export default function Signup() {
     </div>
   );
 }
+

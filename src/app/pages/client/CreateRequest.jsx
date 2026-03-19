@@ -7,9 +7,8 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Upload, Sparkles, Bot, ChevronRight } from 'lucide-react';
-import { toast } from 'sonner';
-
+import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet } from 'lucide-react';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard size={20}/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle size={20}/> },

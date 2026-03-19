@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ArrowLeft, KeyRound, Lock, Mail, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function ForgotPassword() {
@@ -27,10 +27,10 @@ export default function ForgotPassword() {
     <div className="min-h-dvh bg-[#f4f5f8] px-4 py-4 sm:px-6 sm:py-5 lg:flex lg:h-dvh lg:flex-col lg:justify-center lg:overflow-y-auto lg:px-8 lg:py-4 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgb(95,111,232)] text-lg font-black text-white shadow-md shadow-violet-500/30 sm:h-11 sm:w-11 sm:text-xl">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] text-lg font-black text-white shadow-md shadow-violet-500/30 sm:h-11 sm:w-11 sm:text-xl">
             CS
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-2xl">CorpServe</h1>
+          <h1 className="text-2xl font-black tracking-tight text-black sm:text-2xl">CorpServe</h1>
         </div>
 
         <Link
@@ -145,3 +145,4 @@ export default function ForgotPassword() {
     </div>
   );
 }
+

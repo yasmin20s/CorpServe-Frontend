@@ -17,6 +17,21 @@ function toClientRole(role) {
   return (role || '').toLowerCase();
 }
 
+function getAuthField(payload, camelKey, pascalKey) {
+  if (!payload || typeof payload !== 'object') return '';
+  const value = payload[camelKey] ?? payload[pascalKey];
+  return typeof value === 'string' ? value : '';
+}
+
+function normalizeLoginResponse(authResponse, fallbackEmail) {
+  const fullName = getAuthField(authResponse, 'fullName', 'FullName');
+  const email = getAuthField(authResponse, 'email', 'Email') || fallbackEmail;
+  const role = getAuthField(authResponse, 'role', 'Role');
+  const token = getAuthField(authResponse, 'token', 'Token');
+
+  return { fullName, email, role, token };
+}
+
 function redirectPathForRole(role) {
   switch (toClientRole(role)) {
     case 'admin':
@@ -84,26 +99,48 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => readStoredAuth());
 
-  const login = async ({ email, password }) => {
-    try {
-      const authResponse = await loginApi({
-        email: email.trim(),
-        password,
-      });
+  const updateAuthenticatedUser = (updates) => {
+    setUser((prevUser) => {
+      if (!prevUser?.isAuthenticated || !prevUser?.token) {
+        return prevUser;
+      }
 
       const nextUser = {
-        fullName: authResponse.fullName || '',
-        email: authResponse.email || '',
-        role: toClientRole(authResponse.role) || 'client',
-        token: authResponse.token || '',
+        ...prevUser,
+        ...(typeof updates === 'object' && updates ? updates : {}),
+      };
+
+      persistAuth(nextUser);
+      return nextUser;
+    });
+  };
+
+  const login = async ({ email, password }) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      const authResponse = await loginApi({
+        email: normalizedEmail,
+        password,
+      });
+      const normalized = normalizeLoginResponse(authResponse, normalizedEmail);
+      if (!normalized.token) {
+        return { success: false, message: 'Login response is missing token. Please contact support.' };
+      }
+
+      const nextUser = {
+        fullName: normalized.fullName,
+        email: normalized.email,
+        role: toClientRole(normalized.role) || 'client',
+        token: normalized.token,
         isAuthenticated: true,
       };
 
       setUser(nextUser);
       persistAuth(nextUser);
 
-      let redirectTo = redirectPathForRole(authResponse.role);
-      if (toClientRole(authResponse.role) === 'vendor' && nextUser.token) {
+      let redirectTo = redirectPathForRole(normalized.role);
+      if (toClientRole(normalized.role) === 'vendor' && nextUser.token) {
         try {
           const verificationStatus = await getVendorVerificationStatusApi(nextUser.token);
           const statusCode = parseVerificationStatus(verificationStatus?.status);
@@ -119,7 +156,7 @@ export function AuthProvider({ children }) {
 
       return {
         success: true,
-        message: `Login successful! Welcome ${authResponse.fullName || ''}`.trim(),
+        message: `Login successful! Welcome ${normalized.fullName || ''}`.trim(),
         redirectTo,
       };
     } catch (error) {
@@ -208,6 +245,7 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
+      updateAuthenticatedUser,
       requestPasswordReset,
       resetPassword,
     }),

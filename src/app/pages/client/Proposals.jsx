@@ -4,12 +4,12 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Textarea } from '../../components/ui/textarea';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, MessageSquare, Star } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -148,13 +148,11 @@ export default function Proposals() {
                         Negotiate
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent aria-describedby={undefined}>
                       <DialogHeader>
                         <DialogTitle>Negotiate with {proposal.vendorName}</DialogTitle>
-                        <DialogDescription>
-                          Send a counter-offer with your preferred budget and deadline
-                        </DialogDescription>
                       </DialogHeader>
+                      <p className="text-sm text-slate-600">Send a counter-offer with your preferred budget and deadline</p>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Label>Your Counter Budget</Label>
@@ -186,13 +184,11 @@ export default function Proposals() {
 
         {/* SLA Dialog */}
         <Dialog open={showSLA} onOpenChange={setShowSLA}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Service Level Agreement (SLA)</DialogTitle>
-              <DialogDescription>
-                Review the SLA for this service request
-              </DialogDescription>
             </DialogHeader>
+            <p className="text-sm text-slate-600">Review the SLA for this service request</p>
             <div className="space-y-4 py-4">
               <div className="grid md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
@@ -241,3 +237,4 @@ export default function Proposals() {
       </div>
     </DashboardLayout>);
 }
+

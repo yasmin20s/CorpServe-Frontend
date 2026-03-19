@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,10 +37,10 @@ export default function Login() {
 
         <div className="absolute inset-x-0 top-0 p-6 xl:p-8 [@media(max-height:820px)]:p-4">
           <div className="flex items-center gap-4 text-white">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgb(95,111,232)] text-xl font-black text-white shadow-md shadow-blue-900/30">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6f74ea] text-xl font-black text-white shadow-md shadow-blue-900/30">
               CS
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-black xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>
           </div>
         </div>
 
@@ -110,15 +111,25 @@ export default function Login() {
                     Forgot password?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="h-11 rounded-xl border-slate-200 bg-white px-3.5 text-sm sm:text-base"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="h-11 rounded-xl border-slate-200 bg-white px-3.5 pr-11 text-sm sm:text-base"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-700"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-1">
@@ -147,3 +158,4 @@ export default function Login() {
     </div>
   );
 }
+

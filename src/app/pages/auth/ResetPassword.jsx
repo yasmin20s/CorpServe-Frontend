@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ArrowLeft, Eye, EyeOff, KeyRound, Lock, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 
 function isStrongPassword(password) {
@@ -83,10 +83,10 @@ export default function ResetPassword() {
 
         <div className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5 text-white">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgb(95,111,232)] text-base font-black text-white shadow-md shadow-violet-500/35">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-base font-black text-white shadow-md shadow-violet-500/35">
               CS
             </div>
-            <h1 className="text-lg font-black tracking-tight sm:text-xl">CorpServe</h1>
+            <h1 className="text-lg font-black tracking-tight text-black sm:text-xl">CorpServe</h1>
           </div>
 
           <Link
@@ -210,3 +210,4 @@ export default function ResetPassword() {
     </div>
   );
 }
+
