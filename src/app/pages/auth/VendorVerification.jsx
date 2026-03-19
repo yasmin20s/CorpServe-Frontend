@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ArrowLeft, CheckCircle2, FileBadge2, FileText, ShieldCheck, Upload, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getApiBaseUrl } from '../../services/apiClient';
 import { getVendorVerificationStatusApi, submitVendorVerificationApi } from '../../services/vendorVerifyApi';
@@ -170,6 +170,7 @@ export default function VendorVerification() {
         documents: uploadedFiles,
         token: user.token,
       });
+      setSubmittedCertificates([...uploadedFiles]);
       setStatus('pending');
       setRejectReason('');
       setShowFirstApprovedAction(false);
@@ -446,3 +447,4 @@ export default function VendorVerification() {
     </div>
   );
 }
+

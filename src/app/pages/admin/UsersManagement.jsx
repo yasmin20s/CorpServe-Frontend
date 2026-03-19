@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Search, Ban } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -101,3 +101,4 @@ export default function UsersManagement() {
       </div>
     </DashboardLayout>);
 }
+
