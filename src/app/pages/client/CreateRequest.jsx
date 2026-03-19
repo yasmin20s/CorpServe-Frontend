@@ -7,7 +7,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet } from 'lucide-react';
+import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, ChevronRight, FileText, X } from 'lucide-react';
 import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard size={20}/> },
@@ -29,8 +29,40 @@ export default function CreateRequest() {
         deadline: '',
     });
     const [aiEstimate, setAiEstimate] = useState(null);
+    const [attachments, setAttachments] = useState([]);
 
     const categories = ['IT Support', 'Maintenance', 'Marketing', 'Cleaning', 'Security', 'Consulting', 'Design', 'Device Maintenance'];
+
+    const formatFileSize = (bytes) => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    const handleAttachmentsChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setAttachments((prev) => {
+            const existing = new Set(prev.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
+            const merged = [...prev];
+
+            files.forEach((file) => {
+                const key = `${file.name}-${file.size}-${file.lastModified}`;
+                if (!existing.has(key)) {
+                    merged.push(file);
+                }
+            });
+
+            return merged;
+        });
+
+        e.target.value = '';
+    };
+
+    const removeAttachment = (targetFile) => {
+        setAttachments((prev) => prev.filter((file) => !(file.name === targetFile.name && file.size === targetFile.size && file.lastModified === targetFile.lastModified)));
+    };
 
     // --- Logic الـ Estimation الحقيقي ---
     const generateAIEstimate = () => {
@@ -80,15 +112,22 @@ export default function CreateRequest() {
 
     return (
         <DashboardLayout menuItems={menuItems} userRole="client">
-            <div className="p-8 bg-[#f8faff] min-h-screen space-y-8">
+            <div className="space-y-6">
                 
                 {/* Header Card */}
-                <Card className="border-none shadow-sm bg-gradient-to-r from-[#e0e7ff] to-[#f0f4ff] rounded-[24px] p-10">
-                    <div className="flex justify-between items-center">
-                        <div className="space-y-2">
-                            <h1 className="text-[#3b448c] text-4xl font-bold">Create Service Request</h1>
-                            <p className="text-[#7e89ac] text-lg">Provide details below to start your new service request.</p>
+                <Card className="relative overflow-hidden rounded-3xl border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-blue-100 p-6 shadow-[0_16px_36px_rgba(79,70,229,0.2)] md:p-8">
+                    <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-indigo-300/40 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-blue-300/35 blur-3xl" />
+
+                    <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 className="mb-2 text-3xl font-black text-indigo-900">Create New Request</h1>
+                            <p className="text-indigo-800/80">Fill in request details, add budget and timeline, then submit your service request.</p>
                         </div>
+                        <Button type="button" className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]" onClick={() => navigate('/client/my-requests')}>
+                            <FileStack className="h-4 w-4" />
+                            My Requests
+                        </Button>
                     </div>
                 </Card>
 
@@ -148,8 +187,31 @@ export default function CreateRequest() {
                                             <div className="bg-white border border-gray-200 text-gray-600 font-semibold py-2 px-8 rounded-xl shadow-sm hover:bg-gray-50 transition-all">
                                                 Choose Files
                                             </div>
-                                            <input id="attachments" type="file" className="hidden" multiple/>
+                                            <input id="attachments" type="file" className="hidden" multiple onChange={handleAttachmentsChange}/>
                                         </label>
+
+                                        {attachments.length > 0 && (
+                                            <div className="mt-6 w-full max-w-2xl space-y-2">
+                                                {attachments.map((file) => (
+                                                    <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between rounded-xl border border-indigo-100 bg-white px-3 py-2">
+                                                        <div className="min-w-0 flex items-center gap-2">
+                                                            <FileText className="h-4 w-4 shrink-0 text-indigo-500" />
+                                                            <p className="truncate text-sm font-medium text-slate-700">{file.name}</p>
+                                                            <span className="shrink-0 text-xs text-slate-500">({formatFileSize(file.size)})</span>
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 px-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                                                            onClick={() => removeAttachment(file)}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
