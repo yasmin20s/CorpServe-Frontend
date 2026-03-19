@@ -25,7 +25,8 @@ const requests = [
         status: 'active',
         vendor: 'TechPro Solutions',
         proposals: null,
-        budget: '$5,000 - $8,000',
+    budget: '$7,200',
+    deadline: '2026-04-10',
         progress: 65,
         createdAt: '2026-02-15',
     },
@@ -39,8 +40,9 @@ const requests = [
       vendorRating: 4.9,
       feedback: 'Excellent quality and always on time. The team was professional and responsive throughout the contract.',
       paidBudget: '$2,850',
-        proposals: null,
-        budget: '$2,000 - $3,000',
+      proposals: null,
+      budget: '$2,850',
+      deadline: '2026-02-20',
         progress: 100,
         createdAt: '2026-01-20',
     },
@@ -52,7 +54,8 @@ const requests = [
         status: 'active',
         vendor: 'Creative Agency',
         proposals: null,
-        budget: '$10,000 - $15,000',
+        budget: '$12,400',
+        deadline: '2026-04-18',
         progress: 40,
         createdAt: '2026-02-28',
     },
@@ -64,7 +67,9 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 3,
-        budget: '$15,000 - $20,000',
+        budgetMin: '$15,000',
+        budgetMax: '$20,000',
+        expectedDeadline: '2026-04-25',
         progress: 0,
         createdAt: '2026-03-01',
     },
@@ -76,7 +81,9 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 5,
-        budget: '$8,000 - $12,000',
+        budgetMin: '$8,000',
+        budgetMax: '$12,000',
+        expectedDeadline: '2026-04-30',
         progress: 0,
         createdAt: '2026-03-03',
     },
@@ -88,7 +95,8 @@ const requests = [
         status: 'active',
         vendor: 'BuildRight Works',
         proposals: null,
-        budget: '$20,000 - $25,000',
+        budget: '$22,000',
+        deadline: '2026-05-08',
         progress: 25,
         createdAt: '2026-03-04',
     },
@@ -100,7 +108,9 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 2,
-        budget: '$4,000 - $6,000',
+        budgetMin: '$4,000',
+        budgetMax: '$6,000',
+        expectedDeadline: '2026-04-22',
         progress: 0,
         createdAt: '2026-03-07',
     },
@@ -112,6 +122,11 @@ export default function MyRequests() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRequest, setSelectedRequest] = useState(null);
+
+    const getBudgetLabel = (request) => (request.status === 'pending' ? 'Budget Range' : 'Budget');
+    const getBudgetValue = (request) => (request.status === 'pending' ? `${request.budgetMin} - ${request.budgetMax}` : request.budget || '-');
+    const getDeadlineLabel = (request) => (request.status === 'pending' ? 'Expected Deadline' : 'Deadline');
+    const getDeadlineValue = (request) => (request.status === 'pending' ? request.expectedDeadline || '-' : request.deadline || '-');
 
     const getStatusBadge = (status) => {
         const variants = {
@@ -192,9 +207,16 @@ export default function MyRequests() {
                 <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                   <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <CircleDollarSign className="h-3.5 w-3.5" />
-                    Budget
+                    {getBudgetLabel(selectedRequest)}
                   </p>
-                  <p className="mt-1 font-medium text-slate-900">{selectedRequest.budget}</p>
+                  <p className="mt-1 font-medium text-slate-900">{getBudgetValue(selectedRequest)}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    {getDeadlineLabel(selectedRequest)}
+                  </p>
+                  <p className="mt-1 font-medium text-slate-900">{getDeadlineValue(selectedRequest)}</p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
@@ -408,8 +430,12 @@ export default function MyRequests() {
                         <span>{request.category}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="font-medium">Budget:</span>
-                        <span>{request.budget}</span>
+                        <span className="font-medium">{getBudgetLabel(request)}:</span>
+                        <span>{getBudgetValue(request)}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-medium">{getDeadlineLabel(request)}:</span>
+                        <span>{getDeadlineValue(request)}</span>
                       </span>
                       <span>Created: {request.createdAt}</span>
                     </div>
