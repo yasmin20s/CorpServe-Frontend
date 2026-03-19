@@ -51,7 +51,7 @@ export default function VendorDashboard() {
                   <YAxis stroke="#6b7280"/>
                   <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}/>
                   <Legend />
-                  <Line type="monotone" dataKey="earnings" stroke="#3b82f6" strokeWidth={2} name="Earnings ($)"/>
+                  <Line type="monotone" dataKey="earnings" stroke="#3b82f6" strokeWidth={2} name="Earnings (EGP)"/>
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>

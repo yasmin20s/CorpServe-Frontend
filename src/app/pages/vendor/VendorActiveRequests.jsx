@@ -16,8 +16,8 @@ const menuItems = [
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const activeRequests = [
-    { id: '1', title: 'IT Infrastructure Setup', client: 'Acme Corp', budget: '$6,500', deadline: '2026-03-30', progress: 65, daysRemaining: 15 },
-    { id: '2', title: 'Website Development', client: 'StartupXYZ', budget: '$12,000', deadline: '2026-04-05', progress: 80, daysRemaining: 8 },
+    { id: '1', title: 'IT Infrastructure Setup', client: 'Acme Corp', budget: 'EGP 6,500', deadline: '2026-03-30', progress: 65, daysRemaining: 15 },
+    { id: '2', title: 'Website Development', client: 'StartupXYZ', budget: 'EGP 12,000', deadline: '2026-04-05', progress: 80, daysRemaining: 8 },
 ];
 export default function VendorActiveRequests() {
     const [progress, setProgress] = useState(65);

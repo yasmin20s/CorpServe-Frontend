@@ -17,8 +17,8 @@ const menuItems = [
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const requests = [
-    { id: '1', title: 'Security System Installation', company: 'Acme Corp', category: 'Security', budget: '$15,000 - $20,000', deadline: '2026-04-30', description: 'Need comprehensive security system with CCTV, access control, and monitoring.', posted: '2 days ago' },
-    { id: '2', title: 'Network Infrastructure Upgrade', company: 'TechStart Inc', category: 'IT Support', budget: '$25,000 - $30,000', deadline: '2026-05-15', description: 'Upgrade entire office network infrastructure including servers and switches.', posted: '1 week ago' },
+    { id: '1', title: 'Security System Installation', company: 'Acme Corp', category: 'Security', budget: 'EGP 15,000 - EGP 20,000', deadline: '2026-04-30', description: 'Need comprehensive security system with CCTV, access control, and monitoring.', posted: '2 days ago' },
+    { id: '2', title: 'Network Infrastructure Upgrade', company: 'TechStart Inc', category: 'IT Support', budget: 'EGP 25,000 - EGP 30,000', deadline: '2026-05-15', description: 'Upgrade entire office network infrastructure including servers and switches.', posted: '1 week ago' },
 ];
 export default function AvailableRequests() {
     const [proposal, setProposal] = useState({ budget: '', deadline: '', message: '' });

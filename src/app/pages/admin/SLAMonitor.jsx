@@ -15,9 +15,9 @@ const menuItems = [
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const slas = [
-    { id: '1', request: 'IT Infrastructure Setup', client: 'Acme Corp', vendor: 'TechPro', budget: '$6,500', deadline: '2026-03-30', status: 'compliant', daysRemaining: 15 },
-    { id: '2', request: 'Marketing Campaign', client: 'BizCo', vendor: 'Creative', budget: '$12,000', deadline: '2026-04-10', status: 'at-risk', daysRemaining: 8 },
-    { id: '3', request: 'Website Development', client: 'StartupXYZ', vendor: 'DevStudio', budget: '$15,000', deadline: '2026-04-20', status: 'compliant', daysRemaining: 25 },
+    { id: '1', request: 'IT Infrastructure Setup', client: 'Acme Corp', vendor: 'TechPro', budget: 'EGP 6,500', deadline: '2026-03-30', status: 'compliant', daysRemaining: 15 },
+    { id: '2', request: 'Marketing Campaign', client: 'BizCo', vendor: 'Creative', budget: 'EGP 12,000', deadline: '2026-04-10', status: 'at-risk', daysRemaining: 8 },
+    { id: '3', request: 'Website Development', client: 'StartupXYZ', vendor: 'DevStudio', budget: 'EGP 15,000', deadline: '2026-04-20', status: 'compliant', daysRemaining: 25 },
 ];
 export default function SLAMonitor() {
     return (<DashboardLayout menuItems={menuItems} userRole="admin">

@@ -33,7 +33,7 @@ export default function VendorAnalytics() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard title="Total Revenue" value="$127,000" icon={DollarSign} iconColor="text-green-600" iconBgColor="bg-green-100" trend={{ value: '15% from last month', isPositive: true }}/>
+          <StatsCard title="Total Revenue" value="EGP 127,000" icon={DollarSign} iconColor="text-green-600" iconBgColor="bg-green-100" trend={{ value: '15% from last month', isPositive: true }}/>
           <StatsCard title="Avg Response Time" value="2.3h" icon={Clock} iconColor="text-blue-600" iconBgColor="bg-blue-100"/>
           <StatsCard title="Avg Rating" value="4.8/5" icon={Star} iconColor="text-yellow-600" iconBgColor="bg-yellow-100"/>
           <StatsCard title="Completion Rate" value="96%" icon={CheckCircle} iconColor="text-purple-600" iconBgColor="bg-purple-100"/>
@@ -53,7 +53,7 @@ export default function VendorAnalytics() {
                   <YAxis yAxisId="right" orientation="right" stroke="#6b7280"/>
                   <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}/>
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="earnings" stroke="#10b981" strokeWidth={2} name="Revenue ($)"/>
+                  <Line yAxisId="left" type="monotone" dataKey="earnings" stroke="#10b981" strokeWidth={2} name="Revenue (EGP)"/>
                   <Line yAxisId="right" type="monotone" dataKey="jobs" stroke="#3b82f6" strokeWidth={2} name="Jobs"/>
                 </LineChart>
               </ResponsiveContainer>

@@ -37,8 +37,8 @@ export default function ClientDashboard() {
           <StatsCard title="Total Requests" value="128" icon={FileText} iconColor="text-blue-600" iconBgColor="bg-blue-100" trend={{ value: '12% from last month', isPositive: true }}/>
           <StatsCard title="Active" value="25" icon={Clock} iconColor="text-orange-600" iconBgColor="bg-orange-100"/>
           <StatsCard title="Completed" value="89" icon={CheckCircle} iconColor="text-green-600" iconBgColor="bg-green-100"/>
-          <StatsCard title="Pending Payments" value="$5,400" icon={DollarSign} iconColor="text-red-600" iconBgColor="bg-red-100"/>
-          <StatsCard title="Total Spent" value="$127,500" icon={TrendingUp} iconColor="text-purple-600" iconBgColor="bg-purple-100" trend={{ value: '8% from last month', isPositive: true }}/>
+          <StatsCard title="Pending Payments" value="EGP 5,400" icon={DollarSign} iconColor="text-red-600" iconBgColor="bg-red-100"/>
+          <StatsCard title="Total Spent" value="EGP 127,500" icon={TrendingUp} iconColor="text-purple-600" iconBgColor="bg-purple-100" trend={{ value: '8% from last month', isPositive: true }}/>
         </div>
 
         {/* Charts */}
@@ -60,7 +60,7 @@ export default function ClientDashboard() {
             borderRadius: '8px',
         }}/>
                   <Legend />
-                  <Bar dataKey="amount" fill="#3b82f6" name="Amount ($)" radius={[8, 8, 0, 0]}/>
+                  <Bar dataKey="amount" fill="#3b82f6" name="Amount (EGP)" radius={[8, 8, 0, 0]}/>
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

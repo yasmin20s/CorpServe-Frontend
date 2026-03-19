@@ -36,7 +36,7 @@ export default function Notifications() {
             id: '3',
             type: 'payment',
             title: 'Payment Due',
-            message: 'Payment of $2,996 is pending for completed service',
+            message: 'Payment of EGP 2,996 is pending for completed service',
             time: '1 day ago',
             read: false,
             icon: DollarSign,

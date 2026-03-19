@@ -17,11 +17,9 @@ function normalizeProblemDetails(payload) {
     return null;
   }
 
-  if (payload.errors && typeof payload.errors === 'object') {
-    const firstError = Object.values(payload.errors).flat()[0];
-    if (typeof firstError === 'string' && firstError.trim()) {
-      return firstError;
-    }
+  const extractedValidationMessage = extractValidationMessage(payload.errors);
+  if (extractedValidationMessage) {
+    return extractedValidationMessage;
   }
 
   if (typeof payload.detail === 'string' && payload.detail.trim()) {
@@ -33,6 +31,49 @@ function normalizeProblemDetails(payload) {
   }
 
   return null;
+}
+
+function extractValidationMessage(errors) {
+  if (!errors) return null;
+
+  // Shape A: { fieldName: ["msg1", "msg2"], ... }
+  if (!Array.isArray(errors) && typeof errors === 'object') {
+    const messages = [];
+    for (const [field, value] of Object.entries(errors)) {
+      const items = Array.isArray(value) ? value : [value];
+      for (const item of items) {
+        if (typeof item === 'string' && item.trim()) {
+          messages.push(formatValidationMessage(field, item));
+        }
+      }
+    }
+    return messages.length ? messages.join(' | ') : null;
+  }
+
+  // Shape B (from backend factory): [{ key: "Field", value: ["msg"] }, ...]
+  if (Array.isArray(errors)) {
+    const messages = [];
+    for (const entry of errors) {
+      if (!entry || typeof entry !== 'object') continue;
+      const field = typeof entry.key === 'string' ? entry.key : 'field';
+      const values = Array.isArray(entry.value) ? entry.value : [];
+      for (const item of values) {
+        if (typeof item === 'string' && item.trim()) {
+          messages.push(formatValidationMessage(field, item));
+        }
+      }
+    }
+    return messages.length ? messages.join(' | ') : null;
+  }
+
+  return null;
+}
+
+function formatValidationMessage(field, message) {
+  if (!field || field === '$' || field.toLowerCase() === 'request') {
+    return message;
+  }
+  return `${field}: ${message}`;
 }
 
 export class ApiError extends Error {

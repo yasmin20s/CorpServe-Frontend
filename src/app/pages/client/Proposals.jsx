@@ -23,7 +23,7 @@ const proposals = [
         vendorName: 'SecureGuard Solutions',
         vendorRating: 4.8,
         vendorCompletedJobs: 127,
-        proposedBudget: '$16,500',
+        proposedBudget: 'EGP 16,500',
         proposedDeadline: '2026-04-15',
         message: 'We specialize in enterprise security systems with over 10 years of experience. We can provide 24/7 monitoring, access control, and CCTV installation.',
         estimatedDuration: '3 weeks',
@@ -33,7 +33,7 @@ const proposals = [
         vendorName: 'TotalSecurity Inc',
         vendorRating: 4.6,
         vendorCompletedJobs: 89,
-        proposedBudget: '$18,000',
+        proposedBudget: 'EGP 18,000',
         proposedDeadline: '2026-04-20',
         message: 'Comprehensive security solution including installation, configuration, and 6-month maintenance support. All equipment is enterprise-grade.',
         estimatedDuration: '4 weeks',
@@ -43,7 +43,7 @@ const proposals = [
         vendorName: 'SafetyFirst Systems',
         vendorRating: 4.9,
         vendorCompletedJobs: 203,
-        proposedBudget: '$15,800',
+        proposedBudget: 'EGP 15,800',
         proposedDeadline: '2026-04-10',
         message: 'Fast and reliable security system installation. We use the latest technology and provide comprehensive training for your staff.',
         estimatedDuration: '2 weeks',
@@ -82,7 +82,7 @@ export default function Proposals() {
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Your Budget</p>
-                <p className="text-lg font-semibold text-gray-900">$15,000 - $20,000</p>
+                <p className="text-lg font-semibold text-gray-900">EGP 15,000 - EGP 20,000</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Deadline</p>

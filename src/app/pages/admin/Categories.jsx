@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -26,6 +26,13 @@ import {
     Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../../hooks/useAuth';
+import {
+    createCategoryApi,
+    deleteCategoryApi,
+    getAdminCategoriesApi,
+    updateCategoryApi,
+} from '../../services/categoriesApi';
 
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -38,72 +45,24 @@ const menuItems = [
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 
-const initialCategories = [
-    {
-        id: '1',
-        name: 'IT Support',
-        description: 'Technical support, infrastructure setup, and workplace IT troubleshooting.',
-        requestCount: 145,
-        vendorCount: 22,
-    },
-    {
-        id: '2',
-        name: 'Maintenance',
-        description: 'Facility maintenance, repairs, and preventive onsite services.',
-        requestCount: 98,
-        vendorCount: 16,
-    },
-    {
-        id: '3',
-        name: 'Marketing',
-        description: 'Marketing strategy, content production, and campaign execution.',
-        requestCount: 112,
-        vendorCount: 19,
-    },
-    {
-        id: '4',
-        name: 'Cleaning',
-        description: 'Routine cleaning, sanitation, and deep cleaning operations.',
-        requestCount: 87,
-        vendorCount: 14,
-    },
-    {
-        id: '5',
-        name: 'Security',
-        description: 'Security systems, guards, monitoring, and safety services.',
-        requestCount: 76,
-        vendorCount: 11,
-    },
-    {
-        id: '6',
-        name: 'Consulting',
-        description: 'Business, legal, and operational consulting services.',
-        requestCount: 124,
-        vendorCount: 17,
-    },
-    {
-        id: '7',
-        name: 'Design',
-        description: 'Creative design, branding, UI/UX, and visual communication.',
-        requestCount: 103,
-        vendorCount: 13,
-    },
-    {
-        id: '8',
-        name: 'Device Maintenance',
-        description: 'Hardware maintenance, diagnostics, and replacement support.',
-        requestCount: 89,
-        vendorCount: 12,
-    },
-];
-
 export default function Categories() {
     const itemsPerPage = 6;
+    const { user } = useAuth();
     const [newCategory, setNewCategory] = useState('');
     const [newCategoryDescription, setNewCategoryDescription] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [categories, setCategories] = useState(initialCategories);
+    const [categories, setCategories] = useState([]);
+    const [summary, setSummary] = useState({
+        totalCategories: 0,
+        averageRequests: 0,
+        topCategoryName: '',
+        topCategoryRequestCount: 0,
+    });
+    const [totalCount, setTotalCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [editCategoryName, setEditCategoryName] = useState('');
@@ -111,22 +70,53 @@ export default function Categories() {
     const [deletingCategory, setDeletingCategory] = useState(null);
     const [viewingCategory, setViewingCategory] = useState(null);
 
-    const totalRequests = categories.reduce((sum, category) => sum + category.requestCount, 0);
     const totalVendors = categories.reduce((sum, category) => sum + category.vendorCount, 0);
-    const topCategory = categories.length
-        ? categories.reduce((top, current) => (current.requestCount > top.requestCount ? current : top), categories[0])
-        : null;
-
-    const filteredCategories = categories.filter((category) =>
-        category.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-    const orderedCategories = [...filteredCategories].sort((a, b) => b.requestCount - a.requestCount);
-    const totalPages = Math.max(1, Math.ceil(orderedCategories.length / itemsPerPage));
+    const topCategory = useMemo(() => {
+        if (!categories.length) return null;
+        return categories.reduce((top, current) => (current.requestCount > top.requestCount ? current : top), categories[0]);
+    }, [categories]);
+    const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
     const normalizedCurrentPage = Math.min(currentPage, totalPages);
     const pageStartIndex = (normalizedCurrentPage - 1) * itemsPerPage;
-    const paginatedCategories = orderedCategories.slice(pageStartIndex, pageStartIndex + itemsPerPage);
+    const paginatedCategories = categories;
 
-    const handleCreate = () => {
+    useEffect(() => {
+        const loadCategories = async () => {
+            if (!user?.token) {
+                setCategories([]);
+                setIsLoading(false);
+                return;
+            }
+
+            setIsLoading(true);
+            try {
+                const response = await getAdminCategoriesApi({
+                    token: user.token,
+                    search: searchQuery,
+                    pageIndex: normalizedCurrentPage,
+                    pageSize: itemsPerPage,
+                });
+                const summaryData = response?.summary || {};
+                const categoryResult = response?.categories || {};
+                setSummary({
+                    totalCategories: summaryData.totalCategories || 0,
+                    averageRequests: summaryData.averageRequests || 0,
+                    topCategoryName: summaryData.topCategoryName || '',
+                    topCategoryRequestCount: summaryData.topCategoryRequestCount || 0,
+                });
+                setCategories(Array.isArray(categoryResult.data) ? categoryResult.data : []);
+                setTotalCount(categoryResult.count || 0);
+            } catch (error) {
+                toast.error(error.message || 'Failed to load categories.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadCategories();
+    }, [user?.token, searchQuery, normalizedCurrentPage, refreshKey]);
+
+    const handleCreate = async () => {
         const normalizedName = newCategory.trim();
         const normalizedDescription = newCategoryDescription.trim();
 
@@ -135,31 +125,32 @@ export default function Categories() {
             return;
         }
 
-        const alreadyExists = categories.some((category) => category.name.toLowerCase() === normalizedName.toLowerCase());
-        if (alreadyExists) {
-            toast.error('This category already exists.');
+        if (!user?.token) {
+            toast.error('You are not authorized. Please log in again.');
             return;
         }
 
-        const newCategoryItem = {
-            id: `${Date.now()}`,
-            name: normalizedName,
-            description: normalizedDescription || 'No description provided yet.',
-            requestCount: 0,
-            vendorCount: 0,
-        };
-
-        const updatedCategories = [...categories, newCategoryItem];
-        setCategories(updatedCategories);
-        setCurrentPage(Math.max(1, Math.ceil(updatedCategories.length / itemsPerPage)));
-
-        toast.success(`Category "${normalizedName}" created`);
-        setNewCategory('');
-        setNewCategoryDescription('');
-        setIsAddDialogOpen(false);
+        setIsSubmitting(true);
+        try {
+            await createCategoryApi({
+                categoryName: normalizedName,
+                description: normalizedDescription,
+                token: user.token,
+            });
+            toast.success(`Category "${normalizedName}" created`);
+            setNewCategory('');
+            setNewCategoryDescription('');
+            setIsAddDialogOpen(false);
+            setCurrentPage(1);
+            setRefreshKey((prev) => prev + 1);
+        } catch (error) {
+            toast.error(error.message || 'Failed to create category.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleEdit = () => {
+    const handleEdit = async () => {
         if (!editingCategory) {
             return;
         }
@@ -172,30 +163,29 @@ export default function Categories() {
             return;
         }
 
-        const duplicateExists = categories.some(
-            (category) => category.id !== editingCategory.id && category.name.toLowerCase() === normalizedName.toLowerCase(),
-        );
-        if (duplicateExists) {
-            toast.error('This category already exists.');
+        if (!user?.token) {
+            toast.error('You are not authorized. Please log in again.');
             return;
         }
 
-        setCategories((prev) =>
-            prev.map((category) =>
-                category.id === editingCategory.id
-                    ? {
-                        ...category,
-                        name: normalizedName,
-                        description: normalizedDescription || 'No description provided yet.',
-                    }
-                    : category,
-            ),
-        );
-
-        toast.success(`Category "${editingCategory.name}" updated`);
-        setEditingCategory(null);
-        setEditCategoryName('');
-        setEditCategoryDescription('');
+        setIsSubmitting(true);
+        try {
+            await updateCategoryApi({
+                categoryId: editingCategory.id,
+                categoryName: normalizedName,
+                description: normalizedDescription,
+                token: user.token,
+            });
+            toast.success(`Category "${editingCategory.name}" updated`);
+            setEditingCategory(null);
+            setEditCategoryName('');
+            setEditCategoryDescription('');
+            setRefreshKey((prev) => prev + 1);
+        } catch (error) {
+            toast.error(error.message || 'Failed to update category.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const openEditDialog = (category) => {
@@ -204,17 +194,30 @@ export default function Categories() {
         setEditCategoryDescription(category.description || '');
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!deletingCategory) {
             return;
         }
+        if (!user?.token) {
+            toast.error('You are not authorized. Please log in again.');
+            return;
+        }
 
-        const updatedCategories = categories.filter((category) => category.id !== deletingCategory.id);
-        setCategories(updatedCategories);
-        setCurrentPage((prevPage) => Math.min(prevPage, Math.max(1, Math.ceil(updatedCategories.length / itemsPerPage))));
-        const deletedName = deletingCategory.name;
-        setDeletingCategory(null);
-        toast.success(`Category "${deletedName}" deleted`);
+        setIsSubmitting(true);
+        try {
+            await deleteCategoryApi({ categoryId: deletingCategory.id, token: user.token });
+            const deletedName = deletingCategory.name;
+            setDeletingCategory(null);
+            if (categories.length === 1 && currentPage > 1) {
+                setCurrentPage((prev) => prev - 1);
+            }
+            setRefreshKey((prev) => prev + 1);
+            toast.success(`Category "${deletedName}" deleted`);
+        } catch (error) {
+            toast.error(error.message || 'Failed to delete category.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const closeEditDialog = () => {
@@ -263,7 +266,9 @@ export default function Categories() {
                                 onChange={(e) => setEditCategoryDescription(e.target.value)}
                             />
                         </div>
-                        <Button onClick={handleEdit} className="w-full bg-[#6f74ea] text-white hover:bg-[#5f64da]">Save Changes</Button>
+                        <Button onClick={handleEdit} disabled={isSubmitting} className="w-full bg-[#6f74ea] text-white hover:bg-[#5f64da]">
+                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -326,7 +331,9 @@ export default function Categories() {
                     </p>
                     <div className="flex gap-2 pt-2">
                         <Button variant="outline" className="flex-1" onClick={closeDeleteDialog}>Cancel</Button>
-                        <Button className="flex-1 bg-red-600 text-white hover:bg-red-700" onClick={handleDelete}>Delete</Button>
+                        <Button className="flex-1 bg-red-600 text-white hover:bg-red-700" onClick={handleDelete} disabled={isSubmitting}>
+                            {isSubmitting ? 'Deleting...' : 'Delete'}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -373,7 +380,7 @@ export default function Categories() {
                             </div>
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Total Categories</p>
-                                <p className="text-2xl font-bold text-slate-900">{categories.length}</p>
+                                <p className="text-2xl font-bold text-slate-900">{summary.totalCategories}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -396,8 +403,8 @@ export default function Categories() {
                                 <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Total Requests</p>
-                                <p className="text-2xl font-bold text-slate-900">{totalRequests}</p>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Avg Requests</p>
+                                <p className="text-2xl font-bold text-slate-900">{summary.averageRequests}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -448,7 +455,9 @@ export default function Categories() {
                                                 onChange={(e) => setNewCategoryDescription(e.target.value)}
                                             />
                                         </div>
-                                        <Button onClick={handleCreate} className="w-full bg-[#6f74ea] text-white hover:bg-[#5f64da]">Create Category</Button>
+                                        <Button onClick={handleCreate} disabled={isSubmitting} className="w-full bg-[#6f74ea] text-white hover:bg-[#5f64da]">
+                                            {isSubmitting ? 'Creating...' : 'Create Category'}
+                                        </Button>
                                     </div>
                                 </DialogContent>
                             </Dialog>
@@ -541,7 +550,7 @@ export default function Categories() {
                     })}
                 </div>
 
-                {orderedCategories.length > 0 && (
+                {!isLoading && totalCount > 0 && (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-slate-200 bg-white/80 p-3">
                         <p className="text-sm text-slate-600">
                             Page {normalizedCurrentPage} of {totalPages}
@@ -578,7 +587,15 @@ export default function Categories() {
                     </div>
                 )}
 
-                {filteredCategories.length === 0 && (
+                {isLoading && (
+                    <Card className="border border-slate-200 bg-slate-50/80">
+                        <CardContent className="p-8 text-center">
+                            <p className="text-slate-600">Loading categories...</p>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {!isLoading && totalCount === 0 && (
                     <Card className="border border-slate-200 bg-slate-50/80">
                         <CardContent className="p-8 text-center">
                             <p className="text-slate-600">No categories match your search.</p>
