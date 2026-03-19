@@ -15,9 +15,9 @@ const menuItems = [
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const requests = [
-    { id: '1', title: 'IT Infrastructure Setup', client: 'Acme Corp', vendor: 'TechPro', category: 'IT Support', status: 'active', slaCompliance: 'compliant', progress: 65, budget: '$6,500' },
-    { id: '2', title: 'Security System Installation', client: 'StartupXYZ', vendor: null, category: 'Security', status: 'pending', slaCompliance: 'n/a', progress: 0, budget: '$15,000' },
-    { id: '3', title: 'Marketing Campaign', client: 'BizCo', vendor: 'Creative Agency', category: 'Marketing', status: 'active', slaCompliance: 'at-risk', progress: 40, budget: '$12,000' },
+    { id: '1', title: 'IT Infrastructure Setup', client: 'Acme Corp', vendor: 'TechPro', category: 'IT Support', status: 'active', slaCompliance: 'compliant', progress: 65, budget: 'EGP 6,500' },
+    { id: '2', title: 'Security System Installation', client: 'StartupXYZ', vendor: null, category: 'Security', status: 'pending', slaCompliance: 'n/a', progress: 0, budget: 'EGP 15,000' },
+    { id: '3', title: 'Marketing Campaign', client: 'BizCo', vendor: 'Creative Agency', category: 'Marketing', status: 'active', slaCompliance: 'at-risk', progress: 40, budget: 'EGP 12,000' },
 ];
 export default function RequestsMonitor() {
     return (<DashboardLayout menuItems={menuItems} userRole="admin">

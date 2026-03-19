@@ -10,9 +10,9 @@ const menuItems = [
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const completed = [
-    { id: '1', title: 'Office Cleaning Service', client: 'TechCorp', amount: '$2,800', completedDate: '2026-03-01', rating: 5, feedback: 'Excellent service!' },
-    { id: '2', title: 'Logo Design', client: 'StartupABC', amount: '$1,500', completedDate: '2026-02-20', rating: 4, feedback: 'Great work, very professional' },
-    { id: '3', title: 'Security Audit', client: 'FinanceInc', amount: '$8,500', completedDate: '2026-02-10', rating: 5, feedback: 'Thorough and detailed audit' },
+    { id: '1', title: 'Office Cleaning Service', client: 'TechCorp', amount: 'EGP 2,800', completedDate: '2026-03-01', rating: 5, feedback: 'Excellent service!' },
+    { id: '2', title: 'Logo Design', client: 'StartupABC', amount: 'EGP 1,500', completedDate: '2026-02-20', rating: 4, feedback: 'Great work, very professional' },
+    { id: '3', title: 'Security Audit', client: 'FinanceInc', amount: 'EGP 8,500', completedDate: '2026-02-10', rating: 5, feedback: 'Thorough and detailed audit' },
 ];
 export default function Completed() {
     return (<DashboardLayout menuItems={menuItems} userRole="vendor">

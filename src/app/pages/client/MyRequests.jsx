@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
@@ -8,7 +8,10 @@ import { Progress } from '../../components/ui/progress';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Search, MessageSquare, Eye, ClipboardList, CheckCircle2, Clock3, Layers3, Type, Shapes, CircleDollarSign, User, Gauge, Star, MessageSquareText } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Search, Eye, ClipboardList, CheckCircle2, Clock3, Layers3, Type, Shapes, CircleDollarSign, User, Gauge, Star, MessageSquareText } from 'lucide-react';
+import { toast } from '../../lib/toast';
+import { useAuth } from '../../hooks/useAuth';
+import { getMyRequestsApi } from '../../services/requestsApi';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -16,7 +19,7 @@ const menuItems = [
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
 ];
-const requests = [
+const initialRequests = [
     {
         id: '1',
         title: 'IT Infrastructure Setup',
@@ -25,7 +28,7 @@ const requests = [
         status: 'active',
         vendor: 'TechPro Solutions',
         proposals: null,
-    budget: '$7,200',
+    budget: 'EGP 7,200',
     deadline: '2026-04-10',
         progress: 65,
         createdAt: '2026-02-15',
@@ -39,9 +42,9 @@ const requests = [
         vendor: 'CleanCo Services',
       vendorRating: 4.9,
       feedback: 'Excellent quality and always on time. The team was professional and responsive throughout the contract.',
-      paidBudget: '$2,850',
+      paidBudget: 'EGP 2,850',
       proposals: null,
-      budget: '$2,850',
+      budget: 'EGP 2,850',
       deadline: '2026-02-20',
         progress: 100,
         createdAt: '2026-01-20',
@@ -54,7 +57,7 @@ const requests = [
         status: 'active',
         vendor: 'Creative Agency',
         proposals: null,
-        budget: '$12,400',
+        budget: 'EGP 12,400',
         deadline: '2026-04-18',
         progress: 40,
         createdAt: '2026-02-28',
@@ -67,8 +70,8 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 3,
-        budgetMin: '$15,000',
-        budgetMax: '$20,000',
+        budgetMin: 'EGP 15,000',
+        budgetMax: 'EGP 20,000',
         expectedDeadline: '2026-04-25',
         progress: 0,
         createdAt: '2026-03-01',
@@ -81,8 +84,8 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 5,
-        budgetMin: '$8,000',
-        budgetMax: '$12,000',
+        budgetMin: 'EGP 8,000',
+        budgetMax: 'EGP 12,000',
         expectedDeadline: '2026-04-30',
         progress: 0,
         createdAt: '2026-03-03',
@@ -95,7 +98,7 @@ const requests = [
         status: 'active',
         vendor: 'BuildRight Works',
         proposals: null,
-        budget: '$22,000',
+        budget: 'EGP 22,000',
         deadline: '2026-05-08',
         progress: 25,
         createdAt: '2026-03-04',
@@ -108,8 +111,8 @@ const requests = [
         status: 'pending',
         vendor: null,
         proposals: 2,
-        budgetMin: '$4,000',
-        budgetMax: '$6,000',
+        budgetMin: 'EGP 4,000',
+        budgetMax: 'EGP 6,000',
         expectedDeadline: '2026-04-22',
         progress: 0,
         createdAt: '2026-03-07',
@@ -117,49 +120,129 @@ const requests = [
 ];
 export default function MyRequests() {
     const itemsPerPage = 3;
+    const { user } = useAuth();
+    const [requests, setRequests] = useState(initialRequests);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalCount, setTotalCount] = useState(0);
+    const [categoryOptions, setCategoryOptions] = useState([{ id: 'all', name: 'All Categories' }]);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRequest, setSelectedRequest] = useState(null);
 
-    const getBudgetLabel = (request) => (request.status === 'pending' ? 'Budget Range' : 'Budget');
-    const getBudgetValue = (request) => (request.status === 'pending' ? `${request.budgetMin} - ${request.budgetMax}` : request.budget || '-');
-    const getDeadlineLabel = (request) => (request.status === 'pending' ? 'Expected Deadline' : 'Deadline');
-    const getDeadlineValue = (request) => (request.status === 'pending' ? request.expectedDeadline || '-' : request.deadline || '-');
+    const getBudgetLabel = () => 'Budget Range';
+    const getBudgetValue = (request) => `${request.budgetMin} - ${request.budgetMax}`;
+    const getDeadlineLabel = () => 'Expected Deadline';
+    const getDeadlineValue = (request) => request.expectedDeadline || '-';
 
     const getStatusBadge = (status) => {
         const variants = {
-        active: 'bg-indigo-100 text-indigo-700 border border-indigo-200',
-            completed: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
             pending: 'bg-amber-100 text-amber-700 border border-amber-200',
-            cancelled: 'bg-red-100 text-red-700',
         };
         return variants[status] || variants.pending;
     };
 
-    const categoryOptions = useMemo(() => ['all', ...new Set(requests.map((request) => request.category))], []);
+    useEffect(() => {
+        const loadRequestBasedCategories = async () => {
+            if (!user?.token) {
+                setCategoryOptions([{ id: 'all', name: 'All Categories' }]);
+                return;
+            }
 
-    const filteredRequests = useMemo(() => {
-        return requests.filter((request) => {
-            const matchesSearch =
-                request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                request.description.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = categoryFilter === 'all' || request.category === categoryFilter;
-            const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
+            try {
+                let pageIndex = 1;
+                const pageSize = 10;
+                let totalCount = 0;
+                const map = new Map();
 
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [searchQuery, categoryFilter, statusFilter]);
+                do {
+                    const result = await getMyRequestsApi({
+                        token: user.token,
+                        requestStatus: 1,
+                        pageIndex,
+                        pageSize,
+                        sortByCategory: true,
+                        sortDescending: false,
+                    });
 
-    const totalPages = Math.max(1, Math.ceil(filteredRequests.length / itemsPerPage));
+                    const items = Array.isArray(result?.data) ? result.data : [];
+                    totalCount = result?.count || 0;
+
+                    items.forEach((request) => {
+                        if (request?.categoryId && request?.categoryName && !map.has(request.categoryId)) {
+                            map.set(request.categoryId, request.categoryName);
+                        }
+                    });
+
+                    pageIndex += 1;
+                } while ((pageIndex - 1) * pageSize < totalCount);
+
+                const requestCategories = Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+                setCategoryOptions([{ id: 'all', name: 'All Categories' }, ...requestCategories]);
+            } catch (error) {
+                toast.error(error.message || 'Failed to load request categories');
+            }
+        };
+
+        loadRequestBasedCategories();
+    }, [user?.token]);
+
+    useEffect(() => {
+        const loadPendingRequests = async () => {
+            if (!user?.token) {
+                setRequests([]);
+                setTotalCount(0);
+                setIsLoading(false);
+                return;
+            }
+
+            setIsLoading(true);
+            try {
+                const result = await getMyRequestsApi({
+                    token: user.token,
+                    search: searchQuery,
+                    requestStatus: 1,
+                    categoryId: categoryFilter === 'all' ? '' : categoryFilter,
+                    pageIndex: currentPage,
+                    pageSize: itemsPerPage,
+                    sortByCategory: false,
+                    sortDescending: true,
+                });
+
+                const items = Array.isArray(result?.data) ? result.data : [];
+                setRequests(
+                    items.map((request) => ({
+                        id: request.id,
+                        title: request.title,
+                        description: request.description,
+                        category: request.categoryName,
+                        status: String(request.requestStatus || '').toLowerCase(),
+                        budgetMin: `EGP ${Number(request.budgetMin || 0).toLocaleString()}`,
+                        budgetMax: `EGP ${Number(request.budgetMax || 0).toLocaleString()}`,
+                        expectedDeadline: request.expectedDeadline
+                            ? new Date(request.expectedDeadline).toLocaleDateString()
+                            : '-',
+                        progress: request.progressPercentage || 0,
+                        createdAt: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : '-',
+                    })),
+                );
+                setTotalCount(result?.count || 0);
+            } catch (error) {
+                toast.error(error.message || 'Failed to load requests');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadPendingRequests();
+    }, [user?.token, searchQuery, categoryFilter, currentPage]);
+
+    const filteredRequests = requests;
+    const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
     const safeCurrentPage = Math.min(currentPage, totalPages);
-    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
-    const paginatedRequests = filteredRequests.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedRequests = requests;
 
-    const activeCount = requests.filter((request) => request.status === 'active').length;
-    const completedCount = requests.filter((request) => request.status === 'completed').length;
-    const pendingCount = requests.filter((request) => request.status === 'pending').length;
+    const pendingCount = totalCount;
 
     const handleSearchChange = (value) => {
         setSearchQuery(value);
@@ -168,11 +251,6 @@ export default function MyRequests() {
 
     const handleCategoryChange = (value) => {
         setCategoryFilter(value);
-        setCurrentPage(1);
-    };
-
-    const handleStatusChange = (value) => {
-        setStatusFilter(value);
         setCurrentPage(1);
     };
 
@@ -346,7 +424,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Active</p>
-                <p className="text-2xl font-bold text-slate-900">{activeCount}</p>
+                <p className="text-2xl font-bold text-slate-900">-</p>
               </div>
             </CardContent>
           </Card>
@@ -358,7 +436,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Completed</p>
-                <p className="text-2xl font-bold text-slate-900">{completedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">-</p>
               </div>
             </CardContent>
           </Card>
@@ -389,23 +467,15 @@ export default function MyRequests() {
                 </SelectTrigger>
                 <SelectContent>
                   {categoryOptions.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category === 'all' ? 'All Categories' : category}
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={statusFilter} onValueChange={handleStatusChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center rounded-md border border-amber-200 bg-amber-50 px-3 text-xs font-medium text-amber-700">
+                Showing pending requests only
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -446,10 +516,10 @@ export default function MyRequests() {
                 <div className="grid md:grid-cols-3 gap-4 mb-4">
                   <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
                     <p className="text-sm text-slate-600 mb-1">
-                      {request.vendor ? 'Vendor' : 'Proposals'}
+                      Proposals
                     </p>
                     <p className="font-medium text-slate-900">
-                      {request.vendor || `${request.proposals} proposals received`}
+                      Pending module will be integrated next
                     </p>
                   </div>
                   <div className="md:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3">
@@ -469,22 +539,10 @@ export default function MyRequests() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {request.status === 'pending' && request.proposals ? (<Link to={`/client/proposals/${request.id}`}>
-                      <Button size="sm" variant="default" className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]">
-                        <Eye className="w-4 h-4"/>
-                        View Proposals ({request.proposals})
-                      </Button>
-                    </Link>) : null}
                   <Button size="sm" variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50" onClick={() => setSelectedRequest(request)}>
                     <Eye className="w-4 h-4"/>
                     View My Request
                   </Button>
-                  {request.vendor && (<Link to="/client/chat">
-                      <Button size="sm" variant="outline" className="gap-2">
-                        <MessageSquare className="w-4 h-4"/>
-                        Chat
-                      </Button>
-                    </Link>)}
                 </div>
               </CardContent>
             </Card>))}

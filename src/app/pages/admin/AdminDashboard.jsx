@@ -40,8 +40,8 @@ export default function AdminDashboard() {
           <StatsCard title="Vendors" value="156" icon={UserCheck} iconColor="text-purple-600" iconBgColor="bg-purple-100"/>
           <StatsCard title="Requests" value="892" icon={Briefcase} iconColor="text-green-600" iconBgColor="bg-green-100"/>
           <StatsCard title="Active SLAs" value="234" icon={FileText} iconColor="text-orange-600" iconBgColor="bg-orange-100"/>
-          <StatsCard title="Revenue" value="$91,600" icon={DollarSign} iconColor="text-emerald-600" iconBgColor="bg-emerald-100"/>
-          <StatsCard title="Commission" value="$6,412" icon={TrendingUp} iconColor="text-cyan-600" iconBgColor="bg-cyan-100" trend={{ value: '8% this month', isPositive: true }}/>
+          <StatsCard title="Revenue" value="EGP 91,600" icon={DollarSign} iconColor="text-emerald-600" iconBgColor="bg-emerald-100"/>
+          <StatsCard title="Commission" value="EGP 6,412" icon={TrendingUp} iconColor="text-cyan-600" iconBgColor="bg-cyan-100" trend={{ value: '8% this month', isPositive: true }}/>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -57,8 +57,8 @@ export default function AdminDashboard() {
                   <YAxis stroke="#6b7280"/>
                   <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}/>
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue ($)"/>
-                  <Line type="monotone" dataKey="commission" stroke="#3b82f6" strokeWidth={2} name="Commission ($)"/>
+                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue (EGP)"/>
+                  <Line type="monotone" dataKey="commission" stroke="#3b82f6" strokeWidth={2} name="Commission (EGP)"/>
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>

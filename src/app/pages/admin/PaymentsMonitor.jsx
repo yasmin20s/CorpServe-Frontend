@@ -29,8 +29,8 @@ export default function PaymentsMonitor() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <StatsCard title="Total Revenue" value={`$${totalRevenue.toLocaleString()}`} icon={DollarSign} iconColor="text-green-600" iconBgColor="bg-green-100"/>
-          <StatsCard title="Total Commission" value={`$${totalCommission.toLocaleString()}`} icon={TrendingUp} iconColor="text-blue-600" iconBgColor="bg-blue-100"/>
+          <StatsCard title="Total Revenue" value={`EGP ${totalRevenue.toLocaleString()}`} icon={DollarSign} iconColor="text-green-600" iconBgColor="bg-green-100"/>
+          <StatsCard title="Total Commission" value={`EGP ${totalCommission.toLocaleString()}`} icon={TrendingUp} iconColor="text-blue-600" iconBgColor="bg-blue-100"/>
           <StatsCard title="Transactions" value={payments.length} icon={FileText} iconColor="text-purple-600" iconBgColor="bg-purple-100"/>
         </div>
 
@@ -58,8 +58,8 @@ export default function PaymentsMonitor() {
                       <td className="py-3 px-4 text-sm font-medium">{payment.request}</td>
                       <td className="py-3 px-4 text-sm">{payment.client}</td>
                       <td className="py-3 px-4 text-sm">{payment.vendor}</td>
-                      <td className="py-3 px-4 text-sm text-right">${payment.amount.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-sm text-right font-medium text-blue-600">${payment.commission}</td>
+                      <td className="py-3 px-4 text-sm text-right">EGP {payment.amount.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-sm text-right font-medium text-blue-600">EGP {payment.commission.toLocaleString()}</td>
                       <td className="py-3 px-4 text-center">
                         <Badge className={payment.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
                           {payment.status}

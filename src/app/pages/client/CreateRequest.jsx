@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card } from '../../components/ui/card';
@@ -7,8 +7,11 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, ChevronRight, FileText, X } from 'lucide-react';
+import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, ChevronRight, FileText, X, AlertTriangle } from 'lucide-react';
 import { toast } from '../../lib/toast';
+import { useAuth } from '../../hooks/useAuth';
+import { getCategoriesApi } from '../../services/categoriesApi';
+import { createRequestApi, generateRequestEstimateApi } from '../../services/requestsApi';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard size={20}/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle size={20}/> },
@@ -19,7 +22,9 @@ const menuItems = [
 
 export default function CreateRequest() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [isEstimating, setIsEstimating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -29,9 +34,33 @@ export default function CreateRequest() {
         deadline: '',
     });
     const [aiEstimate, setAiEstimate] = useState(null);
+    const [aiEstimateError, setAiEstimateError] = useState(null);
+    const [requestReviewWarning, setRequestReviewWarning] = useState(null);
     const [attachments, setAttachments] = useState([]);
+    const [categories, setCategories] = useState([]);
 
-    const categories = ['IT Support', 'Maintenance', 'Marketing', 'Cleaning', 'Security', 'Consulting', 'Design', 'Device Maintenance'];
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const data = await getCategoriesApi();
+                setCategories(Array.isArray(data) ? data : []);
+            } catch (error) {
+                toast.error(error.message || 'Failed to load categories');
+            }
+        };
+
+        loadCategories();
+    }, []);
+
+    useEffect(() => {
+        if (!aiEstimateError) return;
+        setAiEstimateError(null);
+    }, [formData.title, formData.description, formData.category, formData.budgetMin, formData.budgetMax, formData.deadline]);
+
+    useEffect(() => {
+        if (!requestReviewWarning) return;
+        setRequestReviewWarning(null);
+    }, [formData.title, formData.description, formData.category, formData.budgetMin, formData.budgetMax, formData.deadline]);
 
     const formatFileSize = (bytes) => {
         if (bytes < 1024) return `${bytes} B`;
@@ -64,50 +93,139 @@ export default function CreateRequest() {
         setAttachments((prev) => prev.filter((file) => !(file.name === targetFile.name && file.size === targetFile.size && file.lastModified === targetFile.lastModified)));
     };
 
-    // --- Logic الـ Estimation الحقيقي ---
-    const generateAIEstimate = () => {
+    const aiEstimateView = useMemo(() => {
+        if (!aiEstimate) return null;
+        const estimatedDate = new Date(aiEstimate.estimatedTime);
+        return {
+            cost: `EGP ${Number(aiEstimate.estimatedCost || 0).toLocaleString()}`,
+            time: Number.isNaN(estimatedDate.getTime()) ? '-' : estimatedDate.toLocaleDateString(),
+            confidence: aiEstimate.confidence ?? 0,
+        };
+    }, [aiEstimate]);
+
+    const generateAIEstimate = async () => {
         if (!formData.budgetMin || !formData.budgetMax || !formData.title) {
             toast.error('Please fill in Title and Budget first for accurate estimation');
             return;
         }
+        if (!formData.category) {
+            toast.error('Please select category first');
+            return;
+        }
+        if (!formData.deadline) {
+            toast.error('Please select deadline first');
+            return;
+        }
+        if (!user?.token) {
+            toast.error('Please login first');
+            return;
+        }
 
         setIsEstimating(true);
-
-        // محاكاة وقت تفكير الـ AI
-        setTimeout(() => {
-            const min = parseInt(formData.budgetMin);
-            const max = parseInt(formData.budgetMax);
-            
-            // حساب تكلفة تقديرية في نطاق الميزانية المدخلة
-            const estimatedMin = Math.floor(min + (max - min) * 0.2);
-            const estimatedMax = Math.floor(max - (max - min) * 0.1);
-            
-            // حساب الوقت بناءً على الكلمات المفتاحية في الوصف
-            let weeks = "1-2 weeks";
-            if (formData.description.length > 100 || formData.title.toLowerCase().includes('setup')) {
-                weeks = "3-4 weeks";
-            } else if (formData.category === 'Cleaning' || formData.category === 'Maintenance') {
-                weeks = "2-5 days";
-            }
-
-            // نسبة الثقة تتغير عشوائياً بين 85% لـ 98% لشكل أكثر واقعية
-            const confidence = Math.floor(Math.random() * (98 - 85 + 1) + 85);
-
-            setAiEstimate({
-                cost: `$${estimatedMin.toLocaleString()} - $${estimatedMax.toLocaleString()}`,
-                time: weeks,
-                confidence: confidence
+        setAiEstimateError(null);
+        try {
+            const estimate = await generateRequestEstimateApi({
+                title: formData.title.trim(),
+                description: formData.description.trim(),
+                categoryId: formData.category,
+                expectedDeadline: new Date(formData.deadline).toISOString(),
+                budgetMin: Number(formData.budgetMin),
+                budgetMax: Number(formData.budgetMax),
+                token: user.token,
             });
-
-            setIsEstimating(false);
+            setAiEstimate(estimate);
             toast.success('AI estimation updated based on your data');
-        }, 1200); 
+        } catch (error) {
+            const isUnauthorized = error?.status === 401;
+            const isForbidden = error?.status === 403;
+            const readableError = isUnauthorized
+                ? 'Your session appears to be expired. Please login again, then try generating the estimate.'
+                : isForbidden
+                    ? 'This action is allowed for client accounts only. Please login with a client account.'
+                    : error?.message || 'We could not generate an AI estimate. Please improve request details and try again.';
+            const errorTitle = isUnauthorized
+                ? 'Authentication required'
+                : isForbidden
+                    ? 'Access denied'
+                    : 'AI needs clearer request details';
+            setAiEstimate(null);
+            setAiEstimateError({
+                title: errorTitle,
+                message: readableError,
+                tone: isUnauthorized || isForbidden ? 'red' : 'amber',
+            });
+        } finally {
+            setIsEstimating(false);
+        }
     };
 
-    const handleSubmit = (e) => {
+    const isAiClarityError = (error) => {
+        const message = (error?.message || '').toLowerCase();
+        const title = (error?.payload?.title || '').toLowerCase();
+        const payloadErrors = error?.payload?.errors;
+
+        const hasUnclearRequestKeyInPayload = (() => {
+            if (!payloadErrors) return false;
+            if (Array.isArray(payloadErrors)) {
+                return payloadErrors.some((entry) => (entry?.key || '').toLowerCase().includes('ai.unclearrequest'));
+            }
+            if (typeof payloadErrors === 'object') {
+                return Object.keys(payloadErrors).some((key) => key.toLowerCase().includes('ai.unclearrequest'));
+            }
+            return false;
+        })();
+
+        return message.includes('ai needs clearer request details')
+            || message.includes('ai.unclearrequest')
+            || message.includes('cannot generate a realistic estimate')
+            || message.includes('please include:')
+            || message.includes('please add:')
+            || title.includes('ai.unclearrequest')
+            || hasUnclearRequestKeyInPayload;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        toast.success('Request created successfully!');
-        navigate('/client/my-requests');
+        if (!user?.token) {
+            toast.error('Please login first');
+            return;
+        }
+        if (!formData.category) {
+            toast.error('Please select a category');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setAiEstimateError(null);
+        setRequestReviewWarning(null);
+        try {
+            await createRequestApi({
+                title: formData.title.trim(),
+                description: formData.description.trim(),
+                categoryId: formData.category,
+                expectedDeadline: new Date(formData.deadline).toISOString(),
+                budgetMin: Number(formData.budgetMin),
+                budgetMax: Number(formData.budgetMax),
+                estimatedCost: aiEstimate?.estimatedCost,
+                estimatedTime: aiEstimate?.estimatedTime,
+                confidence: aiEstimate?.confidence,
+                attachments,
+                token: user.token,
+            });
+            toast.success('Request created successfully!');
+            navigate('/client/my-requests');
+        } catch (error) {
+            if (isAiClarityError(error)) {
+                setRequestReviewWarning({
+                    title: 'Request clarity review warning',
+                    message: error.message || 'Please add clearer details before submitting this request.',
+                });
+                return;
+            }
+            toast.error(error.message || 'Failed to create request');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -144,8 +262,10 @@ export default function CreateRequest() {
                                         className="bg-[#f1f3f7] border-none py-6 rounded-xl"
                                         value={formData.title} 
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                                        maxLength={200}
                                         required 
                                     />
+                                    <p className="text-xs text-slate-500">{formData.title.length}/200</p>
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
@@ -156,7 +276,7 @@ export default function CreateRequest() {
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl border-none shadow-lg">
-                                                {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                                {categories.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -168,14 +288,20 @@ export default function CreateRequest() {
 
                                 <div className="space-y-2">
                                     <Label className="text-[#1e293b] font-semibold">Description</Label>
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        Write 1-3 short sentences: what service you need, key tasks, and expected result.
+                                        Clear and specific descriptions help vendors understand your needs and provide accurate proposals.
+                                    </p>
                                     <Textarea 
-                                        placeholder="Provide detailed information..." 
+                                        placeholder="Example: What do you need? What are the key tasks? What is the expected result?" 
                                         rows={4} 
                                         className="bg-[#f1f3f7] border-none rounded-xl resize-none p-4"
                                         value={formData.description} 
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+                                        maxLength={500}
                                         required 
                                     />
+                                    <p className="text-xs text-slate-500">{formData.description.length}/500</p>
                                 </div>
 
                                 <div className="space-y-3 pt-2">
@@ -224,11 +350,11 @@ export default function CreateRequest() {
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Budget Range</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-gray-400 font-bold uppercase">Min ($)</Label>
+                                    <Label className="text-xs text-gray-400 font-bold uppercase">Min (EGP)</Label>
                                     <Input type="number" placeholder="e.g., 5000" className="bg-[#f1f3f7] border-none py-6 rounded-xl" value={formData.budgetMin} onChange={(e)=>setFormData({...formData, budgetMin: e.target.value})} required/>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-gray-400 font-bold uppercase">Max ($)</Label>
+                                    <Label className="text-xs text-gray-400 font-bold uppercase">Max (EGP)</Label>
                                     <Input type="number" placeholder="e.g., 10000" className="bg-[#f1f3f7] border-none py-6 rounded-xl" value={formData.budgetMax} onChange={(e)=>setFormData({...formData, budgetMax: e.target.value})} required/>
                                 </div>
                             </div>
@@ -251,23 +377,45 @@ export default function CreateRequest() {
                                 </Button>
                             </div>
 
-                            {aiEstimate ? (
+                            {aiEstimateError && (
+                                <div
+                                    className={`mb-5 rounded-xl p-4 ${
+                                        aiEstimateError.tone === 'red'
+                                            ? 'border border-red-300 bg-red-50 text-red-900'
+                                            : 'border border-amber-300 bg-amber-50 text-amber-900'
+                                    }`}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <AlertTriangle
+                                            className={`mt-0.5 h-5 w-5 shrink-0 ${
+                                                aiEstimateError.tone === 'red' ? 'text-red-600' : 'text-amber-600'
+                                            }`}
+                                        />
+                                        <div>
+                                            <p className="text-sm font-bold">{aiEstimateError.title}</p>
+                                            <p className="mt-1 text-sm leading-relaxed">{aiEstimateError.message}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {aiEstimateView ? (
                                 <div className="space-y-6 animate-in fade-in duration-700">
                                     <div className="flex justify-between items-end">
                                         <div className="space-y-1">
                                             <p className="text-xs text-gray-400 uppercase font-bold tracking-tight">Estimated Cost</p>
-                                            <p className="text-2xl font-bold text-[#1e293b]">{aiEstimate.cost}</p>
+                                            <p className="text-2xl font-bold text-[#1e293b]">{aiEstimateView.cost}</p>
                                         </div>
                                         <span className="text-sm font-bold text-[#6366f1] bg-white px-3 py-1 rounded-full shadow-sm">
-                                            {aiEstimate.confidence}% Confidence
+                                            {aiEstimateView.confidence}% Confidence
                                         </span>
                                     </div>
                                     <div className="space-y-2">
                                         <div className="w-full bg-white h-3 rounded-full overflow-hidden border border-indigo-50">
-                                            <div className="bg-[#6366f1] h-full rounded-full transition-all duration-1000" style={{ width: `${aiEstimate.confidence}%` }}></div>
+                                            <div className="bg-[#6366f1] h-full rounded-full transition-all duration-1000" style={{ width: `${aiEstimateView.confidence}%` }}></div>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 font-medium italic">Predicted Timeframe: {aiEstimate.time}</p>
+                                    <p className="text-xs text-gray-500 font-medium italic">Predicted completion date: {aiEstimateView.time}</p>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-6 text-center opacity-60">
@@ -277,13 +425,37 @@ export default function CreateRequest() {
                         </Card>
                     </div>
 
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                            <div>
+                                <p className="text-sm font-bold">Request clarity review before submission</p>
+                                <p className="mt-1 text-sm leading-relaxed">
+                                    On submit, this request will be reviewed by AI to ensure requirements are clear and actionable for vendors.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {requestReviewWarning && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                                <div>
+                                    <p className="text-sm font-bold">{requestReviewWarning.title}</p>
+                                    <p className="mt-1 text-sm leading-relaxed">{requestReviewWarning.message}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Bottom Actions */}
                     <div className="flex gap-4 justify-end items-center pt-4">
                         <Button type="button" variant="ghost" className="text-gray-400 hover:text-red-500 font-semibold" onClick={() => navigate('/client/dashboard')}>
                             Cancel
                         </Button>
-                        <Button type="submit" className="bg-[#6366f1] hover:bg-[#5558e6] text-white rounded-full px-12 py-7 shadow-xl shadow-indigo-100 font-bold text-lg transition-all transform hover:scale-[1.02]">
-                            Submit Request <ChevronRight size={20} className="ml-2"/>
+                        <Button type="submit" disabled={isSubmitting} className="bg-[#6366f1] hover:bg-[#5558e6] text-white rounded-full px-12 py-7 shadow-xl shadow-indigo-100 font-bold text-lg transition-all transform hover:scale-[1.02]">
+                            {isSubmitting ? 'Reviewing by AI...' : 'Submit Request'} {!isSubmitting && <ChevronRight size={20} className="ml-2"/>}
                         </Button>
                     </div>
 
