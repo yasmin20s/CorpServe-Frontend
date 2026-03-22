@@ -1,15 +1,87 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://localhost:7170').replace(/\/+$/, '');
+let inMemoryAccessToken = '';
+let refreshRequestPromise = null;
 
 function buildHeaders(token, extraHeaders = {}) {
   const headers = {
     ...extraHeaders,
   };
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  const authToken = inMemoryAccessToken || token;
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
   return headers;
+}
+
+export function setAccessToken(token) {
+  inMemoryAccessToken = typeof token === 'string' ? token : '';
+}
+
+export function clearAccessToken() {
+  inMemoryAccessToken = '';
+}
+
+function notifySessionExpired() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('corpserve:session-expired'));
+  }
+}
+
+function shouldTryTokenRefresh(path) {
+  const normalizedPath = String(path || '').toLowerCase();
+  return !(
+    normalizedPath.includes('/api/authentication/login') ||
+    normalizedPath.includes('/api/authentication/register') ||
+    normalizedPath.includes('/api/authentication/refresh-token') ||
+    normalizedPath.includes('/api/authentication/revoke-refresh-token') ||
+    normalizedPath.includes('/api/authentication/forgot-password') ||
+    normalizedPath.includes('/api/authentication/reset-password')
+  );
+}
+
+function readTokenFromPayload(payload) {
+  if (!payload || typeof payload !== 'object') return '';
+  const value = payload.token ?? payload.Token;
+  return typeof value === 'string' ? value : '';
+}
+
+async function refreshAccessToken() {
+  if (refreshRequestPromise) {
+    return refreshRequestPromise;
+  }
+
+  refreshRequestPromise = (async () => {
+    const response = await fetch(`${API_BASE_URL}/api/Authentication/refresh-token`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      clearAccessToken();
+      return false;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.toLowerCase().includes('json');
+    const payload = isJson ? await response.json() : null;
+    const token = readTokenFromPayload(payload);
+
+    if (!token) {
+      clearAccessToken();
+      return false;
+    }
+
+    setAccessToken(token);
+    return true;
+  })();
+
+  try {
+    return await refreshRequestPromise;
+  } finally {
+    refreshRequestPromise = null;
+  }
 }
 
 function normalizeProblemDetails(payload) {
@@ -86,11 +158,26 @@ export class ApiError extends Error {
 }
 
 export async function request(path, options = {}) {
-  const { token, headers: extraHeaders, ...rest } = options;
+  const { token, headers: extraHeaders, __retryAfterRefresh = false, ...rest } = options;
+  const isGetRequest = !rest.method || String(rest.method).toUpperCase() === 'GET';
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
+    cache: rest.cache ?? (isGetRequest ? 'no-store' : undefined),
+    credentials: rest.credentials ?? 'include',
     headers: buildHeaders(token, extraHeaders),
   });
+
+  if (response.status === 401 && !__retryAfterRefresh && shouldTryTokenRefresh(path)) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return request(path, {
+        ...options,
+        token: undefined,
+        __retryAfterRefresh: true,
+      });
+    }
+    notifySessionExpired();
+  }
 
   const contentType = response.headers.get('content-type') || '';
   const isJson = contentType.toLowerCase().includes('json');

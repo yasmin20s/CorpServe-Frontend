@@ -10,6 +10,18 @@ export function loginApi(payload) {
   });
 }
 
+export function refreshTokenApi() {
+  return request('/api/Authentication/refresh-token', {
+    method: 'POST',
+  });
+}
+
+export function revokeRefreshTokenApi() {
+  return request('/api/Authentication/revoke-refresh-token', {
+    method: 'POST',
+  });
+}
+
 export function registerApi(payload) {
   return request('/api/Authentication/register', {
     method: 'POST',

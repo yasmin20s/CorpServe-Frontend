@@ -19,109 +19,10 @@ const menuItems = [
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
 ];
-const initialRequests = [
-    {
-        id: '1',
-        title: 'IT Infrastructure Setup',
-        category: 'IT Support',
-    description: 'Set up core IT infrastructure including server racks, internal networking, and secure workstation provisioning for the new HQ floor.',
-        status: 'active',
-        vendor: 'TechPro Solutions',
-        proposals: null,
-    budget: 'EGP 7,200',
-    deadline: '2026-04-10',
-        progress: 65,
-        createdAt: '2026-02-15',
-    },
-    {
-        id: '2',
-        title: 'Office Cleaning Service',
-        category: 'Cleaning',
-        description: 'Daily and weekly cleaning operations for all office zones, with deep sanitation for meeting rooms and reception areas.',
-        status: 'completed',
-        vendor: 'CleanCo Services',
-      vendorRating: 4.9,
-      feedback: 'Excellent quality and always on time. The team was professional and responsive throughout the contract.',
-      paidBudget: 'EGP 2,850',
-      proposals: null,
-      budget: 'EGP 2,850',
-      deadline: '2026-02-20',
-        progress: 100,
-        createdAt: '2026-01-20',
-    },
-    {
-        id: '3',
-        title: 'Marketing Campaign Design',
-        category: 'Marketing',
-        description: 'Create a full-funnel campaign with social assets, paid ads creatives, and landing-page messaging for Q2 launch.',
-        status: 'active',
-        vendor: 'Creative Agency',
-        proposals: null,
-        budget: 'EGP 12,400',
-        deadline: '2026-04-18',
-        progress: 40,
-        createdAt: '2026-02-28',
-    },
-    {
-        id: '4',
-        title: 'Security System Installation',
-        category: 'Security',
-        description: 'Install access control, CCTV coverage, and real-time monitoring setup across all office entrances and key areas.',
-        status: 'pending',
-        vendor: null,
-        proposals: 3,
-        budgetMin: 'EGP 15,000',
-        budgetMax: 'EGP 20,000',
-        expectedDeadline: '2026-04-25',
-        progress: 0,
-        createdAt: '2026-03-01',
-    },
-    {
-        id: '5',
-        title: 'Website Redesign',
-        category: 'Design',
-        description: 'Redesign corporate website with updated branding, improved service pages, and mobile-first UX enhancements.',
-        status: 'pending',
-        vendor: null,
-        proposals: 5,
-        budgetMin: 'EGP 8,000',
-        budgetMax: 'EGP 12,000',
-        expectedDeadline: '2026-04-30',
-        progress: 0,
-        createdAt: '2026-03-03',
-    },
-    {
-        id: '6',
-        title: 'Reception Area Renovation',
-        category: 'Maintenance',
-        description: 'Upgrade flooring, repaint walls, and modernize reception lighting and furniture for a premium first impression.',
-        status: 'active',
-        vendor: 'BuildRight Works',
-        proposals: null,
-        budget: 'EGP 22,000',
-        deadline: '2026-05-08',
-        progress: 25,
-        createdAt: '2026-03-04',
-    },
-    {
-        id: '7',
-        title: 'Company Event Branding Pack',
-        category: 'Marketing',
-        description: 'Design complete branding kit for annual event including visuals, printed materials, and social teaser assets.',
-        status: 'pending',
-        vendor: null,
-        proposals: 2,
-        budgetMin: 'EGP 4,000',
-        budgetMax: 'EGP 6,000',
-        expectedDeadline: '2026-04-22',
-        progress: 0,
-        createdAt: '2026-03-07',
-    },
-];
 export default function MyRequests() {
     const itemsPerPage = 3;
     const { user } = useAuth();
-    const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [categoryOptions, setCategoryOptions] = useState([{ id: 'all', name: 'All Categories' }]);
@@ -228,6 +129,8 @@ export default function MyRequests() {
                 );
                 setTotalCount(result?.count || 0);
             } catch (error) {
+                setRequests([]);
+                setTotalCount(0);
                 toast.error(error.message || 'Failed to load requests');
             } finally {
                 setIsLoading(false);

@@ -1,9 +1,16 @@
-import { createContext, useMemo, useState } from 'react';
-import { forgotPasswordApi, loginApi, registerApi, resetPasswordApi } from '../services/authApi';
-import { ApiError } from '../services/apiClient';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  forgotPasswordApi,
+  loginApi,
+  refreshTokenApi,
+  registerApi,
+  resetPasswordApi,
+  revokeRefreshTokenApi,
+} from '../services/authApi';
+import { ApiError, clearAccessToken, setAccessToken } from '../services/apiClient';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
-const AUTH_STORAGE_KEY = 'corpserve-auth';
+const AUTH_STORAGE_KEY = 'corpserve-auth-profile';
 
 const initialUserState = {
   fullName: '',
@@ -23,7 +30,7 @@ function getAuthField(payload, camelKey, pascalKey) {
   return typeof value === 'string' ? value : '';
 }
 
-function normalizeLoginResponse(authResponse, fallbackEmail) {
+function normalizeAuthResponse(authResponse, fallbackEmail) {
   const fullName = getAuthField(authResponse, 'fullName', 'FullName');
   const email = getAuthField(authResponse, 'email', 'Email') || fallbackEmail;
   const role = getAuthField(authResponse, 'role', 'Role');
@@ -57,28 +64,26 @@ function parseVerificationStatus(raw) {
   return 0;
 }
 
-function readStoredAuth() {
+function readStoredAuthProfile() {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return initialUserState;
+    if (!raw) return null;
 
     const parsed = JSON.parse(raw);
-    if (!parsed?.token) return initialUserState;
+    if (!parsed || typeof parsed !== 'object') return null;
 
     return {
       fullName: parsed.fullName || '',
       email: parsed.email || '',
       role: toClientRole(parsed.role) || 'client',
-      token: parsed.token,
-      isAuthenticated: true,
     };
   } catch {
-    return initialUserState;
+    return null;
   }
 }
 
-function persistAuth(user) {
-  if (!user?.token) {
+function persistAuthProfile(user) {
+  if (!user?.isAuthenticated) {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     return;
   }
@@ -89,15 +94,98 @@ function persistAuth(user) {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
-      token: user.token,
     }),
   );
+}
+
+function buildAuthenticatedUser(authResponse, fallbackEmail = '', fallbackRole = 'client', fallbackName = '') {
+  const normalized = normalizeAuthResponse(authResponse, fallbackEmail);
+  if (!normalized.token) {
+    return null;
+  }
+
+  return {
+    fullName: normalized.fullName || fallbackName,
+    email: normalized.email || fallbackEmail,
+    role: toClientRole(normalized.role) || toClientRole(fallbackRole) || 'client',
+    token: normalized.token,
+    isAuthenticated: true,
+  };
 }
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => readStoredAuth());
+  const [user, setUser] = useState(initialUserState);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+
+  const clearAuthState = useCallback(() => {
+    clearAccessToken();
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setUser(initialUserState);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function bootstrapAuth() {
+      const storedProfile = readStoredAuthProfile();
+      if (!storedProfile) {
+        if (isMounted) {
+          setIsBootstrapping(false);
+        }
+        return;
+      }
+
+      try {
+        const authResponse = await refreshTokenApi();
+        const nextUser = buildAuthenticatedUser(
+          authResponse,
+          storedProfile.email,
+          storedProfile.role,
+          storedProfile.fullName,
+        );
+
+        if (!nextUser) {
+          if (isMounted) {
+            clearAuthState();
+          }
+          return;
+        }
+
+        setAccessToken(nextUser.token);
+        if (isMounted) {
+          setUser(nextUser);
+          persistAuthProfile(nextUser);
+        }
+      } catch {
+        if (isMounted) {
+          clearAuthState();
+        }
+      } finally {
+        if (isMounted) {
+          setIsBootstrapping(false);
+        }
+      }
+    }
+
+    bootstrapAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [clearAuthState]);
+
+  useEffect(() => {
+    function handleSessionExpired() {
+      clearAuthState();
+    }
+
+    window.addEventListener('corpserve:session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('corpserve:session-expired', handleSessionExpired);
+    };
+  }, [clearAuthState]);
 
   const updateAuthenticatedUser = (updates) => {
     setUser((prevUser) => {
@@ -110,7 +198,7 @@ export function AuthProvider({ children }) {
         ...(typeof updates === 'object' && updates ? updates : {}),
       };
 
-      persistAuth(nextUser);
+      persistAuthProfile(nextUser);
       return nextUser;
     });
   };
@@ -123,24 +211,17 @@ export function AuthProvider({ children }) {
         email: normalizedEmail,
         password,
       });
-      const normalized = normalizeLoginResponse(authResponse, normalizedEmail);
-      if (!normalized.token) {
+      const nextUser = buildAuthenticatedUser(authResponse, normalizedEmail);
+      if (!nextUser) {
         return { success: false, message: 'Login response is missing token. Please contact support.' };
       }
 
-      const nextUser = {
-        fullName: normalized.fullName,
-        email: normalized.email,
-        role: toClientRole(normalized.role) || 'client',
-        token: normalized.token,
-        isAuthenticated: true,
-      };
-
+      setAccessToken(nextUser.token);
       setUser(nextUser);
-      persistAuth(nextUser);
+      persistAuthProfile(nextUser);
 
-      let redirectTo = redirectPathForRole(normalized.role);
-      if (toClientRole(normalized.role) === 'vendor' && nextUser.token) {
+      let redirectTo = redirectPathForRole(nextUser.role);
+      if (toClientRole(nextUser.role) === 'vendor' && nextUser.token) {
         try {
           const verificationStatus = await getVendorVerificationStatusApi(nextUser.token);
           const statusCode = parseVerificationStatus(verificationStatus?.status);
@@ -156,7 +237,7 @@ export function AuthProvider({ children }) {
 
       return {
         success: true,
-        message: `Login successful! Welcome ${normalized.fullName || ''}`.trim(),
+        message: `Login successful! Welcome ${nextUser.fullName || ''}`.trim(),
         redirectTo,
       };
     } catch (error) {
@@ -178,17 +259,17 @@ export function AuthProvider({ children }) {
       });
 
       const normalizedRole = toClientRole(authResponse.role || role);
-      const nextUser = {
-        fullName: authResponse.fullName || fullName.trim(),
-        email: authResponse.email || email.trim(),
-        role: normalizedRole || 'client',
-        token: authResponse.token || '',
-        isAuthenticated: !!authResponse.token,
-      };
+      const nextUser = buildAuthenticatedUser(
+        authResponse,
+        email.trim(),
+        normalizedRole || 'client',
+        fullName.trim(),
+      );
 
-      if (nextUser.isAuthenticated) {
+      if (nextUser?.isAuthenticated) {
+        setAccessToken(nextUser.token);
         setUser(nextUser);
-        persistAuth(nextUser);
+        persistAuthProfile(nextUser);
       }
 
       return {
@@ -205,9 +286,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
-    setUser(initialUserState);
-    persistAuth(null);
+  const logout = async () => {
+    try {
+      await revokeRefreshTokenApi();
+    } catch {
+      // Always clear local auth state even if revoke fails.
+    }
+    clearAuthState();
   };
 
   const requestPasswordReset = async (email) => {
@@ -242,6 +327,7 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
+      isBootstrapping,
       login,
       signup,
       logout,
@@ -249,7 +335,7 @@ export function AuthProvider({ children }) {
       requestPasswordReset,
       resetPassword,
     }),
-    [user],
+    [isBootstrapping, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
