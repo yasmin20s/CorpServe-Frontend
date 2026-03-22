@@ -8,11 +8,11 @@ import { useAuth } from '../hooks/useAuth';
 
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const { logout, user, isBootstrapping } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
-  const displayName = user?.fullName?.trim() || 'John Doe';
+  const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
   return (<div className="min-h-screen bg-gray-50">
       {/* Top Navbar */}
       <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
@@ -88,7 +88,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                       <ShieldCheck className="h-3.5 w-3.5" />
                       <span>{roleLabel}</span>
                     </div>
-                    <span className="text-sm font-medium text-slate-800">{displayName}</span>
+                    {displayName && <span className="text-sm font-medium text-slate-800">{displayName}</span>}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
