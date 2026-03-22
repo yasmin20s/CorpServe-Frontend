@@ -246,7 +246,7 @@ export default function UserProfile() {
                   <Input
                     id="fullName"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
@@ -260,7 +260,7 @@ export default function UserProfile() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@company.com"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
@@ -274,7 +274,7 @@ export default function UserProfile() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="01xxxxxxxxx"
+                    placeholder="Enter your phone number"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
@@ -432,4 +432,3 @@ export default function UserProfile() {
     </DashboardLayout>
   );
 }
-
