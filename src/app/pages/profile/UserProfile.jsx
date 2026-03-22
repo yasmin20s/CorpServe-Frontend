@@ -297,7 +297,7 @@ export default function UserProfile() {
 
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Lock className="h-5 w-5 text-purple-600" />
+                <Lock className="h-5 w-5 text-purple-500" />
                 Change Password
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
