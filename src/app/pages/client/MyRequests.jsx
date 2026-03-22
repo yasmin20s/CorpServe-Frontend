@@ -36,6 +36,7 @@ export default function MyRequests() {
     const getDeadlineLabel = () => 'Expected Deadline';
     const getDeadlineValue = (request) => request.expectedDeadline || '-';
 
+    
     const getStatusBadge = (status) => {
         const variants = {
             pending: 'bg-amber-100 text-amber-700 border border-amber-200',
