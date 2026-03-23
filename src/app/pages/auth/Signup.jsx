@@ -169,12 +169,12 @@ export default function Signup() {
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-sm font-semibold text-slate-800 sm:text-base">
-                    {formData.role === 'vendor' ? 'Company Name' : 'Full Name'}
+                    {'Full Name'}
                   </Label>
                   <Input
                     id="fullName"
                     type="text"
-                    placeholder={formData.role === 'vendor' ? 'Company Name' : 'John Doe'}
+                    placeholder={'Your Full Name'}
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="h-11 rounded-xl border-slate-200 bg-white px-3.5 text-sm sm:text-base"

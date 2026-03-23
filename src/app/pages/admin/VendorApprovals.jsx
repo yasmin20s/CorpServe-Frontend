@@ -344,7 +344,7 @@ export default function VendorApprovals() {
                                 onClick={() => handleOpenDocument(doc.fileUrl)}
                                 disabled={!doc.fileUrl}
                               >
-                                Download
+                                View
                               </Button>
                             </div>
                           </div>))}

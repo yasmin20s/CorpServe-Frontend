@@ -255,7 +255,7 @@ export default function UserProfile() {
                 </div>
                 <div>
                   <Label htmlFor="email" className="font-medium text-gray-700">
-                    Email Address
+                      {role === "vendor" ? "Business Email" : "Email Address"}
                   </Label>
                   <Input
                     id="email"
