@@ -225,10 +225,11 @@ export function AuthProvider({ children }) {
         try {
           const verificationStatus = await getVendorVerificationStatusApi(nextUser.token);
           const statusCode = parseVerificationStatus(verificationStatus?.status);
-          if (statusCode === 1 || statusCode === 3) {
+          if (statusCode !== 2) {
             redirectTo = '/vendor-verification';
           }
         } catch (statusError) {
+          redirectTo = '/vendor-verification';
           if (statusError?.status !== 404) {
             console.warn('Vendor verification status check failed.', statusError);
           }

@@ -1,6 +1,7 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
+import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
 const ActiveRequests = lazy(() => import('../pages/client/ActiveRequests'));
 const ClientDashboard = lazy(() => import('../pages/client/ClientDashboard'));
@@ -47,6 +48,19 @@ function getDashboardPathForRole(role) {
   }
 }
 
+function parseVerificationStatus(raw) {
+  if (typeof raw === 'number') return raw;
+  if (typeof raw === 'string') {
+    const normalized = raw.trim().toLowerCase();
+    if (normalized === 'pending') return 1;
+    if (normalized === 'approved') return 2;
+    if (normalized === 'rejected') return 3;
+    const numeric = Number.parseInt(raw, 10);
+    if (!Number.isNaN(numeric)) return numeric;
+  }
+  return 0;
+}
+
 function RequireAuth() {
   const { user, isBootstrapping } = useAuth();
 
@@ -67,6 +81,59 @@ function RequireRole({ allowedRoles }) {
 
   if (!allowedRoles.includes(normalizedRole)) {
     return <Navigate to={getDashboardPathForRole(normalizedRole)} replace />;
+  }
+
+  return <Outlet />;
+}
+
+function RequireVendorApproval() {
+  const { user } = useAuth();
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [isApproved, setIsApproved] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkVendorStatus = async () => {
+      if (!user?.token || (user?.role || '').toLowerCase() !== 'vendor') {
+        if (isMounted) {
+          setIsApproved(false);
+          setIsCheckingStatus(false);
+        }
+        return;
+      }
+
+      setIsCheckingStatus(true);
+      try {
+        const verificationStatus = await getVendorVerificationStatusApi(user.token);
+        const statusCode = parseVerificationStatus(verificationStatus?.status);
+        if (isMounted) {
+          setIsApproved(statusCode === 2);
+        }
+      } catch {
+        if (isMounted) {
+          setIsApproved(false);
+        }
+      } finally {
+        if (isMounted) {
+          setIsCheckingStatus(false);
+        }
+      }
+    };
+
+    checkVendorStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.role, user?.token]);
+
+  if (isCheckingStatus) {
+    return null;
+  }
+
+  if (!isApproved) {
+    return <Navigate to="/vendor-verification" replace />;
   }
 
   return <Outlet />;
@@ -151,15 +218,17 @@ export default function AppRoutes() {
           </Route>
 
           <Route element={<RequireRole allowedRoles={['vendor']} />}>
-            <Route path="/vendor">
-              <Route path="dashboard" element={<VendorDashboard />} />
-              <Route path="available-requests" element={<AvailableRequests />} />
-              <Route path="active-requests" element={<VendorActiveRequests />} />
-              <Route path="completed" element={<Completed />} />
-              <Route path="analytics" element={<VendorAnalytics />} />
-              <Route path="notifications" element={<Notifications />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="profile" element={<UserProfile />} />
+            <Route element={<RequireVendorApproval />}>
+              <Route path="/vendor">
+                <Route path="dashboard" element={<VendorDashboard />} />
+                <Route path="available-requests" element={<AvailableRequests />} />
+                <Route path="active-requests" element={<VendorActiveRequests />} />
+                <Route path="completed" element={<Completed />} />
+                <Route path="analytics" element={<VendorAnalytics />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="profile" element={<UserProfile />} />
+              </Route>
             </Route>
           </Route>
 
