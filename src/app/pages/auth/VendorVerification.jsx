@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -38,7 +38,7 @@ function getCleanDisplayFileName(file) {
 
 export default function VendorVerification() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [organizationName, setOrganizationName] = useState('');
   const [status, setStatus] = useState('awaiting_documents');
@@ -46,6 +46,7 @@ export default function VendorVerification() {
   const [submittedCertificates, setSubmittedCertificates] = useState([]);
   const [showFirstApprovedAction, setShowFirstApprovedAction] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const approvedSeenKey = `vendor-approved-seen:${user?.email || 'unknown'}`;
 
@@ -188,6 +189,19 @@ export default function VendorVerification() {
     navigate('/vendor/dashboard');
   };
 
+  const handleGoToLogin = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch {
+      navigate('/login', { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-dvh bg-[#f4f5f8] px-4 pb-8 pt-5 sm:px-6 sm:pb-10 sm:pt-6 lg:px-8 lg:pb-12 lg:pt-5 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
@@ -198,13 +212,15 @@ export default function VendorVerification() {
           <h1 className="text-2xl font-black tracking-tight text-black sm:text-3xl">CorpServe</h1>
         </div>
 
-        <Link
-          to="/login"
+        <button
+          type="button"
+          onClick={handleGoToLogin}
+          disabled={isLoggingOut}
           className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-2 text-xs font-semibold text-violet-700 transition hover:bg-violet-200 sm:text-sm"
         >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          Go to Login
-        </Link>
+          {isLoggingOut ? 'Signing out...' : 'Go to Login'}
+        </button>
       </div>
 
       <div className="mx-auto mt-3 w-full max-w-[1080px] rounded-[1.4rem] bg-white p-2 sm:p-2.5 shadow-[0_24px_70px_rgba(14,20,50,0.08)] lg:mt-3 lg:p-3">
