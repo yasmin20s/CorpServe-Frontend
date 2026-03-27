@@ -3,7 +3,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Textarea } from '../../components/ui/textarea';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Eye, CheckCircle, X, File, Mail, CalendarDays, FolderOpen, Clock3, XCircle } from 'lucide-react';
 import { toast } from '../../lib/toast';
@@ -327,6 +327,9 @@ export default function VendorApprovals() {
                     <DialogContent className="border border-indigo-100">
                       <DialogHeader>
                         <DialogTitle>Vendor Documents - {vendor.organizationName}</DialogTitle>
+                        <DialogDescription>
+                          Review submitted verification documents for this vendor.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-3 py-4">
                         {vendor.documents.map((doc, idx) => (<div key={idx} className="rounded-lg border border-slate-200 p-4">
@@ -376,12 +379,13 @@ export default function VendorApprovals() {
                     <DialogContent className="border border-red-100">
                       <DialogHeader>
                         <DialogTitle>Reject Vendor - {vendor.organizationName}</DialogTitle>
+                        <DialogDescription>
+                          Add a rejection reason that will be sent to the vendor.
+                        </DialogDescription>
                       </DialogHeader>
 
                       <div className="space-y-3 py-2">
-                        <p className="text-sm text-slate-600">
-                          Add a rejection reason. This message will be shown to the vendor.
-                        </p>
+                        <p className="text-sm text-slate-600">This message will be shown to the vendor.</p>
                         <Textarea
                           value={rejectReasonDraft[vendor.id] || ''}
                           onChange={(e) =>
