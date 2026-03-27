@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -54,6 +54,7 @@ export default function Categories() {
     const [categories, setCategories] = useState([]);
     const [summary, setSummary] = useState({
         totalCategories: 0,
+        totalVendors: 0,
         averageRequests: 0,
         topCategoryName: '',
         topCategoryRequestCount: 0,
@@ -70,14 +71,8 @@ export default function Categories() {
     const [deletingCategory, setDeletingCategory] = useState(null);
     const [viewingCategory, setViewingCategory] = useState(null);
 
-    const totalVendors = categories.reduce((sum, category) => sum + category.vendorCount, 0);
-    const topCategory = useMemo(() => {
-        if (!categories.length) return null;
-        return categories.reduce((top, current) => (current.requestCount > top.requestCount ? current : top), categories[0]);
-    }, [categories]);
     const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
     const normalizedCurrentPage = Math.min(currentPage, totalPages);
-    const pageStartIndex = (normalizedCurrentPage - 1) * itemsPerPage;
     const paginatedCategories = categories;
 
     useEffect(() => {
@@ -100,6 +95,7 @@ export default function Categories() {
                 const categoryResult = response?.categories || {};
                 setSummary({
                     totalCategories: summaryData.totalCategories || 0,
+                    totalVendors: summaryData.totalVendors || 0,
                     averageRequests: summaryData.averageRequests || 0,
                     topCategoryName: summaryData.topCategoryName || '',
                     topCategoryRequestCount: summaryData.topCategoryRequestCount || 0,
@@ -392,7 +388,7 @@ export default function Categories() {
                             </div>
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Total Vendors</p>
-                                <p className="text-2xl font-bold text-slate-900">{totalVendors}</p>
+                                <p className="text-2xl font-bold text-slate-900">{summary.totalVendors}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -467,10 +463,12 @@ export default function Categories() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {paginatedCategories.map((category, index) => {
-                        const demandPercent = topCategory && topCategory.requestCount > 0
-                            ? Math.round((category.requestCount / topCategory.requestCount) * 100)
+                        const demandPercent = typeof category.demandMeter === 'number'
+                            ? category.demandMeter
                             : 0;
-                        const categoryRank = pageStartIndex + index + 1;
+                        const categoryRank = typeof category.demandRank === 'number'
+                            ? category.demandRank
+                            : ((normalizedCurrentPage - 1) * itemsPerPage) + index + 1;
 
                         return (
                             <Card
@@ -538,7 +536,7 @@ export default function Categories() {
                                         </Button>
                                     </div>
 
-                                    {topCategory && category.id === topCategory.id && (
+                                    {summary.topCategoryName && category.name === summary.topCategoryName && (
                                         <div className="relative mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
                                             <ArrowUpRight className="h-3.5 w-3.5" />
                                             Highest performing category this period
