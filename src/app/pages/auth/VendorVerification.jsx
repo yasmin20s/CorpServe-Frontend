@@ -129,7 +129,7 @@ export default function VendorVerification() {
 
     e.target.value = '';
   };
-
+ 
   const handleRemoveFile = (index) => {
     setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
     setStatus('awaiting_documents');
