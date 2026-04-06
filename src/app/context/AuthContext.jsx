@@ -288,12 +288,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    // Clear client auth state first for immediate route guard redirect.
+    clearAuthState();
     try {
       await revokeRefreshTokenApi();
     } catch {
-      // Always clear local auth state even if revoke fails.
+      // Local auth state is already cleared.
     }
-    clearAuthState();
   };
 
   const requestPasswordReset = async (email) => {

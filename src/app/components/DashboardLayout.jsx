@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router';
-import { Bell, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { Bell, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
@@ -8,18 +8,29 @@ import { useAuth } from '../hooks/useAuth';
 
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logout, user, isBootstrapping } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
-  return (<div className="min-h-screen bg-gray-50">
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    await logout();
+    navigate('/login', { replace: true });
+    setIsLoggingOut(false);
+  };
+
+  return (<div className="min-h-screen bg-slate-50">
       {/* Top Navbar */}
       <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
         <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#6f74ea] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">CS</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
+              <span className="text-sm font-bold text-white">CS</span>
             </div>
             <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-black">CorpServe</h1>
             <DropdownMenu>
@@ -92,26 +103,58 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent
+                align="end"
+                className="w-72 overflow-hidden rounded-2xl border border-indigo-100 bg-white/95 p-0 shadow-[0_20px_45px_rgba(79,70,229,0.18)] backdrop-blur supports-[backdrop-filter]:bg-white/90"
+                sideOffset={10}
+              >
+                <DropdownMenuLabel className="p-0">
+                  <div className="relative overflow-hidden px-3 py-2.5">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-100" />
+                    <div className="absolute -bottom-7 -right-6 h-16 w-16 rounded-full bg-violet-200/45 blur-xl" />
+                    <div className="relative flex items-center gap-2.5 text-slate-800">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-white/80 shadow-sm">
+                        <User className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600">My Account</p>
+                        <p className="truncate text-sm font-semibold">{displayName || 'CorpServe User'}</p>
+                        <div className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white/75 px-2 py-0.5 text-[10px] font-medium text-indigo-700">
+                          <ShieldCheck className="h-3 w-3" />
+                          <span>{roleLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {!isAdmin && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link to={`/${userRole}/profile`}>Profile Settings</Link>
+                      <Link
+                        to={`/${userRole}/profile`}
+                        className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 focus-visible:border-indigo-200 focus-visible:bg-indigo-50"
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                          <Settings className="h-4 w-4" />
+                        </span>
+                        <span>Profile Settings</span>
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link
-                    to="/login"
-                    className="flex w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50/70 px-2 py-1.5 text-slate-700 transition hover:bg-slate-100"
-                    onClick={logout}
+                  <button
+                    type="button"
+                    className="mx-2 mt-1 mb-2 flex w-auto items-center gap-2.5 rounded-xl border border-red-100 bg-red-50/70 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100/70 disabled:cursor-not-allowed disabled:opacity-70"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
                   >
-                    <LogOut className="h-4 w-4"/>
-                    Logout
-                  </Link>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                      <LogOut className="h-4 w-4"/>
+                    </span>
+                    <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -121,20 +164,43 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
 
       <div className="flex min-h-[calc(100vh-4rem)] pt-16">
         {/* Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} hidden md:block shrink-0 border-r border-gray-200 bg-white transition-all duration-300`}>
-          <nav className="sticky top-16 h-[calc(100vh-4rem)] space-y-1 overflow-y-auto p-4">
+        <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} hidden md:block shrink-0 border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff] transition-all duration-300`}>
+          <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-hidden">
+            <div className={`${isSidebarOpen ? 'mx-4 mt-4' : 'mx-3 mt-4'} rounded-2xl border border-indigo-100 bg-white/90 p-3 shadow-sm`}>
+              <div className={`flex items-center ${isSidebarOpen ? 'gap-2' : 'justify-center'}`}>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-sm font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)]">CS</div>
+                {isSidebarOpen && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600">Workspace</p>
+                    <p className="text-sm font-bold text-slate-900">CorpServe</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <nav className="mt-3 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
-              return (<Link key={item.path} to={item.path}>
-                  <div className={`flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-3 rounded-lg transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-50'}`}>
-                    {item.icon}
-                    {isSidebarOpen && <span className="font-medium">{item.label}</span>}
+              return (
+                <Link key={item.path} to={item.path}>
+                  <div
+                    className={`group relative flex items-center ${isSidebarOpen ? 'gap-3 px-3.5' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_10px_24px_rgba(79,70,229,0.28)]'
+                        : 'text-slate-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-violet-100 hover:shadow-sm'
+                    }`}
+                  >
+                    {!isActive && (
+                      <div className="pointer-events-none absolute inset-0 rounded-xl border border-transparent group-hover:border-indigo-100" />
+                    )}
+                    <span className={isActive ? 'text-white' : 'text-indigo-600'}>{item.icon}</span>
+                    {isSidebarOpen && <span className="font-semibold tracking-tight">{item.label}</span>}
                   </div>
-                </Link>);
+                </Link>
+              );
             })}
-          </nav>
+            </nav>
+          </div>
         </aside>
 
         {/* Main Content */}
