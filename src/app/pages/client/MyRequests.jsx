@@ -19,10 +19,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Search, Eye, ClipboardList, CheckCircle2, Clock3, Layers3, Type, Shapes, CircleDollarSign, User, Gauge, Star, MessageSquareText, Pencil, Trash2, Upload, FileText, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Search, Eye, ClipboardList, CheckCircle2, CalendarClock, Clock3, Layers3, Type, Shapes, CircleDollarSign, User, Gauge, Star, MessageSquareText, Pencil, Trash2, Upload, FileText, X } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { deleteRequestApi, getMyRequestsApi, updateRequestApi } from '../../services/requestsApi';
+import { getProposalCountApi } from '../../services/proposalsApi';
+import { useSignalREvent } from '../../context/SignalRContext';
+import { normalizeRequestDocuments, toAbsoluteFileUrl } from '../../lib/requestDocuments';
+import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
 
 function formatCurrency(value) {
   if (value == null || value === '') return '-';
@@ -31,51 +35,53 @@ function formatCurrency(value) {
   return `EGP ${numeric.toLocaleString()}`;
 }
 
-function toAbsoluteFileUrl(fileUrl) {
-  if (!fileUrl) return '';
-  if (String(fileUrl).startsWith('http')) return fileUrl;
-  const normalizedBase = (import.meta.env.VITE_API_BASE_URL || 'https://localhost:7170').replace(/\/+$/, '');
-  return `${normalizedBase}${String(fileUrl).startsWith('/') ? '' : '/'}${fileUrl}`;
-}
-
-function getDisplayFileName(fileLike, idx) {
-  const explicitName = fileLike?.fileName || fileLike?.name || fileLike?.title;
-  if (explicitName) return explicitName;
-  const sourceUrl = fileLike?.fileUrl || fileLike?.url || fileLike?.path;
-  if (!sourceUrl) return `Document ${idx + 1}`;
-  const rawName = sourceUrl.split('/').pop() || `Document ${idx + 1}`;
-  return decodeURIComponent(rawName).replace(/^[a-f0-9]{8}-[a-f0-9-]{27}_/i, '');
-}
-
-function normalizeRequestDocuments(request) {
-  const source = request?.attachments || request?.documents || request?.files || [];
-  if (!Array.isArray(source)) return [];
-
-  return source
-    .map((item, idx) => {
-      if (typeof item === 'string') {
-        return {
-          id: `${request?.id || 'request'}-doc-${idx}`,
-          name: getDisplayFileName({ fileUrl: item }, idx),
-          url: item,
-        };
-      }
-
-      const url = item?.fileUrl || item?.url || item?.path || '';
-      return {
-        id: item?.id || `${request?.id || 'request'}-doc-${idx}`,
-        name: getDisplayFileName(item, idx),
-        url,
-      };
-    })
-    .filter((doc) => Boolean(doc.url));
-}
-
 function toDateInputValue(value) {
   if (!value) return '';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '';
   return parsed.toISOString().slice(0, 10);
+}
+
+/** API nests AI fields under aiEstimation / AIEstimation (camelCase quirks possible). */
+/** Avoid showing raw HTTP codes like "status 409" in toasts. */
+function userFacingErrorMessage(error, fallback) {
+  const fb = fallback || 'Something went wrong. Please try again.';
+  let msg = typeof error?.message === 'string' ? error.message.trim() : '';
+  msg = msg.replace(/\s*\(status\s+\d+\)\s*$/i, '').trim();
+  msg = msg.replace(/\bstatus\s+\d+\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+  if (/^Request failed with status \d+\.?$/i.test(msg)) {
+    msg = '';
+  }
+  if (msg) return msg;
+  const status = error?.status;
+  if (status === 409) {
+    return 'This request can no longer be changed that way. It may already have proposals or be in progress.';
+  }
+  if (status === 404) return 'We could not find that request.';
+  if (status === 401 || status === 403) {
+    return 'You are not allowed to do this. Please sign in again if needed.';
+  }
+  if (status === 400) return 'Some of the information provided is not valid. Please check and try again.';
+  return fb;
+}
+
+function pickAiFieldsFromRequest(request) {
+  const ai =
+    request?.aiEstimation
+    ?? request?.aIEstimation
+    ?? request?.AIEstimation;
+  if (ai && typeof ai === 'object') {
+    return {
+      estimatedCost: ai.estimatedCost ?? ai.EstimatedCost,
+      estimatedTime: ai.estimatedTime ?? ai.EstimatedTime,
+      confidence: ai.confidence ?? ai.Confidence,
+    };
+  }
+  return {
+    estimatedCost: request?.estimatedCost ?? request?.EstimatedCost,
+    estimatedTime: request?.estimatedTime ?? request?.EstimatedTime,
+    confidence: request?.confidence ?? request?.Confidence,
+  };
 }
 
 const menuItems = [
@@ -95,6 +101,7 @@ export default function MyRequests() {
     const [categoryOptions, setCategoryOptions] = useState([{ id: 'all', name: 'All Categories' }]);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null);
@@ -110,6 +117,8 @@ export default function MyRequests() {
     const [deletingRequestId, setDeletingRequestId] = useState(null);
     const [requestPendingDelete, setRequestPendingDelete] = useState(null);
     const [editAttachments, setEditAttachments] = useState([]);
+    const [editAttachmentIdsToRemove, setEditAttachmentIdsToRemove] = useState([]);
+    const [statusSummary, setStatusSummary] = useState({ pending: 0, active: 0, completed: 0 });
 
     const getDeadlineLabel = () => 'Expected Deadline';
     const getDeadlineValue = (request) => request.expectedDeadline || '-';
@@ -124,6 +133,8 @@ export default function MyRequests() {
     const getStatusBadge = (status) => {
         const variants = {
             pending: 'bg-amber-100 text-amber-700 border border-amber-200',
+            active: 'bg-violet-100 text-violet-800 border border-violet-200',
+            completed: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
         };
         return variants[status] || variants.pending;
     };
@@ -144,7 +155,6 @@ export default function MyRequests() {
                 do {
                     const result = await getMyRequestsApi({
                         token: user.token,
-                        requestStatus: 1,
                         pageIndex,
                         pageSize,
                         sortByCategory: true,
@@ -166,14 +176,45 @@ export default function MyRequests() {
                 const requestCategories = Array.from(map.entries()).map(([id, name]) => ({ id, name }));
                 setCategoryOptions([{ id: 'all', name: 'All Categories' }, ...requestCategories]);
             } catch (error) {
-                toast.error(error.message || 'Failed to load request categories');
+                toast.error(userFacingErrorMessage(error, 'Failed to load request categories'));
             }
         };
 
         loadRequestBasedCategories();
     }, [user?.token]);
 
-    const loadPendingRequests = useCallback(async () => {
+    const loadStatusSummary = useCallback(async () => {
+      if (!user?.token) {
+        setStatusSummary({ pending: 0, active: 0, completed: 0 });
+        return;
+      }
+      const categoryId = categoryFilter === 'all' ? '' : categoryFilter;
+      const base = {
+        token: user.token,
+        search: searchQuery,
+        categoryId,
+        pageSize: 1,
+        pageIndex: 1,
+        sortByCategory: false,
+        sortDescending: true,
+      };
+      try {
+        const [pendingRes, activeRes, completedRes] = await Promise.all([
+          getMyRequestsApi({ ...base, requestStatus: 1 }),
+          getMyRequestsApi({ ...base, requestStatus: 2 }),
+          getMyRequestsApi({ ...base, requestStatus: 3 }),
+        ]);
+        setStatusSummary({
+          pending: pendingRes?.count ?? 0,
+          active: activeRes?.count ?? 0,
+          completed: completedRes?.count ?? 0,
+        });
+      } catch {
+        setStatusSummary({ pending: 0, active: 0, completed: 0 });
+      }
+    }, [user?.token, searchQuery, categoryFilter]);
+
+    const loadMyRequests = useCallback(async () => {
       if (!user?.token) {
         setRequests([]);
         setTotalCount(0);
@@ -183,11 +224,13 @@ export default function MyRequests() {
 
       setIsLoading(true);
       try {
+        const requestStatusParam =
+          statusFilter === 'pending' ? 1 : statusFilter === 'active' ? 2 : statusFilter === 'completed' ? 3 : undefined;
         const result = await getMyRequestsApi({
           token: user.token,
           search: searchQuery,
-          requestStatus: 1,
           categoryId: categoryFilter === 'all' ? '' : categoryFilter,
+          ...(requestStatusParam != null ? { requestStatus: requestStatusParam } : {}),
           pageIndex: currentPage,
           pageSize: itemsPerPage,
           sortByCategory: false,
@@ -195,8 +238,16 @@ export default function MyRequests() {
         });
 
         const items = Array.isArray(result?.data) ? result.data : [];
-        setRequests(
-          items.map((request) => ({
+        const mapped = items.map((request) => {
+          const fallbackCount = Number(
+            request.proposalCount
+            ?? request.proposalsCount
+            ?? request.numberOfProposals
+            ?? request.vendorProposalsCount
+            ?? (Array.isArray(request.proposals) ? request.proposals.length : 0),
+          );
+          const ai = pickAiFieldsFromRequest(request);
+          return {
             id: request.id,
             title: request.title,
             description: request.description,
@@ -212,42 +263,65 @@ export default function MyRequests() {
               : '-',
             rawExpectedDeadline: request.expectedDeadline || '',
             progress: request.progressPercentage || 0,
-            createdAt: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : '-',
-            aiEstimatedCost: formatCurrency(request.estimatedCost),
-            aiEstimatedDeadline: request.estimatedTime
-              ? new Date(request.estimatedTime).toLocaleDateString()
+            createdAt: formatRequestCreatedAtLabel(request.createdAt ?? request.CreatedAt),
+            aiEstimatedCost: formatCurrency(ai.estimatedCost),
+            aiEstimatedDeadline: ai.estimatedTime
+              ? new Date(ai.estimatedTime).toLocaleDateString()
               : '-',
-            aiConfidence: Number(request.confidence ?? 0),
-            proposalsCount: Number(
-              request.proposalCount
-              ?? request.proposalsCount
-              ?? request.numberOfProposals
-              ?? request.vendorProposalsCount
-              ?? (Array.isArray(request.proposals) ? request.proposals.length : 0),
-            ),
-            documents: normalizeRequestDocuments(request),
-          })),
+            aiConfidence: Number(ai.confidence ?? 0),
+            proposalsCount: Number.isFinite(fallbackCount) ? fallbackCount : 0,
+            documents: normalizeRequestDocuments(request, request.id),
+          };
+        });
+
+        const withProposalCounts = await Promise.all(
+          mapped.map(async (row) => {
+            if (row.status !== 'pending') {
+              return { ...row, proposalsCount: 0 };
+            }
+            try {
+              const raw = await getProposalCountApi({ requestId: row.id, token: user.token });
+              const n = typeof raw === 'number' ? raw : Number(raw);
+              if (Number.isFinite(n)) {
+                return { ...row, proposalsCount: n };
+              }
+            } catch {
+              /* keep fallback from list DTO */
+            }
+            return row;
+          }),
         );
+
+        setRequests(withProposalCounts);
         setTotalCount(result?.count || 0);
       } catch (error) {
         setRequests([]);
         setTotalCount(0);
-        toast.error(error.message || 'Failed to load requests');
+        toast.error(userFacingErrorMessage(error, 'Failed to load requests'));
       } finally {
         setIsLoading(false);
       }
-    }, [user?.token, searchQuery, categoryFilter, currentPage]);
+    }, [user?.token, searchQuery, categoryFilter, statusFilter, currentPage]);
 
     useEffect(() => {
-      loadPendingRequests();
-    }, [loadPendingRequests]);
+      loadMyRequests();
+    }, [loadMyRequests]);
+
+    useEffect(() => {
+      loadStatusSummary();
+    }, [loadStatusSummary]);
+
+    const refreshMyRequestsData = useCallback(async () => {
+      await loadMyRequests();
+      await loadStatusSummary();
+    }, [loadMyRequests, loadStatusSummary]);
+
+    useSignalREvent(['New proposal received', 'Request updated', 'Request deleted'], refreshMyRequestsData);
 
     const filteredRequests = requests;
     const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
     const safeCurrentPage = Math.min(currentPage, totalPages);
     const paginatedRequests = requests;
-
-    const pendingCount = totalCount;
 
     const handleSearchChange = (value) => {
         setSearchQuery(value);
@@ -257,6 +331,11 @@ export default function MyRequests() {
     const handleCategoryChange = (value) => {
         setCategoryFilter(value);
         setCurrentPage(1);
+    };
+
+    const handleStatusFilterChange = (value) => {
+      setStatusFilter(value);
+      setCurrentPage(1);
     };
 
     const editCategoryOptions = useMemo(
@@ -275,7 +354,11 @@ export default function MyRequests() {
         deadline: toDateInputValue(request.rawExpectedDeadline),
       });
       setEditAttachments([]);
+      setEditAttachmentIdsToRemove([]);
     };
+
+    const isLikelyServerAttachmentId = (docId) =>
+      Boolean(docId) && !/-doc-\d+$/.test(String(docId));
 
     const formatFileSize = (bytes) => {
       if (!Number.isFinite(bytes)) return '-';
@@ -338,16 +421,17 @@ export default function MyRequests() {
           budgetMin: min,
           budgetMax: max,
           attachments: editAttachments,
+          attachmentIdsToRemove: editAttachmentIdsToRemove,
           token: user.token,
         });
 
         toast.success('Request updated successfully');
         setEditingRequest(null);
         setEditAttachments([]);
-        await loadPendingRequests();
+        setEditAttachmentIdsToRemove([]);
+        await refreshMyRequestsData();
       } catch (error) {
-        const details = error?.status ? `${error.message} (status ${error.status})` : (error.message || 'Failed to update request');
-        toast.error(details);
+        toast.error(userFacingErrorMessage(error, 'Could not save your changes.'));
       } finally {
         setIsSavingEdit(false);
       }
@@ -365,10 +449,9 @@ export default function MyRequests() {
         toast.success('Request deleted successfully');
         setSelectedRequest((prev) => (prev?.id === request.id ? null : prev));
         setRequestPendingDelete((prev) => (prev?.id === request.id ? null : prev));
-        await loadPendingRequests();
+        await refreshMyRequestsData();
       } catch (error) {
-        const details = error?.status ? `${error.message} (status ${error.status})` : (error.message || 'Failed to delete request');
-        toast.error(details);
+        toast.error(userFacingErrorMessage(error, 'Could not delete this request.'));
       } finally {
         setDeletingRequestId(null);
       }
@@ -376,8 +459,11 @@ export default function MyRequests() {
 
     return (<DashboardLayout menuItems={menuItems} userRole="client">
       <Dialog open={Boolean(editingRequest)} onOpenChange={(open) => {
-          if (!open)
+          if (!open) {
               setEditingRequest(null);
+              setEditAttachments([]);
+              setEditAttachmentIdsToRemove([]);
+          }
       }}>
         <DialogContent className="max-h-[85dvh] overflow-x-hidden overflow-y-auto overscroll-contain border-violet-200/80 bg-gradient-to-br from-white/95 via-violet-50/85 to-blue-50/90 shadow-[0_24px_80px_-35px_rgba(76,29,149,0.65)] backdrop-blur-md sm:max-w-2xl" aria-describedby={undefined}>
           <DialogHeader>
@@ -450,6 +536,28 @@ export default function MyRequests() {
                 />
               </div>
 
+              {editingRequest && (
+                <div className="space-y-2 sm:col-span-2 rounded-xl border border-indigo-200/80 bg-gradient-to-br from-violet-50/90 to-indigo-50/80 p-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">AI estimation (reference)</p>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-slate-500">Est. budget</p>
+                      <p className="text-sm font-semibold text-slate-900">{editingRequest.aiEstimatedCost}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-slate-500">Est. deadline</p>
+                      <p className="text-sm font-semibold text-slate-900">{editingRequest.aiEstimatedDeadline}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-slate-500">Confidence</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {Number.isFinite(editingRequest.aiConfidence) ? `${editingRequest.aiConfidence}%` : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Uploaded Documents</p>
 
@@ -469,15 +577,48 @@ export default function MyRequests() {
                   </label>
                 </div>
 
-                {editingRequest?.documents?.length > 0 && (
+                {editAttachmentIdsToRemove.length > 0 && (
+                  <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Marked for removal (saved when you click Save)</p>
+                    {(editingRequest?.documents || []).filter((d) => editAttachmentIdsToRemove.includes(d.id)).map((doc, idx) => (
+                      <div key={`rm-${doc.id}`} className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-white/90 p-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="truncate text-sm text-slate-700 line-through opacity-80">{doc.name || `Document ${idx + 1}`}</p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="border-amber-300 text-amber-900 hover:bg-amber-100"
+                          onClick={() => setEditAttachmentIdsToRemove((prev) => prev.filter((id) => id !== doc.id))}
+                        >
+                          Undo
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {editingRequest?.documents?.filter((d) => !editAttachmentIdsToRemove.includes(d.id)).length > 0 && (
                   <div className="space-y-2 rounded-xl border border-indigo-200 bg-white/80 p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current Files</p>
-                    {editingRequest.documents.map((doc, idx) => (
+                    {editingRequest.documents.filter((d) => !editAttachmentIdsToRemove.includes(d.id)).map((doc, idx) => (
                       <div key={doc.id} className="flex flex-col gap-2 rounded-lg border border-indigo-100 bg-indigo-50/40 p-2 sm:flex-row sm:items-center sm:justify-between">
                         <p className="truncate text-sm text-slate-700">{doc.name || `Document ${idx + 1}`}</p>
-                        <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-700 hover:bg-indigo-100" onClick={() => openDocument(doc.url)}>
-                          View
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-700 hover:bg-indigo-100" onClick={() => openDocument(doc.url)}>
+                            View
+                          </Button>
+                          {isLikelyServerAttachmentId(doc.id) && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="border-red-200 text-red-700 hover:bg-red-50"
+                              onClick={() => setEditAttachmentIdsToRemove((prev) => (prev.includes(doc.id) ? prev : [...prev, doc.id]))}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -527,7 +668,8 @@ export default function MyRequests() {
             <div className="space-y-4 px-4 pb-5 pt-3 sm:px-6 sm:pb-6 animate-in fade-in zoom-in-95 duration-300">
               <div className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 p-4">
                 <h3 className="text-lg font-semibold text-slate-900">{selectedRequest.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">All details, uploaded documents, and AI estimate insights in one view.</p>
+                <p className="mt-1 text-sm text-slate-600">Posted {selectedRequest.createdAt}</p>
+                <p className="mt-2 text-xs text-slate-500">All details, uploaded documents, and AI estimate insights in one view.</p>
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -773,7 +915,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Total Requests</p>
-                <p className="text-2xl font-bold text-slate-900">{requests.length}</p>
+                <p className="text-2xl font-bold text-slate-900">{totalCount}</p>
               </div>
             </CardContent>
           </Card>
@@ -785,7 +927,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Active</p>
-                <p className="text-2xl font-bold text-slate-900">-</p>
+                <p className="text-2xl font-bold text-slate-900">{statusSummary.active}</p>
               </div>
             </CardContent>
           </Card>
@@ -797,7 +939,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Completed</p>
-                <p className="text-2xl font-bold text-slate-900">-</p>
+                <p className="text-2xl font-bold text-slate-900">{statusSummary.completed}</p>
               </div>
             </CardContent>
           </Card>
@@ -809,7 +951,7 @@ export default function MyRequests() {
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">Pending</p>
-                <p className="text-2xl font-bold text-slate-900">{pendingCount}</p>
+                <p className="text-2xl font-bold text-slate-900">{statusSummary.pending}</p>
               </div>
             </CardContent>
           </Card>
@@ -817,8 +959,8 @@ export default function MyRequests() {
 
         <Card className="border border-slate-200 bg-white/90 shadow-sm">
           <CardContent className="p-4">
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="relative md:col-span-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="relative lg:col-span-2">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400"/>
                 <Input placeholder="Search requests..." className="pl-10" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
               </div>
@@ -832,6 +974,17 @@ export default function MyRequests() {
                       {category.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -852,29 +1005,40 @@ export default function MyRequests() {
                         {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                       </Badge>
                     </div>
-                    <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 font-semibold text-indigo-700">
+                    <div className="mb-2 mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                      <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                         {request.category}
                       </span>
-                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-medium text-slate-600">
-                        Created {request.createdAt}
-                      </span>
                     </div>
+                    <p className="mb-3 inline-flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+                      <CalendarClock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      Posted {request.createdAt}
+                    </p>
                     <p className="text-sm leading-relaxed text-slate-600 line-clamp-2">{request.description}</p>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <button
-                    type="button"
-                    className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50 p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md"
-                    onClick={() => navigate(`/client/proposals/${request.id}`, { state: { request } })}
+                <div
+                  className={`grid gap-4 mb-4 ${request.status === 'pending' ? 'md:grid-cols-3' : 'md:grid-cols-1'}`}
+                >
+                  {request.status === 'pending' && (
+                    <button
+                      type="button"
+                      className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50 p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md"
+                      onClick={() => navigate(`/client/proposals/${request.id}`, { state: { request } })}
+                    >
+                      <p className="text-sm font-semibold text-violet-700 mb-1">Proposals</p>
+                      <p className="text-2xl font-black text-slate-900">{request.proposalsCount}</p>
+                      <p className="text-xs text-slate-600 mt-1">View vendor offers for this request</p>
+                    </button>
+                  )}
+                  <div
+                    className={
+                      request.status === 'pending'
+                        ? 'md:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3'
+                        : 'rounded-xl border border-indigo-100 bg-indigo-50/60 p-3'
+                    }
                   >
-                    <p className="text-sm font-semibold text-violet-700 mb-1">Proposals</p>
-                    <p className="text-2xl font-black text-slate-900">{request.proposalsCount}</p>
-                    <p className="text-xs text-slate-600 mt-1">View vendor offers for this request</p>
-                  </button>
-                  <div className="md:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-3">
                     <div className="flex items-center justify-between text-sm text-slate-700 mb-1">
                       <span className="flex items-center gap-1">
                         <Gauge className="h-4 w-4" />
@@ -895,7 +1059,14 @@ export default function MyRequests() {
                     <Eye className="w-4 h-4"/>
                     View Details
                   </Button>
-                  <Button size="sm" variant="outline" className="gap-2 border-violet-200 text-violet-700 hover:bg-violet-50" onClick={() => openEditDialog(request)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2 border-violet-200 text-violet-700 hover:bg-violet-50"
+                    onClick={() => openEditDialog(request)}
+                    disabled={request.status !== 'pending'}
+                    title={request.status !== 'pending' ? 'Only pending requests can be edited' : undefined}
+                  >
                     <Pencil className="w-4 h-4" />
                     Edit
                   </Button>
@@ -904,7 +1075,8 @@ export default function MyRequests() {
                     variant="outline"
                     className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
                     onClick={() => setRequestPendingDelete(request)}
-                    disabled={deletingRequestId === request.id}
+                    disabled={request.status !== 'pending' || deletingRequestId === request.id}
+                    title={request.status !== 'pending' ? 'Only pending requests can be deleted' : undefined}
                   >
                     <Trash2 className="w-4 h-4" />
                     {deletingRequestId === request.id ? 'Deleting...' : 'Delete'}

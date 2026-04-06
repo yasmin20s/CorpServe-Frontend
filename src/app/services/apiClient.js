@@ -23,6 +23,10 @@ export function clearAccessToken() {
   inMemoryAccessToken = '';
 }
 
+export function getAccessToken() {
+  return inMemoryAccessToken;
+}
+
 function notifySessionExpired() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('corpserve:session-expired'));

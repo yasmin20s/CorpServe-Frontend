@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -8,6 +8,7 @@ import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getApiBaseUrl } from '../../services/apiClient';
 import { getVendorVerificationStatusApi, submitVendorVerificationApi } from '../../services/vendorVerifyApi';
+import { useSignalREvent } from '../../context/SignalRContext';
 
 const REQUIRED_DOCS = ['Commercial Registration', 'Tax Card', 'Portfolio / Previous Work'];
 
@@ -60,46 +61,52 @@ export default function VendorVerification() {
     return 'Awaiting Documents to Upload';
   }, [status]);
 
-  useEffect(() => {
-    const loadStatus = async () => {
-      if (!user?.token) {
+  const loadVerificationStatus = useCallback(async () => {
+    if (!user?.token) {
+      return;
+    }
+
+    try {
+      const response = await getVendorVerificationStatusApi(user.token);
+      if (!response) {
         return;
       }
 
-      try {
-        const response = await getVendorVerificationStatusApi(user.token);
-        if (!response) {
-          return;
-        }
+      const parsedStatus = parseVerificationStatus(response.status);
+      const statusMap = {
+        1: 'pending',
+        2: 'approved',
+        3: 'rejected',
+      };
+      const mappedStatus = statusMap[parsedStatus] || 'awaiting_documents';
 
-        const parsedStatus = parseVerificationStatus(response.status);
-        const statusMap = {
-          1: 'pending',
-          2: 'approved',
-          3: 'rejected',
-        };
-        const mappedStatus = statusMap[parsedStatus] || 'awaiting_documents';
+      setOrganizationName(response.organizationName || '');
+      setStatus(mappedStatus);
+      setRejectReason(response.rejectReason || '');
+      setSubmittedCertificates(Array.isArray(response.certificates) ? response.certificates : []);
 
-        setOrganizationName(response.organizationName || '');
-        setStatus(mappedStatus);
-        setRejectReason(response.rejectReason || '');
-        setSubmittedCertificates(Array.isArray(response.certificates) ? response.certificates : []);
-
-        if (mappedStatus === 'approved') {
-          const seenApproved = localStorage.getItem(approvedSeenKey) === '1';
-          setShowFirstApprovedAction(!seenApproved);
-        } else {
-          setShowFirstApprovedAction(false);
-        }
-      } catch (error) {
-        if (error.status !== 404) {
-          toast.error(error.message || 'Failed to load verification status');
-        }
+      if (mappedStatus === 'approved') {
+        const seenApproved = localStorage.getItem(approvedSeenKey) === '1';
+        setShowFirstApprovedAction(!seenApproved);
+      } else {
+        setShowFirstApprovedAction(false);
       }
-    };
-
-    loadStatus();
+    } catch (error) {
+      if (error.status !== 404) {
+        toast.error(error.message || 'Failed to load verification status');
+      }
+    }
   }, [approvedSeenKey, user?.token]);
+
+  useEffect(() => {
+    loadVerificationStatus();
+  }, [loadVerificationStatus]);
+
+  const verificationRealtimeTitles = useMemo(
+    () => ['Verification approved', 'Verification rejected'],
+    [],
+  );
+  useSignalREvent(verificationRealtimeTitles, loadVerificationStatus);
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files || []);

@@ -45,7 +45,9 @@ export function createRequestApi({
     formData.append('confidence', String(confidence));
   }
 
-  (attachments || []).forEach((file) => formData.append('attachments', file));
+  (attachments || []).forEach((file) => {
+    formData.append('Attachments', file);
+  });
 
   return request('/api/Requests/create', {
     method: 'POST',
@@ -88,6 +90,7 @@ export function updateRequestApi({
   budgetMin,
   budgetMax,
   attachments,
+  attachmentIdsToRemove,
   token,
 }) {
   const formData = new FormData();
@@ -97,79 +100,25 @@ export function updateRequestApi({
   formData.append('expectedDeadline', expectedDeadline);
   formData.append('budgetMin', String(budgetMin));
   formData.append('budgetMax', String(budgetMax));
-  (attachments || []).forEach((file) => formData.append('attachments', file));
-
-  const jsonPayload = {
-    title,
-    description,
-    categoryId,
-    expectedDeadline,
-    budgetMin,
-    budgetMax,
-  };
-
-  const attempts = [
-    { path: `/api/Requests/${requestId}`, method: 'PUT', body: formData },
-    { path: `/api/Requests/update/${requestId}`, method: 'PUT', body: formData },
-    { path: `/api/Requests/update-request/${requestId}`, method: 'PUT', body: formData },
-    {
-      path: `/api/Requests/${requestId}`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jsonPayload),
-    },
-    {
-      path: `/api/Requests/update/${requestId}`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jsonPayload),
-    },
-  ];
-
-  let lastError = null;
-  for (const attempt of attempts) {
-    try {
-      return request(attempt.path, {
-        method: attempt.method,
-        token,
-        headers: attempt.headers,
-        body: attempt.body,
-      });
-    } catch (error) {
-      lastError = error;
-      const retryableStatuses = [404, 405, 415];
-      if (!retryableStatuses.includes(error?.status)) {
-        throw error;
-      }
+  (attachments || []).forEach((file) => {
+    formData.append('NewAttachments', file);
+  });
+  (attachmentIdsToRemove || []).forEach((id) => {
+    if (id != null && String(id).trim() !== '') {
+      formData.append('AttachmentIdsToRemove', String(id).trim());
     }
-  }
+  });
 
-  throw lastError;
+  return request(`/api/Requests/${requestId}`, {
+    method: 'PUT',
+    token,
+    body: formData,
+  });
 }
 
 export function deleteRequestApi({ requestId, token }) {
-  const attempts = [
-    { path: `/api/Requests/${requestId}`, method: 'DELETE' },
-    { path: `/api/Requests/delete/${requestId}`, method: 'DELETE' },
-    { path: `/api/Requests/remove/${requestId}`, method: 'DELETE' },
-    { path: `/api/Requests/delete/${requestId}`, method: 'POST' },
-  ];
-
-  let lastError = null;
-  for (const attempt of attempts) {
-    try {
-      return request(attempt.path, {
-        method: attempt.method,
-        token,
-      });
-    } catch (error) {
-      lastError = error;
-      const retryableStatuses = [404, 405];
-      if (!retryableStatuses.includes(error?.status)) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError;
+  return request(`/api/Requests/${requestId}`, {
+    method: 'DELETE',
+    token,
+  });
 }
