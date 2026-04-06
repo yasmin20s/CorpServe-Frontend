@@ -108,7 +108,7 @@ export default function Signup() {
 
         <div className="absolute inset-x-0 top-0 p-6 xl:p-8 [@media(max-height:820px)]:p-4">
           <div className="flex items-center gap-4 text-white">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6f74ea] text-xl font-black text-white shadow-md shadow-blue-900/30">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6f74ea] text-lg font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)] ring-1 ring-white/30">
               CS
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-black xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>

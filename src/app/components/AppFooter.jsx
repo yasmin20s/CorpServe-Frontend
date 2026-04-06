@@ -8,7 +8,7 @@ export default function AppFooter() {
         <div className="mb-7 grid gap-8 md:grid-cols-3">
           <div>
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#6f74ea]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
                 <span className="text-xl font-bold text-white">CS</span>
               </div>
               <h4 className="text-xl font-bold text-white">CorpServe</h4>

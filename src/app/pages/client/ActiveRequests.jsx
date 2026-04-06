@@ -95,7 +95,7 @@ export default function ActiveRequests() {
                         View SLA
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="sm:max-w-xl">
                       <DialogHeader>
                         <DialogTitle>Service Level Agreement</DialogTitle>
                       </DialogHeader>

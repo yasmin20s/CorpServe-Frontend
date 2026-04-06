@@ -206,7 +206,7 @@ export default function VendorVerification() {
     <div className="min-h-dvh bg-[#f4f5f8] px-4 pb-8 pt-5 sm:px-6 sm:pb-10 sm:pt-6 lg:px-8 lg:pb-12 lg:pt-5 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-300/30 bg-[#6f74ea] text-2xl font-black text-white shadow-[0_10px_28px_rgba(99,102,241,0.4)] sm:h-[52px] sm:w-[52px] sm:text-2xl">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#6f74ea] text-2xl font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)] sm:h-[52px] sm:w-[52px] sm:text-2xl">
             CS
           </div>
           <h1 className="text-2xl font-black tracking-tight text-black sm:text-3xl">CorpServe</h1>
