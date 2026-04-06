@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useMemo } from 'react';
+import { useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
@@ -6,15 +8,18 @@ import { Button } from '../../components/ui/button';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { Badge } from '../../components/ui/badge';
 import { Send, Paperclip } from 'lucide-react';
+import { useLocation } from 'react-router';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { useRoleFromPath } from '../../hooks/useRoleFromPath';
 
 export default function Chat() {
   const role = useRoleFromPath();
+  const location = useLocation();
   const menuItems = useDashboardMenu(role);
-    const [selectedChat, setSelectedChat] = useState(1);
-    const [message, setMessage] = useState('');
-    const conversations = [
+    const selectedCounterpartyName = location.state?.counterpartyName;
+    const selectedProject = location.state?.project;
+
+    const baseConversations = [
         {
             id: 1,
             name: 'TechPro Solutions',
@@ -43,6 +48,45 @@ export default function Chat() {
             avatar: 'SG',
         },
     ];
+
+    const conversations = useMemo(() => {
+      const normalizedName = typeof selectedCounterpartyName === 'string' ? selectedCounterpartyName.trim() : '';
+      if (!normalizedName) return baseConversations;
+
+      const existing = baseConversations.find((conversation) => conversation.name.toLowerCase() === normalizedName.toLowerCase());
+      if (existing) return baseConversations;
+
+      const fallbackAvatar = normalizedName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0].toUpperCase())
+        .join('')
+        .slice(0, 2) || 'NA';
+
+      return [
+        {
+          id: 999,
+          name: normalizedName,
+          project: selectedProject || 'Active Request Discussion',
+          lastMessage: 'Start chatting from the active request screen.',
+          time: 'Now',
+          unread: 0,
+          avatar: fallbackAvatar,
+        },
+        ...baseConversations,
+      ];
+    }, [selectedCounterpartyName, selectedProject]);
+
+    const selectedChatFromRoute = useMemo(() => {
+      const normalizedName = typeof selectedCounterpartyName === 'string' ? selectedCounterpartyName.trim() : '';
+      if (!normalizedName) return 1;
+      const targetConversation = conversations.find((conversation) => conversation.name.toLowerCase() === normalizedName.toLowerCase());
+      return targetConversation?.id || 1;
+    }, [conversations, selectedCounterpartyName]);
+
+    const [selectedChat, setSelectedChat] = useState(selectedChatFromRoute);
+    const [message, setMessage] = useState('');
     const messages = [
         { id: 1, sender: 'them', text: 'Hello! I\'ve started working on the server installation.', time: '9:00 AM' },
         { id: 2, sender: 'me', text: 'Great! Please keep me updated on the progress.', time: '9:15 AM' },
@@ -55,6 +99,11 @@ export default function Chat() {
             setMessage('');
         }
     };
+
+    useEffect(() => {
+      setSelectedChat(selectedChatFromRoute);
+    }, [selectedChatFromRoute]);
+
     return (<DashboardLayout menuItems={menuItems} userRole={role}>
       <div className="h-[calc(100vh-12rem)]">
         <div className="mb-6">

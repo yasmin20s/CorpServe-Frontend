@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -14,6 +14,7 @@ import {
   getPendingVendorVerificationsApi,
   rejectVendorVerificationApi,
 } from '../../services/adminVendorApi';
+import { useSignalREvent } from '../../context/SignalRContext';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -57,27 +58,33 @@ export default function VendorApprovals() {
   const [recentActions, setRecentActions] = useState([]);
   const actionTimeoutsRef = useRef([]);
 
-  useEffect(() => {
-    const loadPendingVerifications = async () => {
-      if (!user?.token) {
-        setVendorRequests([]);
-        setIsLoading(false);
-        return;
-      }
+  const loadPendingVerifications = useCallback(async () => {
+    if (!user?.token) {
+      setVendorRequests([]);
+      setIsLoading(false);
+      return;
+    }
 
-      setIsLoading(true);
-      try {
-        const response = await getPendingVendorVerificationsApi(user.token);
-        setVendorRequests(Array.isArray(response) ? response : []);
-      } catch (error) {
-        toast.error(error.message || 'Failed to load vendor approvals.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPendingVerifications();
+    setIsLoading(true);
+    try {
+      const response = await getPendingVendorVerificationsApi(user.token);
+      setVendorRequests(Array.isArray(response) ? response : []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to load vendor approvals.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [user?.token]);
+
+  useEffect(() => {
+    loadPendingVerifications();
+  }, [loadPendingVerifications]);
+
+  const adminVerificationRealtimeTitles = useMemo(
+    () => ['New vendor verification', 'Vendor verification queue updated'],
+    [],
+  );
+  useSignalREvent(adminVerificationRealtimeTitles, loadPendingVerifications);
 
   useEffect(() => {
     return () => {

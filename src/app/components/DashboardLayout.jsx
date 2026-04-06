@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Bell, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
 import { useAuth } from '../hooks/useAuth';
+import { getUnreadNotificationCountApi } from '../services/notificationsApi';
+import { useSignalREvent } from '../context/SignalRContext';
 
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
@@ -12,6 +14,18 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const { logout, user, isBootstrapping } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.token) return;
+    getUnreadNotificationCountApi({ token: user.token })
+      .then((result) => setUnreadCount(typeof result === 'number' ? result : (result?.data ?? 0)))
+      .catch(() => {});
+  }, [user?.token]);
+
+  useSignalREvent(null, useCallback(() => {
+    setUnreadCount((prev) => prev + 1);
+  }, []));
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
@@ -70,9 +84,11 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             <Link to={`/${userRole}/notifications`}>
               <Button variant="ghost" size="icon" className="relative h-9 w-9">
                 <Bell className="w-5 h-5"/>
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-red-500">
-                  3
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-red-500">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
             </Link>
 

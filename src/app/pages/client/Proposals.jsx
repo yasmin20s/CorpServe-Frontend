@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -7,6 +7,12 @@ import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, Star, CalendarDays, HandCoins, ShieldCheck, Sparkles, CircleAlert } from 'lucide-react';
 import { toast } from '../../lib/toast';
+import { useAuth } from '../../hooks/useAuth';
+import { getClientRequestProposalsApi, getProposalCountApi, clientAcceptProposalApi, clientRejectProposalApi } from '../../services/proposalsApi';
+import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
+import { useSignalREvent } from '../../context/SignalRContext';
+import { priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
+
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -14,152 +20,125 @@ const menuItems = [
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
 ];
-const vendorNamesPool = [
-  'SecureGuard Solutions',
-  'TotalSecurity Inc',
-  'SafetyFirst Systems',
-  'PrimeCore Services',
-  'BlueOrbit Technologies',
-  'Apex Facility Experts',
-  'NexusPro Works',
-  'UrbanShield Group',
-  'Delta Ops Services',
-  'Vertex Enterprise Care',
-];
-
-const dummyMessagesPool = [
-  'Our team can deliver this request with clear milestones, weekly updates, and documented QA checks.',
-  'We propose a structured rollout plan with risk mitigation and post-delivery support included.',
-  'This offer includes implementation, testing, and handover with detailed knowledge transfer.',
-  'We have completed similar requests for enterprise clients and can start immediately after approval.',
-  'Our proposal focuses on speed and reliability while keeping the scope aligned with your target outcome.',
-];
-
-  function normalizeVendorProposals(rawProposals = []) {
-    if (!Array.isArray(rawProposals)) return [];
-
-    return rawProposals.map((proposal, idx) => ({
-      id: String(proposal?.id || `vendor-${idx + 1}`),
-      vendorName: proposal?.vendorName || proposal?.vendor?.fullName || proposal?.vendor?.name || `Vendor ${idx + 1}`,
-      vendorRating: Number(proposal?.vendorRating ?? proposal?.vendor?.rating ?? 4.5),
-      vendorCompletedJobs: Number(proposal?.vendorCompletedJobs ?? proposal?.vendor?.completedJobs ?? 0),
-      proposedBudget: proposal?.proposedBudget || proposal?.budget || 'EGP 0',
-      proposedDeadline: proposal?.proposedDeadline || proposal?.deadline || '-',
-      message: proposal?.message || proposal?.proposalMessage || 'No details were provided by this vendor.',
-      estimatedDuration: proposal?.estimatedDuration || '-',
-    }));
-  }
-
-  function buildDummyProposals({
-    count,
-    requestTitle,
-    budgetMin,
-    budgetMax,
-  }) {
-    if (!count || count <= 0) return [];
-
-    const safeMin = Number.isFinite(budgetMin) && budgetMin > 0 ? budgetMin : 15000;
-    const safeMax = Number.isFinite(budgetMax) && budgetMax > safeMin ? budgetMax : safeMin + 5000;
-    const span = Math.max(1000, safeMax - safeMin);
-
-    return Array.from({ length: count }, (_, idx) => {
-      const vendorName = vendorNamesPool[idx % vendorNamesPool.length];
-      const waveOffset = ((idx % 5) - 2) * Math.round(span * 0.12);
-      const proposedBudgetValue = Math.max(1000, safeMin + Math.round(span * 0.55) + waveOffset);
-      const deadlineDate = new Date();
-      deadlineDate.setDate(deadlineDate.getDate() + 8 + (idx * 3));
-      const rating = Math.min(5, Math.max(3.8, 4.2 + ((idx % 4) * 0.15)));
-      const completedJobs = 40 + (idx * 17);
-      const messageTemplate = dummyMessagesPool[idx % dummyMessagesPool.length];
-
-      return {
-        id: `dummy-${idx + 1}`,
-        vendorName,
-        vendorRating: Number(rating.toFixed(1)),
-        vendorCompletedJobs: completedJobs,
-        proposedBudget: `EGP ${proposedBudgetValue.toLocaleString()}`,
-        proposedDeadline: deadlineDate.toLocaleDateString(),
-        message: `${messageTemplate} Request: ${requestTitle}.`,
-        estimatedDuration: `${2 + (idx % 4)} weeks`,
-      };
-    });
-  }
 
 export default function Proposals() {
     const { requestId } = useParams();
-  const location = useLocation();
-  const requestData = location.state?.request || null;
+    const location = useLocation();
+    const { user } = useAuth();
+    const requestData = location.state?.request || null;
     const itemsPerPage = 4;
     const [showSLA, setShowSLA] = useState(false);
+    const [slaData, setSlaData] = useState(null);
     const [selectedProposal, setSelectedProposal] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [proposals, setProposals] = useState([]);
+    const [proposalCount, setProposalCount] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(null);
 
-      const parseCurrencyValue = (value) => {
-        if (!value) return 0;
-        const numeric = Number(String(value).replace(/[^\d.]/g, ''));
-        return Number.isNaN(numeric) ? 0 : numeric;
-      };
+    const formatCurrency = (value) => `EGP ${Number(value || 0).toLocaleString()}`;
 
-      const formatCurrency = (value) => `EGP ${Number(value || 0).toLocaleString()}`;
+    const clientBudgetMin = Number(
+      requestData?.rawBudgetMin ?? requestData?.budgetMin ?? requestData?.BudgetMin ?? 0,
+    );
+    const clientBudgetMax = Number(
+      requestData?.rawBudgetMax ?? requestData?.budgetMax ?? requestData?.BudgetMax ?? 0,
+    );
+    const clientDeadline =
+      requestData?.rawExpectedDeadline ?? requestData?.expectedDeadline ?? requestData?.ExpectedDeadline ?? '';
+    const requestTitle = requestData?.title || `Request ${requestId}`;
 
-      const clientBudgetMin = parseCurrencyValue(requestData?.budgetMin) || 15000;
-      const clientBudgetMax = parseCurrencyValue(requestData?.budgetMax) || 20000;
-      const clientDeadline = requestData?.expectedDeadline || 'April 30, 2026';
-      const requestTitle = requestData?.title || `Request ${requestId}`;
+    const loadProposals = useCallback(async () => {
+      if (!user?.token || !requestId) return;
+      setIsLoading(true);
+      try {
+        const [proposalsResult, countResult] = await Promise.all([
+          getClientRequestProposalsApi({ requestId, token: user.token }),
+          getProposalCountApi({ requestId, token: user.token }),
+        ]);
 
-      const vendorProvidedProposals = useMemo(() => {
-        return normalizeVendorProposals(
-          requestData?.proposals
-          || requestData?.vendorProposals
-          || requestData?.offers
-          || [],
+        const items = Array.isArray(proposalsResult) ? proposalsResult : (proposalsResult?.data || []);
+        setProposals(items);
+        setProposalCount(typeof countResult === 'number' ? countResult : (countResult?.data ?? items.length));
+      } catch (error) {
+        toast.error(error.message || 'Failed to load proposals');
+        setProposals([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [user?.token, requestId]);
+
+    useEffect(() => {
+      loadProposals();
+    }, [loadProposals]);
+
+    useSignalREvent(['New proposal received', 'Proposal accepted', 'Proposal rejected'], loadProposals);
+
+    const visibleProposals = useMemo(
+      () =>
+        proposals.filter(
+          (p) => String(p.proposalStatus ?? p.ProposalStatus ?? '')
+            .toLowerCase() !== 'rejected',
+        ),
+      [proposals],
+    );
+
+    const enrichedProposals = useMemo(() => {
+      return visibleProposals.map((p, idx) => {
+        const price = Number(p.proposedPrice || 0);
+        const inClientRange = priceInClientBudgetRange(price, clientBudgetMin, clientBudgetMax);
+        const meetsClientDeadline = proposedDeliveryMeetsClientDeadline(
+          p.proposedDeadline ?? p.ProposedDeadline,
+          clientDeadline,
         );
-      }, [requestData]);
+        const alignsWithRequest = inClientRange && meetsClientDeadline;
+        return { ...p, inClientRange, meetsClientDeadline, alignsWithRequest, delay: idx * 70 };
+      });
+    }, [visibleProposals, clientBudgetMin, clientBudgetMax, clientDeadline]);
 
-      const declaredCount = Number(
-        requestData?.proposalsCount
-        ?? requestData?.proposalCount
-        ?? requestData?.numberOfProposals
-        ?? requestData?.vendorProposalsCount
-        ?? vendorProvidedProposals.length
-        ?? 0,
-      );
+    const proposalsInRange = enrichedProposals.filter((p) => p.inClientRange).length;
+    const proposalsFullMatch = enrichedProposals.filter((p) => p.alignsWithRequest).length;
+    const totalPages = Math.max(1, Math.ceil(enrichedProposals.length / itemsPerPage));
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+    const paginatedProposals = enrichedProposals.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
 
-      const proposalsSource = useMemo(() => {
-        if (vendorProvidedProposals.length > 0) return vendorProvidedProposals;
-        return buildDummyProposals({
-          count: Math.max(0, declaredCount || 6),
-          requestTitle,
-          budgetMin: clientBudgetMin,
-          budgetMax: clientBudgetMax,
-        });
-      }, [vendorProvidedProposals, declaredCount, requestTitle, clientBudgetMin, clientBudgetMax]);
-
-      const proposals = useMemo(() => {
-        return proposalsSource.map((proposal, idx) => {
-          const parsed = parseCurrencyValue(proposal.proposedBudget);
-          const inClientRange = parsed >= clientBudgetMin && parsed <= clientBudgetMax;
-          return {
-            ...proposal,
-            id: `${requestId || 'req'}-${proposal.id}`,
-            inClientRange,
-            delay: idx * 70,
-          };
-        });
-      }, [proposalsSource, requestId, clientBudgetMin, clientBudgetMax]);
-
-      const proposalsInRange = proposals.filter((proposal) => proposal.inClientRange).length;
-      const totalPages = Math.max(1, Math.ceil(proposals.length / itemsPerPage));
-      const safeCurrentPage = Math.min(currentPage, totalPages);
-      const paginatedProposals = proposals.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
-
-    const handleAccept = (proposal) => {
+    const handleAccept = async (proposal) => {
+      if (!user?.token || !proposal?.id) return;
+      setActionLoading(proposal.id);
+      try {
+        const result = await clientAcceptProposalApi({ proposalId: proposal.id, token: user.token });
+        setSlaData(result);
         setSelectedProposal(proposal);
         setShowSLA(true);
+        toast.success('Proposal accepted! SLA created.');
+        await loadProposals();
+      } catch (error) {
+        toast.error(error.message || 'Failed to accept proposal');
+      } finally {
+        setActionLoading(null);
+      }
     };
-    const handleReject = (vendorName) => {
-        toast.success(`Proposal from ${vendorName} rejected`);
+
+    const handleReject = async (proposal) => {
+      if (!user?.token || !proposal?.id) return;
+      setActionLoading(proposal.id);
+      try {
+        await clientRejectProposalApi({ proposalId: proposal.id, token: user.token });
+        toast.success(`Proposal from ${proposal.vendorName} rejected`);
+        await loadProposals();
+      } catch (error) {
+        toast.error(error.message || 'Failed to reject proposal');
+      } finally {
+        setActionLoading(null);
+      }
     };
+
+    const formatDeadline = (value) => {
+      if (!value) return '-';
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
+    };
+
     return (<DashboardLayout menuItems={menuItems} userRole="client">
       <div className="relative space-y-7 overflow-hidden">
         <style>{`
@@ -226,8 +205,9 @@ export default function Proposals() {
                 <h1 className="text-3xl font-black leading-tight text-indigo-950 md:text-4xl">Vendor Proposals for {requestTitle}</h1>
                 <p className="max-w-2xl text-sm text-indigo-900/75 md:text-base">Compare quality, budget fit, and delivery speed. Choose the strongest offer with confidence.</p>
                 <div className="flex flex-wrap items-center gap-2 pt-2">
-                  <Badge className="border border-blue-300 bg-white/80 text-blue-700">{proposals.length} Offers</Badge>
+                  <Badge className="border border-blue-300 bg-white/80 text-blue-700">{proposalCount} Offers</Badge>
                   <Badge className="border border-yellow-300 bg-yellow-50/90 text-yellow-700">{proposalsInRange} In Budget Range</Badge>
+                  <Badge className="border border-emerald-300 bg-emerald-50/90 text-emerald-800">{proposalsFullMatch} Full Match</Badge>
                 </div>
               </div>
             </div>
@@ -256,7 +236,7 @@ export default function Proposals() {
               </div>
               <p className="text-center text-xs font-semibold uppercase tracking-wide text-blue-700">Client Budget Window</p>
               <p className="mt-1 text-center text-lg font-black text-slate-900">{formatCurrency(clientBudgetMin)} - {formatCurrency(clientBudgetMax)}</p>
-              <p className="mt-3 text-center text-xs text-slate-600">Target deadline: <span className="font-bold text-violet-700">{clientDeadline}</span></p>
+              <p className="mt-3 text-center text-xs text-slate-600">Target deadline: <span className="font-bold text-violet-700">{formatDeadline(clientDeadline)}</span></p>
             </CardContent>
           </Card>
         </section>
@@ -271,13 +251,13 @@ export default function Proposals() {
           <Card className="proposal-lift-in border border-violet-200 bg-white/85 shadow-sm" style={{ '--enter-delay': '230ms' }}>
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-600">Deadline Target</p>
-              <p className="mt-1 text-xl font-black text-slate-900">{clientDeadline}</p>
+              <p className="mt-1 text-xl font-black text-slate-900">{formatDeadline(clientDeadline)}</p>
             </CardContent>
           </Card>
           <Card className="proposal-lift-in border border-yellow-300 bg-white/90 shadow-sm" style={{ '--enter-delay': '280ms' }}>
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-yellow-700">Coverage</p>
-              <p className="mt-1 text-xl font-black text-slate-900">{proposalsInRange} / {proposals.length}</p>
+              <p className="mt-1 text-xl font-black text-slate-900">{proposalsFullMatch} full match · {proposalsInRange} in budget</p>
             </CardContent>
           </Card>
         </section>
@@ -285,7 +265,14 @@ export default function Proposals() {
         <section className="relative pl-4 sm:pl-6">
           <div className="pointer-events-none absolute left-[7px] top-1 bottom-1 w-[2px] rounded-full bg-gradient-to-b from-blue-300 via-violet-300 to-yellow-300" style={{ animation: 'linePulse 2.6s ease-in-out infinite' }} />
           <div className="space-y-5">
-            {proposals.length === 0 && (
+            {isLoading && (
+              <Card className="ml-4 border border-indigo-100 bg-white/92">
+                <CardContent className="p-8 text-center">
+                  <p className="text-lg font-bold text-slate-800">Loading proposals...</p>
+                </CardContent>
+              </Card>
+            )}
+            {!isLoading && enrichedProposals.length === 0 && (
               <Card className="ml-4 border border-indigo-100 bg-white/92">
                 <CardContent className="p-8 text-center">
                   <p className="text-lg font-bold text-slate-800">No proposals received yet</p>
@@ -302,20 +289,25 @@ export default function Proposals() {
                       <div>
                         <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">{proposal.vendorName}</CardTitle>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 font-semibold text-amber-700">
-                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                            {proposal.vendorRating}
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
+                            {proposal.alignsWithRequest ? 'Accept' : (proposal.proposalType || proposal.ProposalType || 'Proposal')}
                           </span>
-                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">{proposal.vendorCompletedJobs} jobs completed</span>
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
+                            {proposal.proposalStatus}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-700">
                           <ShieldCheck className="mr-1 h-3.5 w-3.5" /> Verified
                         </Badge>
-                        {proposal.inClientRange ? (
+                        {proposal.alignsWithRequest ? (
+                          <Badge className="proposal-status-glow border border-emerald-200 bg-emerald-50 text-emerald-800">
+                            <ShieldCheck className="mr-1 h-3.5 w-3.5" /> Accept-class (budget + deadline)
+                          </Badge>
+                        ) : proposal.inClientRange ? (
                           <Badge className="proposal-status-glow border border-blue-200 bg-blue-50 text-blue-700">
-                            <HandCoins className="mr-1 h-3.5 w-3.5" /> In Client Range
+                            <HandCoins className="mr-1 h-3.5 w-3.5" /> In budget only
                           </Badge>
                         ) : (
                           <Badge className="border border-amber-200 bg-amber-50 text-amber-700">
@@ -330,30 +322,41 @@ export default function Proposals() {
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
                         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-blue-600">Vendor Price</p>
-                        <p className="mt-1 text-lg font-black text-slate-900">{proposal.proposedBudget}</p>
+                        <p className="mt-1 text-lg font-black text-slate-900">{formatCurrency(proposal.proposedPrice)}</p>
                       </div>
                       <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-3">
                         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-violet-600">Client Deadline</p>
-                        <p className="mt-1 text-sm font-bold text-slate-900">{clientDeadline}</p>
+                        <p className="mt-1 text-sm font-bold text-slate-900">{formatDeadline(clientDeadline)}</p>
                       </div>
                       <div className="rounded-xl border border-yellow-200 bg-yellow-50/70 p-3">
                         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-yellow-700">Vendor Delivery</p>
-                        <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900"><CalendarDays className="h-4 w-4" /> {proposal.proposedDeadline}</p>
+                        <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900"><CalendarDays className="h-4 w-4" /> {formatDeadline(proposal.proposedDeadline)}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 bg-white p-4">
-                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Proposal Message</p>
-                      <p className="mt-2 text-sm leading-relaxed text-slate-700">{proposal.message}</p>
-                    </div>
+                    {proposal.message && (
+                      <div className="rounded-xl border border-slate-200 bg-white p-4">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Proposal Message</p>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-700">{proposal.message}</p>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <Button onClick={() => handleAccept(proposal)} className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]">
+                      <Button
+                        onClick={() => handleAccept(proposal)}
+                        className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]"
+                        disabled={actionLoading === proposal.id}
+                      >
                         <CheckCircle className="w-4 h-4"/>
-                        Accept
+                        {actionLoading === proposal.id ? 'Processing...' : 'Accept'}
                       </Button>
 
-                      <Button variant="outline" className="gap-2 border-red-200 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleReject(proposal.vendorName)}>
+                      <Button
+                        variant="outline"
+                        className="gap-2 border-red-200 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleReject(proposal)}
+                        disabled={actionLoading === proposal.id}
+                      >
                         <X className="w-4 h-4"/>
                         Reject
                       </Button>
@@ -364,7 +367,7 @@ export default function Proposals() {
             ))}
           </div>
 
-          {proposals.length > itemsPerPage && (
+          {enrichedProposals.length > itemsPerPage && (
             <div className="ml-4 mt-4 flex flex-col gap-3 rounded-xl border border-indigo-100 bg-white/90 p-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-600">Page {safeCurrentPage} of {totalPages}</p>
               <div className="flex flex-wrap items-center gap-2">
@@ -411,19 +414,27 @@ export default function Proposals() {
               <div className="grid md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-600">Client</p>
-                  <p className="font-medium">Acme Corporation</p>
+                  <p className="font-medium">{slaData?.clientName || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Vendor</p>
-                  <p className="font-medium">{selectedProposal?.vendorName}</p>
+                  <p className="font-medium">{slaData?.vendorName || selectedProposal?.vendorName || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Budget</p>
-                  <p className="font-medium">{selectedProposal?.proposedBudget}</p>
+                  <p className="text-sm text-gray-600">Contract Price</p>
+                  <p className="font-medium">{slaData ? formatCurrency(slaData.contractPrice) : '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Deadline</p>
-                  <p className="font-medium">{selectedProposal?.proposedDeadline}</p>
+                  <p className="font-medium">{slaData ? formatDeadline(slaData.deadline) : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">SLA Status</p>
+                  <p className="font-medium">{resolveSlaDialogStatus(slaData)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Warning Level</p>
+                  <p className="font-medium">{slaData?.warningLevel || '-'}</p>
                 </div>
               </div>
 
@@ -439,14 +450,8 @@ export default function Proposals() {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={() => {
-            setShowSLA(false);
-            toast.success('SLA accepted! Request is now active.');
-        }} className="flex-1">
-                  Accept SLA
-                </Button>
-                <Button variant="outline" onClick={() => setShowSLA(false)}>
-                  Cancel
+                <Button onClick={() => setShowSLA(false)} className="flex-1">
+                  Close
                 </Button>
               </div>
             </div>
@@ -455,4 +460,3 @@ export default function Proposals() {
       </div>
     </DashboardLayout>);
 }
-
