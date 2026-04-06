@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, Star, CalendarDays, HandCoins, ShieldCheck, Sparkles, CircleAlert } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, Star, CalendarClock, CalendarDays, HandCoins, ShieldCheck, Sparkles, CircleAlert } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getClientRequestProposalsApi, getProposalCountApi, clientAcceptProposalApi, clientRejectProposalApi } from '../../services/proposalsApi';
 import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { useSignalREvent } from '../../context/SignalRContext';
-import { priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
+import { pickProposalCreatedAt, priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
+import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
 
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -296,6 +297,10 @@ export default function Proposals() {
                             {proposal.proposalStatus}
                           </span>
                         </div>
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+                          <CalendarClock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          Created from {formatRequestCreatedAtLabel(pickProposalCreatedAt(proposal))}
+                        </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-700">

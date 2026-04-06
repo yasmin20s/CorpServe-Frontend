@@ -43,3 +43,10 @@ export function pickVendorRequestCreatedAt(req) {
   const v = req?.createdAt ?? req?.CreatedAt;
   return v == null ? '' : String(v).trim();
 }
+
+/** Proposal list/detail: camelCase or PascalCase; raw ISO string if API sends DateTime JSON. */
+export function pickProposalCreatedAt(proposal) {
+  const v = proposal?.createdAt ?? proposal?.CreatedAt;
+  if (v == null) return '';
+  return String(v).trim();
+}
