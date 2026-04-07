@@ -50,6 +50,11 @@ export default function Payments() {
       [historyPayments],
     );
 
+    const completedHistoryPayments = useMemo(
+      () => historyPayments.filter((item) => (item.paymentStatus || '').toLowerCase() === 'completed'),
+      [historyPayments],
+    );
+
     const handlePayment = async (payment) => {
       if (!user?.token) return;
       setLoadingId(payment.requestId);
@@ -110,7 +115,7 @@ export default function Payments() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Transactions</p>
-                  <p className="text-3xl font-bold text-gray-900">{historyPayments.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">{completedHistoryPayments.length}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <Wallet className="w-6 h-6 text-green-600"/>
@@ -174,7 +179,7 @@ export default function Payments() {
                   </tr>
                 </thead>
                 <tbody>
-                  {historyPayments.map((transaction) => (<tr key={transaction.paymentId} className="border-b border-gray-100 hover:bg-gray-50">
+                  {completedHistoryPayments.map((transaction) => (<tr key={transaction.paymentId} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 text-sm">{transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : '-'}</td>
                       <td className="py-3 px-4 text-sm font-medium">{transaction.requestTitle || `Request ${transaction.requestId}`}</td>
                       <td className="py-3 px-4 text-sm">{transaction.payoutStatus}</td>
