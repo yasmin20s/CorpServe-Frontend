@@ -38,7 +38,9 @@ export default function VendorPayments() {
     };
   }, [user?.token]);
 
-  useSignalREvent(['Vendor payout available', 'Payment completed'], () => {
+  useSignalREvent(
+    ['Vendor payout available', 'Vendor payout settled', 'Payment completed', 'Payment failed', 'Payout settled', 'Payout failed'],
+    () => {
     if (user?.token) {
       getVendorReceivablesApi({ token: user.token })
         .then(setPayments)

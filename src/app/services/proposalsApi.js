@@ -83,6 +83,22 @@ export function normalizeSlaContractDto(raw) {
   };
 }
 
+function normalizeVendorCompletedItem(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  return {
+    id: String(pick(raw, 'requestId', 'RequestId') ?? ''),
+    requestId: String(pick(raw, 'requestId', 'RequestId') ?? ''),
+    title: String(pick(raw, 'title', 'Title') ?? ''),
+    client: String(pick(raw, 'clientName', 'ClientName') ?? ''),
+    amount: Number(pick(raw, 'amount', 'Amount') ?? 0),
+    completedDate: pick(raw, 'completedAt', 'CompletedAt') ?? '',
+    rating: Number(pick(raw, 'rating', 'Rating') ?? 0),
+    feedback: String(pick(raw, 'feedback', 'Feedback') ?? ''),
+    paymentStatus: String(pick(raw, 'paymentStatus', 'PaymentStatus') ?? ''),
+    payoutStatus: String(pick(raw, 'payoutStatus', 'PayoutStatus') ?? ''),
+  };
+}
+
 function normalizePaginatedActiveRequestsPayload(payload) {
   if (!payload || typeof payload !== 'object') {
     return { data: [], count: 0 };
@@ -183,6 +199,12 @@ export async function getVendorActiveRequestsApi({ token, slaLabel, taskState, s
 
   const raw = await request(`/api/Proposals/vendor-active-requests?${query.toString()}`, { method: 'GET', token });
   return normalizePaginatedActiveRequestsPayload(raw);
+}
+
+export async function getVendorCompletedRequestsApi({ token }) {
+  const raw = await request('/api/Proposals/vendor-completed-requests', { method: 'GET', token });
+  if (!Array.isArray(raw)) return [];
+  return raw.map(normalizeVendorCompletedItem).filter(Boolean);
 }
 
 // --- SLA endpoints ---
