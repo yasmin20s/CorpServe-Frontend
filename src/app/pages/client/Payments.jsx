@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, DollarSign, CreditCard } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Textarea } from '../../components/ui/textarea';
+import { Label } from '../../components/ui/label';
+import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, DollarSign, CreditCard, Star } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
-import { getMyPaymentHistoryApi, getMyPendingPaymentsApi, startCheckoutApi } from '../../services/paymentsApi';
+import { getMyPaymentHistoryApi, getMyPendingPaymentsApi, startCheckoutApi, getPendingRatingsApi, submitRatingApi } from '../../services/paymentsApi';
+import { useSignalREvent } from '../../context/SignalRContext';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -16,10 +21,17 @@ const menuItems = [
 ];
 export default function Payments() {
     const { user } = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [pendingPayments, setPendingPayments] = useState([]);
     const [historyPayments, setHistoryPayments] = useState([]);
     const [loadingId, setLoadingId] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [ratingModalOpen, setRatingModalOpen] = useState(false);
+    const [ratingTarget, setRatingTarget] = useState(null);
+    const [stars, setStars] = useState(0);
+    const [comment, setComment] = useState('');
+    const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
     const loadPayments = async () => {
       if (!user?.token) return;
@@ -41,6 +53,34 @@ export default function Payments() {
     useEffect(() => {
       loadPayments();
     }, [user?.token]);
+
+    useSignalREvent(['Payment due', 'Payment completed', 'Payment failed'], () => {
+      loadPayments();
+    });
+
+    useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const result = (params.get('payment_result') || '').toLowerCase();
+      if (result !== 'success' || !user?.token) return;
+
+      let cancelled = false;
+      (async () => {
+        await loadPayments();
+        const pendingRatings = await getPendingRatingsApi({ token: user.token });
+        if (!cancelled && pendingRatings.length > 0) {
+          setRatingTarget(pendingRatings[0]);
+          setRatingModalOpen(true);
+        }
+        if (!cancelled) {
+          params.delete('payment_result');
+          navigate(`${location.pathname}${params.toString() ? `?${params.toString()}` : ''}`, { replace: true });
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [location.search, user?.token]);
 
     const totalSpent = useMemo(
       () =>
@@ -142,7 +182,7 @@ export default function Payments() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-1">{payment.requestTitle || `Request ${payment.requestId}`}</h4>
-                        <p className="text-sm text-gray-600">Merchant Ref: {payment.merchantOrderId}</p>
+                        <p className="text-sm text-gray-600">Invoice Number: INV-{payment.requestId}</p>
                         <p className="text-sm text-gray-600">Created: {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}</p>
                       </div>
                       <div className="text-right">
@@ -199,6 +239,65 @@ export default function Payments() {
             </div>
           </CardContent>
         </Card>
+        <Dialog open={ratingModalOpen} onOpenChange={setRatingModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rate Vendor Service</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-lg border p-3 bg-gray-50">
+                <p className="text-sm text-gray-700 font-medium">{ratingTarget?.requestTitle || 'Completed request'}</p>
+                <p className="text-xs text-gray-500">Vendor: {ratingTarget?.vendorName || '-'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Rating (1-5)</Label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button key={value} type="button" onClick={() => setStars(value)} className="focus:outline-none">
+                      <Star className={`h-7 w-7 ${value <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Comment (Optional)</Label>
+                <Textarea
+                  rows={4}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share optional feedback about the vendor"
+                />
+              </div>
+              <Button
+                disabled={stars < 1 || ratingSubmitting || !ratingTarget?.requestId}
+                onClick={async () => {
+                  if (!user?.token || !ratingTarget?.requestId) return;
+                  setRatingSubmitting(true);
+                  try {
+                    await submitRatingApi({
+                      requestId: ratingTarget.requestId,
+                      stars,
+                      comment,
+                      token: user.token,
+                    });
+                    toast.success('Rating submitted successfully.');
+                    setRatingModalOpen(false);
+                    setRatingTarget(null);
+                    setStars(0);
+                    setComment('');
+                  } catch (error) {
+                    toast.error(error.message || 'Failed to submit rating');
+                  } finally {
+                    setRatingSubmitting(false);
+                  }
+                }}
+                className="w-full"
+              >
+                {ratingSubmitting ? 'Submitting...' : 'Submit Rating'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         {isLoading && <p className="text-sm text-gray-500">Loading payments...</p>}
       </div>
     </DashboardLayout>);

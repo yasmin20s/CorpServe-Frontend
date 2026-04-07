@@ -198,8 +198,8 @@ export default function AppRoutes() {
             </PublicOnlyRoute>
           }
         />
-        <Route path="/payment-success" element={<Navigate to="/client/payments" replace />} />
-        <Route path="/payment-failure" element={<Navigate to="/client/payments" replace />} />
+        <Route path="/payment-success" element={<Navigate to="/client/payments?payment_result=success" replace />} />
+        <Route path="/payment-failure" element={<Navigate to="/client/payments?payment_result=failure" replace />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole allowedRoles={['vendor']} />}>

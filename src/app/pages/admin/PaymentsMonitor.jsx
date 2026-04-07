@@ -8,6 +8,7 @@ import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, Us
 import { useAuth } from '../../hooks/useAuth';
 import { getAdminPaymentsApi, markPayoutPaidApi } from '../../services/paymentsApi';
 import { toast } from '../../lib/toast';
+import { useSignalREvent } from '../../context/SignalRContext';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -36,6 +37,10 @@ export default function PaymentsMonitor() {
     useEffect(() => {
       loadPayments();
     }, [user?.token]);
+
+    useSignalREvent(['Admin commission recorded', 'Payment completed'], () => {
+      loadPayments();
+    });
 
     const totalRevenue = useMemo(
       () => payments.reduce((sum, p) => sum + Number(p.amount || 0), 0),
