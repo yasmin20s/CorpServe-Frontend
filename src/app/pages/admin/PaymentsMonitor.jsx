@@ -38,7 +38,7 @@ export default function PaymentsMonitor() {
       loadPayments();
     }, [user?.token]);
 
-    useSignalREvent(['Admin commission recorded', 'Payment completed'], () => {
+    useSignalREvent(['Admin commission recorded', 'Payment completed', 'Payment failed', 'Payout settled', 'Payout failed'], () => {
       loadPayments();
     });
 
