@@ -12,6 +12,8 @@ import { getMyNotificationsApi, getUnreadNotificationCountApi, markNotificationR
 import { useSignalREvent } from '../../context/SignalRContext';
 
 const ITEMS_PER_PAGE = 10;
+/** Keep in sync with backend `NotificationCleanupBackgroundService` retention. */
+const NOTIFICATION_RETENTION_DAYS = 3;
 
 const iconByType = {
   Info: { icon: Bell, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -35,6 +37,14 @@ function formatTime(dateString) {
   return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
 }
 
+function getNotificationId(n) {
+  return n?.id ?? n?.Id ?? '';
+}
+
+function notificationCreatedAt(n) {
+  return n?.createdAt ?? n?.CreatedAt ?? '';
+}
+
 export default function Notifications() {
   const role = useRoleFromPath();
   const menuItems = useDashboardMenu(role);
@@ -56,7 +66,11 @@ export default function Notifications() {
       const items = Array.isArray(notifResult?.data) ? notifResult.data : [];
       setNotifications(items);
       setTotalCount(notifResult?.count || 0);
-      setUnreadCount(typeof countResult === 'number' ? countResult : (countResult?.data ?? 0));
+      const unread = typeof countResult === 'number' ? countResult : (countResult?.data ?? 0);
+      setUnreadCount(unread);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('corpserve:notification-unread-sync', { detail: unread }));
+      }
     } catch (error) {
       toast.error(error.message || 'Failed to load notifications');
     } finally {
@@ -68,17 +82,47 @@ export default function Notifications() {
     loadNotifications();
   }, [loadNotifications]);
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalCount, currentPage, totalPages]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && user?.token) {
+        loadNotifications();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [user?.token, loadNotifications]);
+
   useSignalREvent(null, useCallback((notification) => {
     setNotifications((prev) => [notification, ...prev]);
-    setUnreadCount((prev) => prev + 1);
+    setUnreadCount((prev) => {
+      const next = prev + 1;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('corpserve:notification-unread-sync', { detail: next }));
+      }
+      return next;
+    });
   }, []));
 
-  const handleMarkRead = async (notificationId) => {
+  const handleMarkRead = async (id) => {
     if (!user?.token) return;
     try {
-      await markNotificationReadApi({ notificationId, token: user.token });
-      setNotifications((prev) => prev.map((n) => n.id === notificationId ? { ...n, isRead: true } : n));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      await markNotificationReadApi({ notificationId: id, token: user.token });
+      setNotifications((prev) => prev.map((n) => (getNotificationId(n) === id ? { ...n, isRead: true } : n)));
+      setUnreadCount((prev) => {
+        const next = Math.max(0, prev - 1);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('corpserve:notification-unread-sync', { detail: next }));
+        }
+        return next;
+      });
     } catch (error) {
       toast.error(error.message || 'Failed to mark as read');
     }
@@ -90,13 +134,15 @@ export default function Notifications() {
       await markAllNotificationsReadApi({ token: user.token });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('corpserve:notification-unread-sync', { detail: 0 }));
+      }
       toast.success('All notifications marked as read');
     } catch (error) {
       toast.error(error.message || 'Failed to mark all as read');
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   return (
@@ -106,6 +152,9 @@ export default function Notifications() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
             <p className="text-gray-600">Stay updated with all your activities ({unreadCount} unread)</p>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Notifications older than {NOTIFICATION_RETENTION_DAYS} days are removed automatically.
+            </p>
           </div>
           <Button variant="outline" onClick={handleMarkAllRead} disabled={unreadCount === 0}>
             Mark All as Read
@@ -125,19 +174,25 @@ export default function Notifications() {
             <Card className="bg-white">
               <CardContent className="p-8 text-center">
                 <Bell className="mx-auto mb-3 h-8 w-8 text-slate-400" />
-                <p className="font-medium text-slate-700">No notifications yet</p>
-                <p className="text-sm text-slate-500">You'll see updates about your requests, proposals, and SLA here.</p>
+                <p className="font-medium text-slate-700">No notifications to show</p>
+                <p className="text-sm text-slate-500">
+                  You&apos;ll see updates about your requests, proposals, and SLA here. Items older than{' '}
+                  {NOTIFICATION_RETENTION_DAYS} days are cleared from this list.
+                </p>
               </CardContent>
             </Card>
           )}
           {notifications.map((notification) => {
-            const typeInfo = iconByType[notification.type] || iconByType.Info;
+            const nid = getNotificationId(notification);
+            const isRead = Boolean(notification.isRead ?? notification.IsRead);
+            const typeKey = notification.type ?? notification.Type ?? 'Info';
+            const typeInfo = iconByType[typeKey] || iconByType.Info;
             const Icon = typeInfo.icon;
             return (
               <Card
-                key={notification.id}
-                className={notification.isRead ? 'bg-white' : 'bg-blue-50 border-blue-200 cursor-pointer'}
-                onClick={() => !notification.isRead && handleMarkRead(notification.id)}
+                key={nid || notification.title}
+                className={isRead ? 'bg-white' : 'bg-blue-50 border-blue-200 cursor-pointer'}
+                onClick={() => !isRead && nid && handleMarkRead(nid)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
@@ -146,11 +201,11 @@ export default function Notifications() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                        {!notification.isRead && (<Badge className="bg-blue-600 text-white">New</Badge>)}
+                        <h3 className="font-semibold text-gray-900">{notification.title ?? notification.Title}</h3>
+                        {!isRead && (<Badge className="bg-blue-600 text-white">New</Badge>)}
                       </div>
-                      <p className="text-gray-600 mb-2">{notification.message}</p>
-                      <p className="text-sm text-gray-500">{formatTime(notification.createdAt)}</p>
+                      <p className="text-gray-600 mb-2">{notification.message ?? notification.Message}</p>
+                      <p className="text-sm text-gray-500">{formatTime(notificationCreatedAt(notification))}</p>
                     </div>
                   </div>
                 </CardContent>

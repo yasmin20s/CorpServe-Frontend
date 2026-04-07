@@ -21,7 +21,17 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
     getUnreadNotificationCountApi({ token: user.token })
       .then((result) => setUnreadCount(typeof result === 'number' ? result : (result?.data ?? 0)))
       .catch(() => {});
-  }, [user?.token]);
+  }, [user?.token, location.pathname]);
+
+  useEffect(() => {
+    const onSync = (e) => {
+      if (typeof e.detail === 'number' && Number.isFinite(e.detail)) {
+        setUnreadCount(Math.max(0, e.detail));
+      }
+    };
+    window.addEventListener('corpserve:notification-unread-sync', onSync);
+    return () => window.removeEventListener('corpserve:notification-unread-sync', onSync);
+  }, []);
 
   useSignalREvent(null, useCallback(() => {
     setUnreadCount((prev) => prev + 1);
