@@ -122,13 +122,18 @@ function ExpandableToast({ variant, title, message, details, durationMs, onClose
 
 function showToast(variant, message, options = {}) {
   const durationMs = options.duration ?? 6500;
+  const displayMessage =
+    (message != null && String(message).trim() !== '' ? message : null) ??
+    (options.description != null && String(options.description).trim() !== ''
+      ? options.description
+      : '');
 
   return sonnerToast.custom(
     (toastRef) => (
       <ExpandableToast
         variant={variant}
         title={options.title}
-        message={message}
+        message={displayMessage}
         details={options.details}
         durationMs={durationMs}
         onClose={() => sonnerToast.dismiss(toastRef.id)}

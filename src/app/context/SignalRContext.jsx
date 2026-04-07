@@ -6,6 +6,67 @@ import { toast } from '../lib/toast';
 
 const SignalRContext = createContext(null);
 
+/** In-app SLA risk titles — prefer warning toast even if payload type is loose */
+const SLA_WARN_TOAST_TITLES = new Set([
+  'SLA deadline warning',
+  'SLA delayed',
+  'SLA blocked',
+]);
+
+function showNotificationToast(notification) {
+  const title = notification?.title?.trim() || 'Notification';
+  const body = notification?.message?.trim() || '';
+  const opts = { title };
+
+  if (!notification?.title && !body) return;
+
+  const rawType = notification?.type;
+  let variant = 'info';
+
+  if (SLA_WARN_TOAST_TITLES.has(title)) {
+    variant = 'warning';
+  } else {
+    if (typeof rawType === 'number') {
+      switch (rawType) {
+        case 2:
+          variant = 'success';
+          break;
+        case 3:
+          variant = 'warning';
+          break;
+        case 4:
+          variant = 'error';
+          break;
+        case 1:
+        default:
+          variant = 'info';
+          break;
+      }
+    } else {
+      const typeStr = String(rawType ?? 'Info').toLowerCase();
+      if (typeStr === 'success') variant = 'success';
+      else if (typeStr === 'warning') variant = 'warning';
+      else if (typeStr === 'error') variant = 'error';
+      else variant = 'info';
+    }
+  }
+
+  switch (variant) {
+    case 'success':
+      toast.success(body, opts);
+      break;
+    case 'warning':
+      toast.warning(body, opts);
+      break;
+    case 'error':
+      toast.error(body, opts);
+      break;
+    default:
+      toast.info(body, opts);
+      break;
+  }
+}
+
 export function SignalRProvider({ children }) {
   const { user } = useAuth();
   const listenersRef = useRef(new Set());
@@ -29,9 +90,7 @@ export function SignalRProvider({ children }) {
         } catch { /* subscriber error */ }
       }
 
-      if (notification?.title) {
-        toast.info(notification.title, { description: notification.message });
-      }
+      showNotificationToast(notification);
     };
 
     subscribe(handler);
