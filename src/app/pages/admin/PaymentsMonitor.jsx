@@ -1,8 +1,13 @@
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import StatsCard from '../../components/StatsCard';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { getAdminPaymentsApi, markPayoutPaidApi } from '../../services/paymentsApi';
+import { toast } from '../../lib/toast';
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -13,14 +18,52 @@ const menuItems = [
     { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5"/> },
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
-const payments = [
-    { id: '1', date: '2026-03-01', request: 'Office Cleaning', client: 'Acme Corp', vendor: 'CleanCo', amount: 2800, commission: 196, status: 'completed' },
-    { id: '2', date: '2026-02-28', request: 'Website Redesign', client: 'StartupXYZ', vendor: 'Creative Studio', amount: 11200, commission: 784, status: 'completed' },
-    { id: '3', date: '2026-02-25', request: 'IT Support', client: 'BizCo', vendor: 'TechPro', amount: 5400, commission: 378, status: 'pending' },
-];
 export default function PaymentsMonitor() {
-    const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalCommission = payments.reduce((sum, p) => sum + p.commission, 0);
+    const { user } = useAuth();
+    const [payments, setPayments] = useState([]);
+    const [loadingId, setLoadingId] = useState('');
+
+    const loadPayments = async () => {
+      if (!user?.token) return;
+      try {
+        const result = await getAdminPaymentsApi({ token: user.token });
+        setPayments(result);
+      } catch (error) {
+        toast.error(error.message || 'Failed to load admin payments');
+      }
+    };
+
+    useEffect(() => {
+      loadPayments();
+    }, [user?.token]);
+
+    const totalRevenue = useMemo(
+      () => payments.reduce((sum, p) => sum + Number(p.amount || 0), 0),
+      [payments],
+    );
+    const totalCommission = useMemo(
+      () => payments.reduce((sum, p) => sum + Number(p.commision || 0), 0),
+      [payments],
+    );
+
+    const handleMarkPaid = async (payment) => {
+      if (!user?.token) return;
+      setLoadingId(payment.paymentId);
+      try {
+        await markPayoutPaidApi({
+          paymentId: payment.paymentId,
+          payoutReference: `ADMIN_SETTLED_${Date.now()}`,
+          token: user.token,
+        });
+        toast.success('Payout marked as paid.');
+        await loadPayments();
+      } catch (error) {
+        toast.error(error.message || 'Failed to mark payout as paid');
+      } finally {
+        setLoadingId('');
+      }
+    };
+
     return (<DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-6">
         <div>
@@ -53,17 +96,24 @@ export default function PaymentsMonitor() {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((payment) => (<tr key={payment.id} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-sm">{payment.date}</td>
-                      <td className="py-3 px-4 text-sm font-medium">{payment.request}</td>
-                      <td className="py-3 px-4 text-sm">{payment.client}</td>
-                      <td className="py-3 px-4 text-sm">{payment.vendor}</td>
-                      <td className="py-3 px-4 text-sm text-right">EGP {payment.amount.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-sm text-right font-medium text-blue-600">EGP {payment.commission.toLocaleString()}</td>
+                  {payments.map((payment) => (<tr key={payment.paymentId} className="border-b border-gray-100">
+                      <td className="py-3 px-4 text-sm">{payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}</td>
+                      <td className="py-3 px-4 text-sm font-medium">{payment.requestTitle || `Request ${payment.requestId}`}</td>
+                      <td className="py-3 px-4 text-sm">{payment.clientName || payment.clientId || '-'}</td>
+                      <td className="py-3 px-4 text-sm">{payment.vendorName || payment.vendorId || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-right">EGP {Number(payment.amount || 0).toLocaleString()}</td>
+                      <td className="py-3 px-4 text-sm text-right font-medium text-blue-600">EGP {Number(payment.commision || 0).toLocaleString()}</td>
                       <td className="py-3 px-4 text-center">
-                        <Badge className={payment.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
-                          {payment.status}
-                        </Badge>
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge className={(payment.paymentStatus || '').toLowerCase() === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
+                            {payment.paymentStatus}
+                          </Badge>
+                          {(payment.paymentStatus || '').toLowerCase() === 'completed' && (payment.payoutStatus || '').toLowerCase() !== 'paid' && (
+                            <Button size="sm" onClick={() => handleMarkPaid(payment)} disabled={loadingId === payment.paymentId}>
+                              {loadingId === payment.paymentId ? 'Saving...' : 'Mark Payout Paid'}
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>))}
                 </tbody>
