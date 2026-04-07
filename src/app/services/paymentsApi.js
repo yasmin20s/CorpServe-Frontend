@@ -88,3 +88,25 @@ export async function markPayoutPaidApi({ paymentId, payoutReference, token }) {
     token,
   });
 }
+
+export async function getPendingRatingsApi({ token }) {
+  const payload = await request('/api/Ratings/my/pending', { method: 'GET', token });
+  const list = Array.isArray(payload) ? payload : [];
+  return list.map((item) => ({
+    requestId: String(pick(item, 'requestId', 'RequestId') ?? ''),
+    paymentId: String(pick(item, 'paymentId', 'PaymentId') ?? ''),
+    requestTitle: String(pick(item, 'requestTitle', 'RequestTitle') ?? ''),
+    vendorId: String(pick(item, 'vendorId', 'VendorId') ?? ''),
+    vendorName: String(pick(item, 'vendorName', 'VendorName') ?? ''),
+    isRequired: Boolean(pick(item, 'isRequired', 'IsRequired')),
+  }));
+}
+
+export async function submitRatingApi({ requestId, stars, comment, token }) {
+  return request(`/api/Ratings/requests/${requestId}`, {
+    method: 'POST',
+    token,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stars, comment }),
+  });
+}

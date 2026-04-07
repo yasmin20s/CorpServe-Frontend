@@ -6,6 +6,7 @@ import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, Wallet }
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorReceivablesApi } from '../../services/paymentsApi';
 import { toast } from '../../lib/toast';
+import { useSignalREvent } from '../../context/SignalRContext';
 
 const menuItems = [
   { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -36,6 +37,14 @@ export default function VendorPayments() {
       mounted = false;
     };
   }, [user?.token]);
+
+  useSignalREvent(['Vendor payout available', 'Payment completed'], () => {
+    if (user?.token) {
+      getVendorReceivablesApi({ token: user.token })
+        .then(setPayments)
+        .catch(() => {});
+    }
+  });
 
   const totalReceivable = useMemo(
     () =>
