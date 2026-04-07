@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Navigate, Outlet, Route, Routes } from 'react-router';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
@@ -64,13 +64,15 @@ function parseVerificationStatus(raw) {
 
 function RequireAuth() {
   const { user, isBootstrapping } = useAuth();
+  const location = useLocation();
 
   if (isBootstrapping) {
     return null;
   }
 
   if (!user?.isAuthenticated || !user?.token) {
-    return <Navigate to="/login" replace />;
+    const redirect = `${location.pathname}${location.search || ''}`;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(redirect)}`} replace />;
   }
 
   return <Outlet />;
@@ -142,12 +144,18 @@ function RequireVendorApproval() {
 
 function PublicOnlyRoute({ children }) {
   const { user, isBootstrapping } = useAuth();
+  const location = useLocation();
 
   if (isBootstrapping) {
     return null;
   }
 
   if (user?.isAuthenticated && user?.token) {
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    if (redirect && redirect.startsWith('/')) {
+      return <Navigate to={redirect} replace />;
+    }
     return <Navigate to={getDashboardPathForRole(user.role)} replace />;
   }
 
