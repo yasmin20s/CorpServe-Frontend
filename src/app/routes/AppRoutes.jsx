@@ -62,6 +62,13 @@ function parseVerificationStatus(raw) {
   return 0;
 }
 
+function isSafeInternalRedirectPath(path) {
+  if (!path || typeof path !== 'string') return false;
+  if (!path.startsWith('/')) return false;
+  if (path.startsWith('//')) return false;
+  return true;
+}
+
 function RequireAuth() {
   const { user, isBootstrapping } = useAuth();
   const location = useLocation();
@@ -153,7 +160,7 @@ function PublicOnlyRoute({ children }) {
   if (user?.isAuthenticated && user?.token) {
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
-    if (redirect && redirect.startsWith('/')) {
+    if (isSafeInternalRedirectPath(redirect)) {
       return <Navigate to={redirect} replace />;
     }
     return <Navigate to={getDashboardPathForRole(user.role)} replace />;
