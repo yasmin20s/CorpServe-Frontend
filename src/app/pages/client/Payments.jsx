@@ -14,6 +14,8 @@ import { getMyPaymentHistoryApi, getMyPendingPaymentsApi, startCheckoutApi, getP
 import { useSignalREvent } from '../../context/SignalRContext';
 
 const LAST_CHECKOUT_REQUEST_KEY = 'corpserve-last-checkout-request-id';
+const RATING_LOOKUP_RETRIES = 6;
+const RATING_LOOKUP_DELAY_MS = 1500;
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -35,6 +37,28 @@ export default function Payments() {
     const [comment, setComment] = useState('');
     const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const pickRatingTarget = (pendingRatings, historyList, preferredRequestId) => {
+      if (!Array.isArray(pendingRatings) || pendingRatings.length === 0) return null;
+
+      if (preferredRequestId) {
+        const exact = pendingRatings.find((r) => r.requestId === preferredRequestId);
+        if (exact) return exact;
+      }
+
+      const latestCompleted = [...(historyList || [])]
+        .filter((p) => (p.paymentStatus || '').toLowerCase() === 'completed')
+        .sort((a, b) => new Date(b.paidAt || b.createdAt || 0).getTime() - new Date(a.paidAt || a.createdAt || 0).getTime())[0];
+
+      if (latestCompleted?.requestId) {
+        const byLatestCompleted = pendingRatings.find((r) => r.requestId === latestCompleted.requestId);
+        if (byLatestCompleted) return byLatestCompleted;
+      }
+
+      return pendingRatings[0];
+    };
+
     const loadPayments = async () => {
       if (!user?.token) return;
       setIsLoading(true);
@@ -45,8 +69,10 @@ export default function Payments() {
         ]);
         setPendingPayments(pending);
         setHistoryPayments(history);
+        return { pending, history };
       } catch (error) {
         toast.error(error.message || 'Failed to load payments');
+        return { pending: [], history: [] };
       } finally {
         setIsLoading(false);
       }
@@ -67,28 +93,24 @@ export default function Payments() {
 
       let cancelled = false;
       (async () => {
-        await loadPayments();
-        const pendingRatings = await getPendingRatingsApi({ token: user.token });
-        if (!cancelled && pendingRatings.length > 0) {
-          const lastCheckoutRequestId = sessionStorage.getItem(LAST_CHECKOUT_REQUEST_KEY) || '';
-          let selected = pendingRatings.find((r) => r.requestId === lastCheckoutRequestId) || null;
+        const preferredRequestId = sessionStorage.getItem(LAST_CHECKOUT_REQUEST_KEY) || '';
+        let selected = null;
 
-          if (!selected) {
-            const latestCompleted = [...historyPayments]
-              .filter((p) => (p.paymentStatus || '').toLowerCase() === 'completed')
-              .sort((a, b) => new Date(b.paidAt || b.createdAt || 0).getTime() - new Date(a.paidAt || a.createdAt || 0).getTime())[0];
-
-            if (latestCompleted?.requestId) {
-              selected = pendingRatings.find((r) => r.requestId === latestCompleted.requestId) || null;
-            }
+        for (let attempt = 0; attempt < RATING_LOOKUP_RETRIES && !cancelled; attempt += 1) {
+          const loaded = await loadPayments();
+          const pendingRatings = await getPendingRatingsApi({ token: user.token });
+          selected = pickRatingTarget(pendingRatings, loaded?.history || [], preferredRequestId);
+          if (selected) break;
+          if (attempt < RATING_LOOKUP_RETRIES - 1) {
+            await sleep(RATING_LOOKUP_DELAY_MS);
           }
+        }
 
-          if (!selected) {
-            selected = pendingRatings[0];
+        if (!cancelled) {
+          if (selected) {
+            setRatingTarget(selected);
+            setRatingModalOpen(true);
           }
-
-          setRatingTarget(selected);
-          setRatingModalOpen(Boolean(selected));
           sessionStorage.removeItem(LAST_CHECKOUT_REQUEST_KEY);
         }
         if (!cancelled) {
@@ -100,7 +122,7 @@ export default function Payments() {
       return () => {
         cancelled = true;
       };
-    }, [location.search, user?.token, historyPayments]);
+    }, [location.search, user?.token]);
 
     const totalSpent = useMemo(
       () =>
