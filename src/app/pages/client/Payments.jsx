@@ -12,6 +12,8 @@ import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getMyPaymentHistoryApi, getMyPendingPaymentsApi, startCheckoutApi, getPendingRatingsApi, submitRatingApi } from '../../services/paymentsApi';
 import { useSignalREvent } from '../../context/SignalRContext';
+
+const LAST_CHECKOUT_REQUEST_KEY = 'corpserve-last-checkout-request-id';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5"/> },
@@ -68,8 +70,26 @@ export default function Payments() {
         await loadPayments();
         const pendingRatings = await getPendingRatingsApi({ token: user.token });
         if (!cancelled && pendingRatings.length > 0) {
-          setRatingTarget(pendingRatings[0]);
-          setRatingModalOpen(true);
+          const lastCheckoutRequestId = sessionStorage.getItem(LAST_CHECKOUT_REQUEST_KEY) || '';
+          let selected = pendingRatings.find((r) => r.requestId === lastCheckoutRequestId) || null;
+
+          if (!selected) {
+            const latestCompleted = [...historyPayments]
+              .filter((p) => (p.paymentStatus || '').toLowerCase() === 'completed')
+              .sort((a, b) => new Date(b.paidAt || b.createdAt || 0).getTime() - new Date(a.paidAt || a.createdAt || 0).getTime())[0];
+
+            if (latestCompleted?.requestId) {
+              selected = pendingRatings.find((r) => r.requestId === latestCompleted.requestId) || null;
+            }
+          }
+
+          if (!selected) {
+            selected = pendingRatings[0];
+          }
+
+          setRatingTarget(selected);
+          setRatingModalOpen(Boolean(selected));
+          sessionStorage.removeItem(LAST_CHECKOUT_REQUEST_KEY);
         }
         if (!cancelled) {
           params.delete('payment_result');
@@ -80,7 +100,7 @@ export default function Payments() {
       return () => {
         cancelled = true;
       };
-    }, [location.search, user?.token]);
+    }, [location.search, user?.token, historyPayments]);
 
     const totalSpent = useMemo(
       () =>
@@ -99,6 +119,9 @@ export default function Payments() {
       if (!user?.token) return;
       setLoadingId(payment.requestId);
       try {
+        if (payment?.requestId) {
+          sessionStorage.setItem(LAST_CHECKOUT_REQUEST_KEY, String(payment.requestId));
+        }
         const checkout = await startCheckoutApi({ requestId: payment.requestId, token: user.token });
         if (!checkout.checkoutUrl) {
           toast.error('Checkout URL was not returned from backend.');
