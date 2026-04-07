@@ -51,7 +51,8 @@ function readTokenFromPayload(payload) {
   return typeof value === 'string' ? value : '';
 }
 
-async function refreshAccessToken() {
+/** Exported so SignalR can refresh JWT before reconnecting. */
+export async function refreshAccessToken() {
   if (refreshRequestPromise) {
     return refreshRequestPromise;
   }
