@@ -76,6 +76,7 @@ function readStoredAuthProfile() {
       fullName: parsed.fullName || '',
       email: parsed.email || '',
       role: toClientRole(parsed.role) || 'client',
+      token: typeof parsed.token === 'string' ? parsed.token : '',
     };
   } catch {
     return null;
@@ -94,6 +95,7 @@ function persistAuthProfile(user) {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      token: user.token,
     }),
   );
 }
@@ -137,6 +139,20 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      if (storedProfile.token) {
+        setAccessToken(storedProfile.token);
+        if (isMounted) {
+          setUser({
+            fullName: storedProfile.fullName,
+            email: storedProfile.email,
+            role: storedProfile.role,
+            token: storedProfile.token,
+            isAuthenticated: true,
+          });
+          setIsBootstrapping(false);
+        }
+      }
+
       try {
         const authResponse = await refreshTokenApi();
         const nextUser = buildAuthenticatedUser(
@@ -147,7 +163,7 @@ export function AuthProvider({ children }) {
         );
 
         if (!nextUser) {
-          if (isMounted) {
+          if (isMounted && !storedProfile.token) {
             clearAuthState();
           }
           return;
@@ -159,11 +175,11 @@ export function AuthProvider({ children }) {
           persistAuthProfile(nextUser);
         }
       } catch {
-        if (isMounted) {
+        if (isMounted && !storedProfile.token) {
           clearAuthState();
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && !storedProfile.token) {
           setIsBootstrapping(false);
         }
       }

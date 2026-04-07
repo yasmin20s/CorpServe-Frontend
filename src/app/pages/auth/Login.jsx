@@ -17,6 +17,13 @@ export default function Login() {
     password: '',
   });
 
+  const isSafeInternalRedirectPath = (path) => {
+    if (!path || typeof path !== 'string') return false;
+    if (!path.startsWith('/')) return false;
+    if (path.startsWith('//')) return false;
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await login(formData);
@@ -27,7 +34,7 @@ export default function Login() {
 
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
-    const safeRedirect = redirect && redirect.startsWith('/') ? redirect : null;
+    const safeRedirect = isSafeInternalRedirectPath(redirect) ? redirect : null;
     toast.success(result.message);
     navigate(safeRedirect || result.redirectTo);
   };
