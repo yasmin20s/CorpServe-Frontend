@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -8,7 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../componen
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, Star, CalendarClock, CalendarDays, HandCoins, ShieldCheck, Sparkles, CircleAlert } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
-import { getClientRequestProposalsApi, getProposalCountApi, clientAcceptProposalApi, clientRejectProposalApi } from '../../services/proposalsApi';
+import {
+  getClientRequestProposalsApi,
+  getProposalCountApi,
+  getClientSlaContractApi,
+  clientAcceptProposalApi,
+  clientRejectProposalApi,
+} from '../../services/proposalsApi';
 import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { useSignalREvent } from '../../context/SignalRContext';
 import { pickProposalCreatedAt, priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
@@ -25,6 +31,7 @@ const menuItems = [
 export default function Proposals() {
     const { requestId } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const { user } = useAuth();
     const requestData = location.state?.request || null;
     const itemsPerPage = 4;
@@ -72,6 +79,26 @@ export default function Proposals() {
     useEffect(() => {
       loadProposals();
     }, [loadProposals]);
+
+    useEffect(() => {
+      let cancelled = false;
+      (async () => {
+        if (!user?.token || !requestId) return;
+        try {
+          const sla = await getClientSlaContractApi({ requestId, token: user.token });
+          if (cancelled || !sla?.id) return;
+          toast.info(
+            'A proposal was already accepted for this request. Manage it under Active Requests.',
+          );
+          navigate('/client/active-requests', { replace: true });
+        } catch {
+          /* No SLA yet — stay on proposals */
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [user?.token, requestId, navigate]);
 
     useSignalREvent(['New proposal received', 'Proposal accepted', 'Proposal rejected'], loadProposals);
 

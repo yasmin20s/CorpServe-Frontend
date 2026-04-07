@@ -10,7 +10,7 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
   Briefcase,
@@ -55,10 +55,12 @@ function formatPrice(value) {
 
 export default function VendorActiveRequests() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [activeRequests, setActiveRequests] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingOpenSlaRequestId, setPendingOpenSlaRequestId] = useState(null);
   const [progressRequestId, setProgressRequestId] = useState(null);
   const [progressRequest, setProgressRequest] = useState(null);
   const [slaRequestId, setSlaRequestId] = useState(null);
@@ -71,6 +73,14 @@ export default function VendorActiveRequests() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [taskStateFilter, setTaskStateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const id = location.state?.openSlaForRequestId;
+    if (typeof id === 'string' && id.trim()) {
+      setPendingOpenSlaRequestId(id.trim());
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const loadActiveRequests = useCallback(async () => {
     if (!user?.token) return;
@@ -105,7 +115,14 @@ export default function VendorActiveRequests() {
   }, [searchQuery, statusFilter, taskStateFilter]);
 
   useSignalREvent(
-    ['Request progress updated', 'SLA completed', 'SLA blocked', 'SLA delayed', 'SLA deadline warning'],
+    [
+      'Request progress updated',
+      'SLA created',
+      'SLA completed',
+      'SLA blocked',
+      'SLA delayed',
+      'SLA deadline warning',
+    ],
     loadActiveRequests,
   );
 
@@ -146,7 +163,7 @@ export default function VendorActiveRequests() {
     }
   };
 
-  const handleViewSla = async (requestId) => {
+  const handleViewSla = useCallback(async (requestId) => {
     if (!user?.token) return;
     setSlaRequestId(requestId);
     setSlaLoading(true);
@@ -160,7 +177,14 @@ export default function VendorActiveRequests() {
     } finally {
       setSlaLoading(false);
     }
-  };
+  }, [user?.token]);
+
+  useEffect(() => {
+    if (!pendingOpenSlaRequestId || isLoading || !user?.token) return;
+    const id = pendingOpenSlaRequestId;
+    setPendingOpenSlaRequestId(null);
+    void handleViewSla(id);
+  }, [pendingOpenSlaRequestId, isLoading, user?.token, handleViewSla]);
 
   const handleOpenChat = (request) => {
     navigate('/vendor/chat', {
