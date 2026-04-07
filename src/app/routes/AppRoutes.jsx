@@ -35,6 +35,7 @@ const Completed = lazy(() => import('../pages/vendor/Completed'));
 const VendorActiveRequests = lazy(() => import('../pages/vendor/VendorActiveRequests'));
 const VendorAnalytics = lazy(() => import('../pages/vendor/VendorAnalytics'));
 const VendorDashboard = lazy(() => import('../pages/vendor/VendorDashboard'));
+const VendorPayments = lazy(() => import('../pages/vendor/VendorPayments'));
 
 function getDashboardPathForRole(role) {
   switch ((role || '').toLowerCase()) {
@@ -197,6 +198,8 @@ export default function AppRoutes() {
             </PublicOnlyRoute>
           }
         />
+        <Route path="/payment-success" element={<Navigate to="/client/payments" replace />} />
+        <Route path="/payment-failure" element={<Navigate to="/client/payments" replace />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole allowedRoles={['vendor']} />}>
@@ -224,6 +227,7 @@ export default function AppRoutes() {
                 <Route path="available-requests" element={<AvailableRequests />} />
                 <Route path="active-requests" element={<VendorActiveRequests />} />
                 <Route path="completed" element={<Completed />} />
+                <Route path="payments" element={<VendorPayments />} />
                 <Route path="analytics" element={<VendorAnalytics />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="chat" element={<Chat />} />

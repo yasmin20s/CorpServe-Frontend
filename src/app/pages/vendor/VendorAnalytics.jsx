@@ -1,13 +1,14 @@
 import DashboardLayout from '../../components/DashboardLayout';
 import StatsCard from '../../components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, DollarSign, Clock, Star } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, DollarSign, Clock, Star, Wallet } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
+    { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 const monthlyData = [
