@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -9,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,8 +25,11 @@ export default function Login() {
       return;
     }
 
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    const safeRedirect = redirect && redirect.startsWith('/') ? redirect : null;
     toast.success(result.message);
-    navigate(result.redirectTo);
+    navigate(safeRedirect || result.redirectTo);
   };
 
   return (
