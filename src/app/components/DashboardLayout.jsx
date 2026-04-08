@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { Bell, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings } from 'lucide-react';
+import { BellRing, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
@@ -15,13 +15,26 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const lastContentPathRef = useRef(`/${userRole}/dashboard`);
 
-  useEffect(() => {
+  const refreshUnreadCount = useCallback(() => {
     if (!user?.token) return;
     getUnreadNotificationCountApi({ token: user.token })
       .then((result) => setUnreadCount(typeof result === 'number' ? result : (result?.data ?? 0)))
       .catch(() => {});
-  }, [user?.token, location.pathname]);
+  }, [user?.token]);
+
+  useEffect(() => {
+    refreshUnreadCount();
+  }, [refreshUnreadCount, location.pathname]);
+
+  useEffect(() => {
+    const notificationsPath = `/${userRole}/notifications`;
+    const chatPath = `/${userRole}/chat`;
+    if (location.pathname !== notificationsPath && location.pathname !== chatPath) {
+      lastContentPathRef.current = `${location.pathname}${location.search || ''}`;
+    }
+  }, [location.pathname, location.search, userRole]);
 
   useEffect(() => {
     const onSync = (e) => {
@@ -34,8 +47,24 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   }, []);
 
   useSignalREvent(null, useCallback(() => {
-    setUnreadCount((prev) => prev + 1);
-  }, []));
+    refreshUnreadCount();
+  }, [refreshUnreadCount]));
+
+  const togglePanelRoute = useCallback((targetPath) => {
+    if (location.pathname === targetPath) {
+      navigate(lastContentPathRef.current || `/${userRole}/dashboard`);
+      return;
+    }
+    navigate(targetPath);
+  }, [location.pathname, navigate, userRole]);
+
+  const handleNotificationToggle = useCallback(() => {
+    togglePanelRoute(`/${userRole}/notifications`);
+  }, [togglePanelRoute, userRole]);
+
+  const handleChatToggle = useCallback(() => {
+    togglePanelRoute(`/${userRole}/chat`);
+  }, [togglePanelRoute, userRole]);
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
@@ -95,26 +124,29 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
           
           <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
             {/* Notifications */}
-            <Link to={`/${userRole}/notifications`}>
-              <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                <Bell className="w-5 h-5"/>
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-red-500">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              onClick={handleNotificationToggle}
+              variant="ghost"
+              size="icon"
+              className="relative h-9 w-9 rounded-xl border border-indigo-100 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100"
+              aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`.trim()}
+            >
+              <BellRing className="w-5 h-5"/>
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-indigo-600 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </Button>
 
             {!isAdmin && (
-              <Link to={`/${userRole}/chat`}>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                  <MessageSquare className="w-5 h-5"/>
-                  <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-blue-500">
-                    5
-                  </Badge>
-                </Button>
-              </Link>
+              <Button type="button" onClick={handleChatToggle} variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl border border-indigo-100 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100">
+                <MessageSquare className="w-5 h-5"/>
+                <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-blue-500">
+                  5
+                </Badge>
+              </Button>
             )}
 
             {/* User Profile */}

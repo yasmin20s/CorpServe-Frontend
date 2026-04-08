@@ -172,13 +172,11 @@ export default function VendorPayments() {
   const metrics = useMemo(() => {
     const completedPayments = payments.filter((item) => normalizeStatus(item.paymentStatus) === 'completed');
     const totalGross = completedPayments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalCommission = completedPayments.reduce((sum, item) => sum + Number(item.commision || 0), 0);
     const totalReceivable = completedPayments.reduce((sum, item) => sum + Number(item.vendorNetAmount || 0), 0);
     const payoutPendingCount = completedPayments.filter((item) => !isPayoutCompleted(item.payoutStatus)).length;
 
     return {
       totalGross,
-      totalCommission,
       totalReceivable,
       completedCount: completedPayments.length,
       payoutPendingCount,
@@ -235,7 +233,7 @@ export default function VendorPayments() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Card className="border-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-[0_16px_40px_rgba(99,102,241,0.35)] xl:col-span-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-100">Net Wallet</p>
@@ -250,14 +248,6 @@ export default function VendorPayments() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-100">Gross</p>
               <p className="mt-1 text-2xl font-black tabular-nums text-white">
                 <CountUpNumber value={metrics.totalGross} formatter={(current) => formatMoney(Math.round(current))} />
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white shadow-[0_14px_34px_rgba(16,185,129,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-100">Commission</p>
-              <p className="mt-1 text-2xl font-black tabular-nums text-white">
-                <CountUpNumber value={metrics.totalCommission} formatter={(current) => formatMoney(Math.round(current))} />
               </p>
             </CardContent>
           </Card>

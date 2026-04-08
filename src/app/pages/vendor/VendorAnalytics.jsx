@@ -1,7 +1,7 @@
 import DashboardLayout from '../../components/DashboardLayout';
 import StatsCard from '../../components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, DollarSign, Clock, Star } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, DollarSign, Clock, Star, Wallet } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },

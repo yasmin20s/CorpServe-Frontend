@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef } from 'react
 import { startConnection, stopConnection, subscribe, unsubscribe, setSignalRTokenGetter } from '../lib/signalr';
 import { getAccessToken } from '../services/apiClient';
 import { useAuth } from '../hooks/useAuth';
+import { normalizeNotificationDto } from '../lib/notificationDto';
 import { toast } from '../lib/toast';
 
 const SignalRContext = createContext(null);
@@ -14,13 +15,14 @@ const SLA_WARN_TOAST_TITLES = new Set([
 ]);
 
 function showNotificationToast(notification) {
-  const title = notification?.title?.trim() || 'Notification';
-  const body = notification?.message?.trim() || '';
+  const normalized = normalizeNotificationDto(notification);
+  const title = normalized?.title?.trim() || 'Notification';
+  const body = normalized?.message?.trim() || '';
   const opts = { title };
 
-  if (!notification?.title && !body) return;
+  if (!normalized?.title && !body) return;
 
-  const rawType = notification?.type;
+  const rawType = normalized?.type;
   let variant = 'info';
 
   if (SLA_WARN_TOAST_TITLES.has(title)) {
@@ -81,16 +83,18 @@ export function SignalRProvider({ children }) {
     startConnection();
 
     const handler = (notification) => {
+      const normalized = normalizeNotificationDto(notification);
+
       for (const entry of listenersRef.current) {
         try {
           const { titles, callback } = entry;
-          if (!titles || titles.includes(notification?.title)) {
-            callback(notification);
+          if (!titles || titles.includes(normalized?.title)) {
+            callback(normalized);
           }
         } catch { /* subscriber error */ }
       }
 
-      showNotificationToast(notification);
+      showNotificationToast(normalized);
     };
 
     subscribe(handler);

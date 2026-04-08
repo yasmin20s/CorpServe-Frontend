@@ -278,13 +278,13 @@ export default function PaymentsMonitor() {
           <Card className="border-0 bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-[0_14px_34px_rgba(59,130,246,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="p-5">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.18em] text-blue-100">Commission</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-blue-100">Bonus</p>
                 <Landmark className="h-5 w-5 text-blue-100" />
               </div>
               <p className="text-2xl font-bold tabular-nums">
                 <CountUpNumber value={metrics.totalCommission} formatter={(current) => formatMoney(Math.round(current))} />
               </p>
-              <p className="mt-2 text-xs text-blue-100">Platform earnings accumulated</p>
+              <p className="mt-2 text-xs text-blue-100">Platform bonus accumulated</p>
             </CardContent>
           </Card>
 

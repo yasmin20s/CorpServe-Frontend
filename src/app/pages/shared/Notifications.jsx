@@ -34,6 +34,7 @@ import {
   markNotificationReadApi,
 } from '../../services/notificationsApi';
 import { formatRelativeTime, getNotificationPeriodBucket } from '../../lib/formatRelativeTime';
+import { normalizeNotificationDto } from '../../lib/notificationDto';
 import { toast } from '../../lib/toast';
 
 const PAGE_SIZE = 10;
@@ -59,6 +60,14 @@ const TITLE_NEW_PROPOSAL = 'New proposal received';
 
 const TITLE_SLA_CREATED = 'SLA created';
 const TITLE_SLA_COMPLETED = 'SLA completed';
+const PAYMENT_TITLE_DUE = 'payment due';
+
+const PAYMENT_COMPLETED_TITLES = new Set([
+  'payment completed',
+  'payment paid',
+  'payout completed',
+  'payout paid',
+]);
 
 const COMPLETED_SLA_TITLES = new Set([TITLE_SLA_CREATED, TITLE_SLA_COMPLETED]);
 
@@ -70,6 +79,65 @@ const SLA_WARN_TITLES = new Set([
 
 function normalizeNotificationTitle(title) {
   return String(title ?? '').trim();
+}
+
+function normalizeNotificationTitleLower(title) {
+  return normalizeNotificationTitle(title).toLowerCase();
+}
+
+function isPaymentCompletedNotification(n) {
+  const title = normalizeNotificationTitleLower(n?.title);
+  if (PAYMENT_COMPLETED_TITLES.has(title)) return true;
+  if (!title) return false;
+  return (
+    (title.includes('payment') || title.includes('payout')) &&
+    (title.includes('completed') || title.includes('paid'))
+  );
+}
+
+function isPaymentDueNotification(n) {
+  const title = normalizeNotificationTitleLower(n?.title);
+  if (title === PAYMENT_TITLE_DUE) return true;
+  if (!title) return false;
+  return (
+    (title.includes('payment') || title.includes('payout')) &&
+    (title.includes('due') || title.includes('pending') || title.includes('awaiting'))
+  );
+}
+
+function paymentCorrelationKeys(n) {
+  const keys = new Set();
+  const entityId = n?.relatedEntityId != null ? String(n.relatedEntityId).trim() : '';
+  if (entityId) keys.add(`entity:${entityId}`);
+
+  const requestId = extractRequestId(n);
+  if (requestId) keys.add(`request:${requestId}`);
+
+  const nav = String(n?.navigateUrl || '').trim().toLowerCase();
+  if (nav) keys.add(`nav:${nav}`);
+
+  const message = String(n?.message || '');
+  const requestMatch = message.match(/request\s*#?\s*([a-z0-9-]+)/i);
+  if (requestMatch?.[1]) keys.add(`request:${requestMatch[1]}`);
+  const paymentMatch = message.match(/payment\s*#?\s*([a-z0-9-]+)/i);
+  if (paymentMatch?.[1]) keys.add(`payment:${paymentMatch[1]}`);
+
+  return [...keys];
+}
+
+function isVendorRatingNotification(n, role) {
+  if ((role || '').toLowerCase() !== 'vendor') return false;
+
+  const title = normalizeNotificationTitleLower(n?.title);
+  const message = String(n?.message || '').toLowerCase();
+  const haystack = `${title} ${message}`;
+
+  return (
+    haystack.includes('rating') ||
+    haystack.includes('rated') ||
+    haystack.includes('feedback') ||
+    haystack.includes('review')
+  );
 }
 
 function extractRequestId(n) {
@@ -189,6 +257,7 @@ function resolveNotificationNavigatePath(navigateUrl, role, notificationTitle) {
 
   if (/^\/payments?\b/i.test(path) || /\/invoice\b/i.test(path)) {
     if (r === 'client') return '/client/payments';
+    if (r === 'vendor') return '/vendor/payments';
     if (r === 'admin') return '/admin/payments-monitor';
   }
 
@@ -199,6 +268,7 @@ function defaultPathForCategory(category, role, notificationTitle) {
   const r = (role || 'client').toLowerCase();
   if (category === 'payment') {
     if (r === 'client') return '/client/payments';
+    if (r === 'vendor') return '/vendor/payments';
     if (r === 'admin') return '/admin/payments-monitor';
   }
   if (category === 'request') {
@@ -214,6 +284,10 @@ function getNotificationTarget(n, role) {
   const r = (role || 'client').toLowerCase();
   const t = normalizeNotificationTitle(n.title);
   const requestId = extractRequestId(n);
+
+  if (isVendorRatingNotification(n, r)) {
+    return { path: '/vendor/completed' };
+  }
 
   if (requestId && t === TITLE_NEW_PROPOSAL && r === 'client') {
     return { path: `/client/proposals/${requestId}` };
@@ -354,9 +428,12 @@ function newUpdatePillClass(pill) {
   return 'text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 animate-pulse';
 }
 
-function getNotificationAction(n, role) {
+function getNotificationAction(
+  n,
+  role,
+  { isPaymentDue = false, isPaymentSettled = false, isVendorReceived = false } = {}
+) {
   const target = getNotificationTarget(n, role);
-  const t = normalizeNotificationTitle(n.title);
   const r = (role || 'client').toLowerCase();
   const cat = getDisplayCategory(n.relatedEntityType);
   const vis = getNotificationVisual(n);
@@ -373,12 +450,50 @@ function getNotificationAction(n, role) {
     'bg-indigo-50 text-indigo-800 border-2 border-indigo-200 hover:bg-indigo-100/70';
 
   if (cat === 'payment') {
+    if (r === 'vendor' && isVendorReceived) {
+      return {
+        ...target,
+        text: 'Received',
+        icon: <CheckCheck size={16} />,
+        className:
+          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100',
+      };
+    }
+
+    if (isPaymentSettled) {
+      return {
+        ...target,
+        text: 'Paid',
+        icon: <CheckCheck size={16} />,
+        className:
+          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100',
+      };
+    }
+
+    if (r === 'vendor' && isPaymentDue) {
+      return {
+        ...target,
+        text: 'Receive payment',
+        icon: <Wallet size={16} />,
+        className: skyBtn,
+      };
+    }
+
+    if (isPaymentDue) {
+      return {
+        ...target,
+        text: 'Pay Now',
+        icon: <CreditCard size={16} />,
+        className:
+          'bg-[#E65100] hover:bg-[#BF360C] text-white shadow-orange-200 border-none',
+      };
+    }
+
     return {
       ...target,
-      text: 'Pay Now',
-      icon: <CreditCard size={16} />,
-      className:
-        'bg-[#E65100] hover:bg-[#BF360C] text-white shadow-orange-200 border-none',
+      text: 'View payments',
+      icon: <Wallet size={16} />,
+      className: mintBtn,
     };
   }
 
@@ -497,21 +612,6 @@ async function syncUnreadBadge(token) {
   }
 }
 
-function normalizeNotificationDto(raw) {
-  const id = raw?.id ?? raw?.Id ?? '';
-  return {
-    id,
-    title: raw?.title ?? raw?.Title ?? '',
-    message: raw?.message ?? raw?.Message ?? '',
-    type: raw?.type ?? raw?.Type ?? 'Info',
-    isRead: Boolean(raw?.isRead ?? raw?.IsRead),
-    createdAt: raw?.createdAt ?? raw?.CreatedAt ?? '',
-    relatedEntityId: raw?.relatedEntityId ?? raw?.RelatedEntityId ?? null,
-    relatedEntityType: raw?.relatedEntityType ?? raw?.RelatedEntityType ?? null,
-    navigateUrl: raw?.navigateUrl ?? raw?.NavigateUrl ?? '',
-  };
-}
-
 function parsePaginatedResponse(payload) {
   if (!payload || typeof payload !== 'object') {
     return { data: [], count: 0, pageIndex: 1, pageSize: PAGE_SIZE };
@@ -544,6 +644,7 @@ export default function Notifications() {
   const [markAllLoading, setMarkAllLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [vendorReceivedIds, setVendorReceivedIds] = useState(() => new Set());
 
   useEffect(() => {
     const id = window.setInterval(() => setNowTick(Date.now()), 60000);
@@ -641,6 +742,18 @@ export default function Notifications() {
     return { today, yesterday, older };
   }, [items]);
 
+  const settledPaymentKeys = useMemo(() => {
+    const keys = new Set();
+    for (const row of items) {
+      if (getDisplayCategory(row.relatedEntityType) !== 'payment') continue;
+      if (!isPaymentCompletedNotification(row)) continue;
+      for (const key of paymentCorrelationKeys(row)) {
+        keys.add(key);
+      }
+    }
+    return keys;
+  }, [items]);
+
   const handleMarkRead = async (n) => {
     if (!token || n.isRead) return;
     try {
@@ -688,7 +801,21 @@ export default function Notifications() {
             const category = getDisplayCategory(n.relatedEntityType);
             const visual = getNotificationVisual(n);
             const styles = VISUAL_STYLES[visual] ?? VISUAL_STYLES.default;
-            const action = getNotificationAction(n, userRole);
+            const isPaymentDue = category === 'payment' && isPaymentDueNotification(n);
+            const isPaymentSettled =
+              category === 'payment' &&
+              paymentCorrelationKeys(n).some((key) =>
+                settledPaymentKeys.has(key)
+              );
+            const isVendorReceived =
+              userRole === 'vendor' && vendorReceivedIds.has(String(n.id));
+            const isActionDone =
+              category === 'payment' && (isPaymentSettled || isVendorReceived);
+            const action = getNotificationAction(n, userRole, {
+              isPaymentDue,
+              isPaymentSettled,
+              isVendorReceived,
+            });
             const showOverdue =
               category === 'payment' &&
               !n.isRead &&
@@ -726,6 +853,11 @@ export default function Notifications() {
                         Overdue
                       </Badge>
                     )}
+                    {isActionDone && (
+                      <Badge className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-lg border border-emerald-200 uppercase tracking-wider">
+                        {isVendorReceived && !isPaymentSettled ? 'Received' : 'Paid'}
+                      </Badge>
+                    )}
                   </div>
 
                   <p className="text-[14.5px] leading-relaxed max-w-4xl text-slate-900 font-semibold transition-colors duration-300">
@@ -737,6 +869,15 @@ export default function Notifications() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (isActionDone) return;
+                        if (userRole === 'vendor' && isPaymentDue) {
+                          setVendorReceivedIds((prev) => {
+                            const next = new Set(prev);
+                            next.add(String(n.id));
+                            return next;
+                          });
+                          return;
+                        }
                         if (action.path) {
                           navigate(
                             action.path,
@@ -744,6 +885,7 @@ export default function Notifications() {
                           );
                         }
                       }}
+                      disabled={isActionDone}
                       className={`h-10 px-6 rounded-2xl text-[13px] font-extrabold flex gap-2 transition-all active:scale-95 border-2 border-transparent ${action.className}`}
                     >
                       {action.icon}
