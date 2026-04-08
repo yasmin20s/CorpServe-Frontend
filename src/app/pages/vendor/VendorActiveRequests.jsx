@@ -16,6 +16,7 @@ import {
   Briefcase,
   Activity,
   CheckCircle,
+  FileStack,
   TrendingUp,
   FileText,
   AlertTriangle,
@@ -36,6 +37,7 @@ import { useSignalREvent } from '../../context/SignalRContext';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
+    { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
@@ -237,11 +239,11 @@ export default function VendorActiveRequests() {
           )}
 
           {!isLoading && activeRequests.length === 0 && (
-            <Card className="border border-emerald-200 bg-emerald-50/60">
+            <Card className="border border-slate-300 bg-slate-200/70">
               <CardContent className="flex flex-col items-start gap-3 p-6">
-                <Badge className="border border-emerald-200 bg-white text-emerald-700">All Done</Badge>
-                <p className="text-lg font-semibold text-emerald-900">No active requests right now.</p>
-                <p className="text-sm text-emerald-800/80">All tracked requests have been moved to Completed.</p>
+                <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-700">All Done</Badge>
+                <p className="text-lg font-semibold text-slate-900">No active requests right now.</p>
+                <p className="text-sm text-slate-600">All tracked requests have been moved to Completed.</p>
               </CardContent>
             </Card>
           )}

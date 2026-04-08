@@ -24,6 +24,7 @@ export const dashboardMenusByRole = {
   vendor: [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5" /> },
+    { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5" /> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5" /> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5" /> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5" /> },

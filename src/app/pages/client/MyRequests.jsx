@@ -42,6 +42,41 @@ function toDateInputValue(value) {
   return parsed.toISOString().slice(0, 10);
 }
 
+function normalizeRequestStatus(value) {
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!raw) return 'pending';
+
+  if (raw === '1' || raw === 'pending' || raw === 'open') return 'pending';
+  if (raw === '2' || raw === 'active' || raw === 'inprogress' || raw === 'in progress') return 'active';
+  if (raw === '3' || raw === 'completed' || raw === 'done' || raw === 'closed') return 'completed';
+
+  return raw;
+}
+
+function pickSelectedVendorName(request) {
+  const direct =
+    request?.vendorName
+    ?? request?.VendorName
+    ?? request?.selectedVendorName
+    ?? request?.SelectedVendorName
+    ?? request?.assignedVendorName
+    ?? request?.AssignedVendorName
+    ?? request?.acceptedVendorName
+    ?? request?.AcceptedVendorName;
+
+  if (direct != null && String(direct).trim()) {
+    return String(direct).trim();
+  }
+
+  const nested =
+    request?.selectedProposal?.vendorName
+    ?? request?.selectedProposal?.VendorName
+    ?? request?.acceptedProposal?.vendorName
+    ?? request?.acceptedProposal?.VendorName;
+
+  return nested != null && String(nested).trim() ? String(nested).trim() : '';
+}
+
 /** API nests AI fields under aiEstimation / AIEstimation (camelCase quirks possible). */
 /** Avoid showing raw HTTP codes like "status 409" in toasts. */
 function userFacingErrorMessage(error, fallback) {
@@ -122,6 +157,7 @@ export default function MyRequests() {
 
     const getDeadlineLabel = () => 'Expected Deadline';
     const getDeadlineValue = (request) => request.expectedDeadline || '-';
+    const hasVendorSelected = (request) => Boolean(String(request?.vendor || '').trim());
 
     const openDocument = (fileUrl) => {
       if (!fileUrl) return;
@@ -224,8 +260,7 @@ export default function MyRequests() {
 
       setIsLoading(true);
       try {
-        const requestStatusParam =
-          statusFilter === 'pending' ? 1 : statusFilter === 'active' ? 2 : statusFilter === 'completed' ? 3 : undefined;
+        const requestStatusParam = 1;
         const result = await getMyRequestsApi({
           token: user.token,
           search: searchQuery,
@@ -253,7 +288,8 @@ export default function MyRequests() {
             description: request.description,
             category: request.categoryName,
             categoryId: request.categoryId,
-            status: String(request.requestStatus || '').toLowerCase(),
+            status: normalizeRequestStatus(request.requestStatus ?? request.RequestStatus),
+            vendor: pickSelectedVendorName(request),
             budgetMin: formatCurrency(request.budgetMin),
             budgetMax: formatCurrency(request.budgetMax),
             rawBudgetMin: Number(request.budgetMin || 0),
@@ -292,8 +328,12 @@ export default function MyRequests() {
           }),
         );
 
-        setRequests(withProposalCounts);
-        setTotalCount(result?.count || 0);
+        const unassignedPendingRequests = withProposalCounts.filter(
+          (row) => row.status === 'pending' && !hasVendorSelected(row),
+        );
+
+        setRequests(unassignedPendingRequests);
+        setTotalCount(result?.count || unassignedPendingRequests.length);
       } catch (error) {
         setRequests([]);
         setTotalCount(0);
@@ -733,6 +773,10 @@ export default function MyRequests() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Estimated Deadline</p>
                     <p className="mt-1 text-base font-bold text-slate-900">{selectedRequest.aiEstimatedDeadline}</p>
                   </div>
+                  <div className="rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm sm:col-span-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Selected Vendor</p>
+                    <p className="mt-1 text-base font-bold text-slate-900">{selectedRequest.vendor || 'Not selected yet'}</p>
+                  </div>
                 </div>
 
                 <div className="mt-3">
@@ -978,13 +1022,11 @@ export default function MyRequests() {
               </Select>
               <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
+                  <SelectValue placeholder="Pending only" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="all">Pending only</SelectItem>
+                  <SelectItem value="pending">Pending only</SelectItem>
                 </SelectContent>
               </Select>
             </div>
