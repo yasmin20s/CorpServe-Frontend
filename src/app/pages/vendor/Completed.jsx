@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
 import { getVendorRequestsUiStore } from '../../lib/vendorRequestsUiStore';
-import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
 import { getVendorCompletedRequestsApi } from '../../services/proposalsApi';
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
