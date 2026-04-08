@@ -76,6 +76,7 @@ function readStoredAuthProfile() {
       fullName: parsed.fullName || '',
       email: parsed.email || '',
       role: toClientRole(parsed.role) || 'client',
+      token: typeof parsed.token === 'string' ? parsed.token : '',
     };
   } catch {
     return null;
@@ -94,6 +95,7 @@ function persistAuthProfile(user) {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      token: user.token,
     }),
   );
 }
@@ -130,7 +132,7 @@ export function AuthProvider({ children }) {
 
     async function bootstrapAuth() {
       const storedProfile = readStoredAuthProfile();
-      if (!storedProfile) {
+      if (!storedProfile?.token) {
         if (isMounted) {
           setIsBootstrapping(false);
         }
@@ -146,22 +148,17 @@ export function AuthProvider({ children }) {
           storedProfile.fullName,
         );
 
-        if (!nextUser) {
+        if (nextUser) {
+          setAccessToken(nextUser.token);
           if (isMounted) {
-            clearAuthState();
+            setUser(nextUser);
+            persistAuthProfile(nextUser);
           }
-          return;
-        }
-
-        setAccessToken(nextUser.token);
-        if (isMounted) {
-          setUser(nextUser);
-          persistAuthProfile(nextUser);
-        }
-      } catch {
-        if (isMounted) {
+        } else {
           clearAuthState();
         }
+      } catch {
+        clearAuthState();
       } finally {
         if (isMounted) {
           setIsBootstrapping(false);

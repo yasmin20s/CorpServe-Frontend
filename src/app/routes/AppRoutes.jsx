@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Navigate, Outlet, Route, Routes } from 'react-router';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
@@ -36,6 +36,7 @@ const VendorActiveRequests = lazy(() => import('../pages/vendor/VendorActiveRequ
 const VendorAnalytics = lazy(() => import('../pages/vendor/VendorAnalytics'));
 const VendorDashboard = lazy(() => import('../pages/vendor/VendorDashboard'));
 const VendorMyProposals = lazy(() => import('../pages/vendor/VendorMyProposals'));
+const VendorPayments = lazy(() => import('../pages/vendor/VendorPayments'));
 
 function getDashboardPathForRole(role) {
   switch ((role || '').toLowerCase()) {
@@ -62,15 +63,24 @@ function parseVerificationStatus(raw) {
   return 0;
 }
 
+function isSafeInternalRedirectPath(path) {
+  if (!path || typeof path !== 'string') return false;
+  if (!path.startsWith('/')) return false;
+  if (path.startsWith('//')) return false;
+  return true;
+}
+
 function RequireAuth() {
   const { user, isBootstrapping } = useAuth();
+  const location = useLocation();
 
   if (isBootstrapping) {
     return null;
   }
 
   if (!user?.isAuthenticated || !user?.token) {
-    return <Navigate to="/login" replace />;
+    const redirect = `${location.pathname}${location.search || ''}`;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(redirect)}`} replace />;
   }
 
   return <Outlet />;
@@ -142,12 +152,18 @@ function RequireVendorApproval() {
 
 function PublicOnlyRoute({ children }) {
   const { user, isBootstrapping } = useAuth();
+  const location = useLocation();
 
   if (isBootstrapping) {
     return null;
   }
 
   if (user?.isAuthenticated && user?.token) {
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    if (isSafeInternalRedirectPath(redirect)) {
+      return <Navigate to={redirect} replace />;
+    }
     return <Navigate to={getDashboardPathForRole(user.role)} replace />;
   }
 
@@ -198,6 +214,8 @@ export default function AppRoutes() {
             </PublicOnlyRoute>
           }
         />
+        <Route path="/payment-success" element={<Navigate to="/client/payments?payment_result=success" replace />} />
+        <Route path="/payment-failure" element={<Navigate to="/client/payments?payment_result=failure" replace />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole allowedRoles={['vendor']} />}>
@@ -226,6 +244,7 @@ export default function AppRoutes() {
                 <Route path="my-proposals" element={<VendorMyProposals />} />
                 <Route path="active-requests" element={<VendorActiveRequests />} />
                 <Route path="completed" element={<Completed />} />
+                <Route path="payments" element={<VendorPayments />} />
                 <Route path="analytics" element={<VendorAnalytics />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="chat" element={<Chat />} />

@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+import { refreshAccessToken } from '../services/apiClient';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://localhost:7170').replace(/\/+$/, '');
 const HUB_URL = `${API_BASE_URL}/hubs/notifications`;
@@ -21,40 +22,68 @@ function buildConnection() {
     .build();
 }
 
+function attachHubHandlers(conn) {
+  conn.on('notificationReceived', (notification) => {
+    for (const cb of subscribers) {
+      try {
+        cb(notification);
+      } catch {
+        /* subscriber error */
+      }
+    }
+  });
+
+  conn.onreconnecting(async () => {
+    console.warn('[SignalR] Reconnecting...');
+    try {
+      await refreshAccessToken();
+    } catch {
+      /* hub will retry with existing token */
+    }
+  });
+
+  conn.onreconnected(() => {
+    console.info('[SignalR] Reconnected.');
+  });
+
+  conn.onclose(() => {
+    console.warn('[SignalR] Connection closed.');
+  });
+}
+
 export async function startConnection() {
   if (connection && connection.state === signalR.HubConnectionState.Connected) {
     return;
   }
 
   if (connection) {
-    try { await connection.stop(); } catch { /* ignore */ }
+    try {
+      await connection.stop();
+    } catch {
+      /* ignore */
+    }
   }
 
   connection = buildConnection();
-
-  connection.on('notificationReceived', (notification) => {
-    for (const cb of subscribers) {
-      try { cb(notification); } catch { /* subscriber error */ }
-    }
-  });
-
-  connection.onreconnecting(() => {
-    console.warn('[SignalR] Reconnecting...');
-  });
-
-  connection.onreconnected(() => {
-    console.info('[SignalR] Reconnected.');
-  });
-
-  connection.onclose(() => {
-    console.warn('[SignalR] Connection closed.');
-  });
+  attachHubHandlers(connection);
 
   try {
     await connection.start();
     console.info('[SignalR] Connected.');
   } catch (err) {
-    console.error('[SignalR] Connection failed:', err);
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+      console.error('[SignalR] Connection failed:', err);
+      return;
+    }
+    connection = buildConnection();
+    attachHubHandlers(connection);
+    try {
+      await connection.start();
+      console.info('[SignalR] Connected.');
+    } catch (retryErr) {
+      console.error('[SignalR] Connection failed:', retryErr);
+    }
   }
 }
 
@@ -62,7 +91,9 @@ export async function stopConnection() {
   if (!connection) return;
   try {
     await connection.stop();
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   connection = null;
 }
 

@@ -63,6 +63,7 @@ const menuItems = [
     { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
+    { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 

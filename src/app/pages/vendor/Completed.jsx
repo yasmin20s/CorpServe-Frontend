@@ -4,6 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
 import { getVendorRequestsUiStore } from '../../lib/vendorRequestsUiStore';
+import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
+import { getVendorCompletedRequestsApi } from '../../services/proposalsApi';
+import { useAuth } from '../../hooks/useAuth';
+import { toast } from '../../lib/toast';
+import { useSignalREvent } from '../../context/SignalRContext';
 
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -11,6 +16,7 @@ const menuItems = [
     { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
+    { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 
@@ -20,25 +26,37 @@ function formatDate(value) {
   return date.toLocaleDateString('en-GB');
 }
 
-function parsePrice(value) {
-  const numeric = Number(String(value || '').replace(/[^\d.]/g, ''));
-  return Number.isFinite(numeric) ? numeric : 0;
-}
-
 function formatCurrency(value) {
   return `EGP ${Math.round(value).toLocaleString()}`;
 }
 
 export default function Completed() {
+    const { user } = useAuth();
     const [completed, setCompleted] = useState([]);
 
+    const loadCompleted = async () => {
+      if (!user?.token) return;
+      try {
+        const rows = await getVendorCompletedRequestsApi({ token: user.token });
+        setCompleted(rows);
+      } catch (error) {
+        toast.error(error.message || 'Failed to load completed requests');
+      }
+    };
+
     useEffect(() => {
-      const store = getVendorRequestsUiStore();
-      setCompleted(store.completedRequests);
-    }, []);
+      loadCompleted();
+    }, [user?.token]);
+
+    useSignalREvent(
+      ['Payment completed', 'Payment failed', 'Vendor payout settled', 'Payout settled', 'Payout failed'],
+      () => {
+        loadCompleted();
+      },
+    );
 
     const totalEarnings = useMemo(
-      () => completed.reduce((sum, item) => sum + parsePrice(item.amount), 0),
+      () => completed.reduce((sum, item) => sum + Number(item.amount || 0), 0),
       [completed]
     );
 
@@ -149,7 +167,7 @@ export default function Completed() {
                         <p className="text-xs uppercase tracking-wide text-indigo-700">Amount</p>
                         <p className="mt-1 inline-flex items-center gap-1 font-bold text-slate-900">
                           <Wallet className="h-4 w-4 text-indigo-600" />
-                          {project.amount}
+                          {formatCurrency(project.amount)}
                         </p>
                       </div>
                       <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3">
