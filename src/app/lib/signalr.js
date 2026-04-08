@@ -7,6 +7,7 @@ const HUB_URL = `${API_BASE_URL}/hubs/notifications`;
 let connection = null;
 let accessTokenGetter = () => '';
 const subscribers = new Set();
+let pendingStopAfterStart = false;
 
 export function setSignalRTokenGetter(getter) {
   accessTokenGetter = typeof getter === 'function' ? getter : () => '';
@@ -69,6 +70,16 @@ export async function startConnection() {
 
   try {
     await connection.start();
+    if (pendingStopAfterStart) {
+      pendingStopAfterStart = false;
+      try {
+        await connection.stop();
+      } catch {
+        /* ignore */
+      }
+      connection = null;
+      return;
+    }
     console.info('[SignalR] Connected.');
   } catch (err) {
     const refreshed = await refreshAccessToken();
@@ -80,6 +91,16 @@ export async function startConnection() {
     attachHubHandlers(connection);
     try {
       await connection.start();
+      if (pendingStopAfterStart) {
+        pendingStopAfterStart = false;
+        try {
+          await connection.stop();
+        } catch {
+          /* ignore */
+        }
+        connection = null;
+        return;
+      }
       console.info('[SignalR] Connected.');
     } catch (retryErr) {
       console.error('[SignalR] Connection failed:', retryErr);
@@ -89,6 +110,10 @@ export async function startConnection() {
 
 export async function stopConnection() {
   if (!connection) return;
+  if (connection.state === signalR.HubConnectionState.Connecting) {
+    pendingStopAfterStart = true;
+    return;
+  }
   try {
     await connection.stop();
   } catch {
