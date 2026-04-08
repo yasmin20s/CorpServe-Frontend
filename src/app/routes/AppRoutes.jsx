@@ -35,6 +35,7 @@ const Completed = lazy(() => import('../pages/vendor/Completed'));
 const VendorActiveRequests = lazy(() => import('../pages/vendor/VendorActiveRequests'));
 const VendorAnalytics = lazy(() => import('../pages/vendor/VendorAnalytics'));
 const VendorDashboard = lazy(() => import('../pages/vendor/VendorDashboard'));
+const VendorMyProposals = lazy(() => import('../pages/vendor/VendorMyProposals'));
 const VendorPayments = lazy(() => import('../pages/vendor/VendorPayments'));
 
 function getDashboardPathForRole(role) {
@@ -240,6 +241,7 @@ export default function AppRoutes() {
               <Route path="/vendor">
                 <Route path="dashboard" element={<VendorDashboard />} />
                 <Route path="available-requests" element={<AvailableRequests />} />
+                <Route path="my-proposals" element={<VendorMyProposals />} />
                 <Route path="active-requests" element={<VendorActiveRequests />} />
                 <Route path="completed" element={<Completed />} />
                 <Route path="payments" element={<VendorPayments />} />

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { LayoutDashboard, Briefcase, Activity, CheckCircle, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
+import { getVendorRequestsUiStore } from '../../lib/vendorRequestsUiStore';
 import { getVendorCompletedRequestsApi } from '../../services/proposalsApi';
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
@@ -11,6 +12,7 @@ import { useSignalREvent } from '../../context/SignalRContext';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
+    { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
     { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },

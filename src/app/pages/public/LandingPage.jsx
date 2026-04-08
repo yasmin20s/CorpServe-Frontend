@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, Menu, X, } from 'lucide-react';
+import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, Menu, X, Zap, } from 'lucide-react';
 import { ImageWithFallback } from '../../components/ui/ImageWithFallback';
-import { BubbleBackgroundDemo } from '../../components/backgrounds/BubbleBackgroundDemo';
+import FloatingLines from '../../../components/FloatingLines';
 export default function LandingPage() {
   const [activeSection, setActiveSection] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -141,12 +141,40 @@ useEffect(() => {
             transform: translateY(0);
           }
 
+          .hero-float {
+            animation: heroFloat 7s ease-in-out infinite;
+          }
+
+          .hero-float-slow {
+            animation-duration: 9s;
+          }
+
+          .hero-float-fast {
+            animation-duration: 5.6s;
+          }
+
+          @keyframes heroFloat {
+            0%,
+            100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-14px);
+            }
+          }
+
           @media (prefers-reduced-motion: reduce) {
             .reveal-item,
             .reveal-item.is-visible {
               opacity: 1;
               transform: none;
               transition: none;
+            }
+
+            .hero-float,
+            .hero-float-slow,
+            .hero-float-fast {
+              animation: none;
             }
           }
         `}
@@ -156,9 +184,13 @@ useEffect(() => {
       <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
+            <a
+              href="/"
+              aria-label="Go to home"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+            >
               <span className="text-sm font-bold text-white">CS</span>
-            </div>
+            </a>
             <h1 className="text-2xl font-bold text-black">CorpServe</h1>
           </div>
 
@@ -210,95 +242,158 @@ useEffect(() => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] overflow-hidden py-16 bg-white">
+      <section className="relative min-h-[80vh] overflow-hidden bg-white">
         <div className="absolute inset-0 h-full w-full">
-          <BubbleBackgroundDemo interactive={true} />
+          <FloatingLines
+            enabledWaves={['middle', 'top', 'bottom']}
+            lineCount={7}
+            lineDistance={17}
+            bendRadius={8.5}
+            bendStrength={-1.5}
+            interactive={true}
+            parallax={true}
+            mixBlendMode="normal"
+          />
         </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/50" />
 
-        <div className="relative z-10 mx-auto max-w-[88rem] px-7 pt-3 sm:pt-8 lg:pt-10">
-          <div className="grid gap-12 items-center lg:grid-cols-2">
-            <div className="reveal-item mx-auto max-w-3xl text-center lg:mx-0 lg:max-w-3xl lg:text-left" data-reveal data-reveal-delay="40">
-              <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-                Connect with Verified Service Providers
+        <div className="relative z-10 mx-auto max-w-[88rem] px-7 py-10 sm:py-14 lg:py-16">
+          <div className="grid items-center gap-10 lg:-mt-4 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+            <div className="reveal-item mx-auto max-w-3xl text-center lg:mx-0 lg:text-left" data-reveal data-reveal-delay="40">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet-300/30 bg-violet-400/15 px-4 py-2 text-sm font-semibold text-violet-100">
+                <Sparkles className="h-4 w-4" />
+                Trusted by 500+ Companies
+              </div>
+
+              <h2 className="mb-5 text-4xl font-bold leading-tight text-white [text-shadow:0_6px_26px_rgba(0,0,0,0.85)] sm:text-5xl lg:text-6xl">
+                Connect with
+                {' '}
+                <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text px-1 tracking-[0.08em] text-transparent">
+                  Verified
+                </span>
+                <br />
+                Service Providers
               </h2>
-              <p className="mx-auto mb-8 text-lg font-medium text-fuchsia-50 sm:text-xl lg:mx-0 lg:max-w-2xl">
-                CorpServe is a B2B platform that connects companies with verified vendors to manage services, SLAs, and payments.
 
+              <p className="mx-auto mb-6 max-w-2xl text-xl font-medium text-slate-100 [text-shadow:0_2px_18px_rgba(0,0,0,0.7)] lg:mx-0">
+                CorpServe is a B2B platform that connects companies with verified vendors to manage services, SLAs, and payments.
               </p>
-              <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
+
+              <div className="mb-6 flex flex-wrap justify-center gap-3 lg:justify-start">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-slate-100 backdrop-blur-sm"><Shield className="h-4 w-4 text-cyan-300" />Verified Vendors</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-slate-100 backdrop-blur-sm"><CheckCircle className="h-4 w-4 text-violet-300" />SLA Management</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-slate-100 backdrop-blur-sm"><Clock className="h-4 w-4 text-pink-300" />Real-time Tracking</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-slate-100 backdrop-blur-sm"><TrendingUp className="h-4 w-4 text-cyan-300" />Analytics</span>
+              </div>
+
+              <div className="flex w-full flex-wrap items-center justify-center gap-4 lg:justify-start">
                 <Link to="/signup">
                   <Button
                     size="lg"
                     className="gap-2 bg-[#6f74ea] text-white hover:bg-indigo-300 hover:text-gray-900"
                   >
-                    Get Started <ArrowRight className="w-4 h-4"/>
+                    Get Started <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/login">
-                  <Button size="lg" variant="outline">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/80 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  >
                     Login
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="reveal-item mx-auto w-full max-w-md lg:max-w-xl" data-reveal data-reveal-delay="120">
-              <div className="overflow-hidden rounded-lg border border-white/15 bg-black/20 shadow-2xl shadow-black/35 backdrop-blur-[1px]">
-                <ImageWithFallback
-                  src="/mike-kononov-lFv0V3_2H6s-unsplash.jpg"
-                  alt="Corporate office at night"
-                  className="h-[320px] w-full object-cover sm:h-[360px] lg:h-[400px]"
-                />
+
+            <div className="relative hidden min-h-[430px] lg:block">
+              <div className="hero-float absolute left-[8%] top-[8%] rounded-[28px] border border-violet-200/35 bg-gradient-to-br from-violet-200/25 via-white/8 to-violet-300/10 p-5 text-violet-100 shadow-[0_18px_48px_rgba(124,58,237,0.32)] backdrop-blur-md">
+                <Shield className="h-10 w-10 drop-shadow-[0_0_14px_rgba(196,181,253,0.75)]" />
+              </div>
+              <div className="hero-float hero-float-slow absolute right-[8%] top-[28%] rounded-[28px] border border-fuchsia-200/35 bg-gradient-to-br from-fuchsia-200/25 via-white/8 to-fuchsia-300/10 p-5 text-fuchsia-100 shadow-[0_18px_48px_rgba(217,70,239,0.3)] backdrop-blur-md">
+                <Zap className="h-10 w-10 drop-shadow-[0_0_14px_rgba(250,232,255,0.75)]" />
+              </div>
+              <div className="hero-float hero-float-fast absolute right-[16%] bottom-[12%] rounded-[28px] border border-cyan-200/35 bg-gradient-to-br from-cyan-200/25 via-white/8 to-cyan-300/10 p-5 text-cyan-100 shadow-[0_18px_48px_rgba(34,211,238,0.3)] backdrop-blur-md">
+                <Users className="h-10 w-10 drop-shadow-[0_0_14px_rgba(207,250,254,0.75)]" />
               </div>
             </div>
-            
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="reveal-item text-center mb-16" data-reveal>
-            <h3 className="text-4xl font-bold text-indigo-500 mb-4">How It Works</h3>
-            <p className="text-xl text-gray-600">Simple, efficient, and transparent process</p>
+      <section id="how-it-works" className="relative overflow-hidden py-20 bg-[linear-gradient(160deg,#f8f9ff_0%,#f3f6ff_42%,#ffffff_100%)]">
+        <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:linear-gradient(rgba(99,102,241,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.08)_1px,transparent_1px)] [background-size:44px_44px]" />
+        <div className="pointer-events-none absolute -left-12 top-8 h-56 w-56 rounded-full bg-violet-300/35 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 bottom-2 h-52 w-52 rounded-full bg-pink-300/25 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-6">
+          <div className="reveal-item mb-10 text-center" data-reveal>
+            <span className="inline-flex items-center rounded-full border border-violet-200 bg-white px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-violet-600">
+              Workflow
+            </span>
+            <h3 className="mt-4 bg-gradient-to-r from-violet-600 via-violet-500 to-pink-500 bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-4xl lg:text-5xl">
+              How It Works
+            </h3>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600 sm:text-lg">
+              Simple, efficient, and transparent process
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="reveal-item border-2 border-blue-200" data-reveal data-reveal-delay="0">
-              <CardHeader>
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <MessageSquare className="w-8 h-8 text-blue-600"/>
+          <div className="grid gap-5 md:grid-cols-3">
+            <Card className="reveal-item group relative overflow-hidden rounded-[24px] border border-blue-200/80 bg-white/90 shadow-[0_12px_28px_rgba(37,99,235,0.14)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-blue-300 hover:shadow-[0_26px_56px_rgba(37,99,235,0.24)]" data-reveal data-reveal-delay="0">
+              <div className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(circle_at_top_right,rgba(147,197,253,0.22),transparent_58%)]" />
+              <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-blue-200/80 bg-blue-50/90 text-xs font-bold text-blue-600">01</div>
+              <CardHeader className="relative z-10 pb-4">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-200 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold tracking-[0.14em] text-slate-600">INTAKE</span>
                 </div>
-                <CardTitle>1. Post Your Request</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-[1.65rem] font-bold tracking-tight text-slate-900">Post Your Request</CardTitle>
+                <CardDescription className="mt-2 text-[1.05rem] leading-relaxed text-slate-600">
                   Describe your service needs and get AI-powered cost and time estimates instantly.
                 </CardDescription>
               </CardHeader>
+              <div className="mx-6 mb-5 h-1 rounded-full bg-gradient-to-r from-blue-500/80 to-indigo-500/80" />
             </Card>
 
-            <Card className="reveal-item border-2 border-green-200" data-reveal data-reveal-delay="90">
-              <CardHeader>
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Clock className="w-8 h-8 text-green-600"/>
+            <Card className="reveal-item group relative overflow-hidden rounded-[24px] border border-emerald-200/80 bg-white/90 shadow-[0_12px_28px_rgba(5,150,105,0.14)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-emerald-300 hover:shadow-[0_26px_56px_rgba(5,150,105,0.24)]" data-reveal data-reveal-delay="90">
+              <div className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(circle_at_top_right,rgba(110,231,183,0.24),transparent_58%)]" />
+              <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-emerald-200/80 bg-emerald-50/90 text-xs font-bold text-emerald-600">02</div>
+              <CardHeader className="relative z-10 pb-4">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold tracking-[0.14em] text-slate-600">SELECTION</span>
                 </div>
-                <CardTitle>2. Receive Proposals</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-[1.65rem] font-bold tracking-tight text-slate-900">Receive Proposals</CardTitle>
+                <CardDescription className="mt-2 text-[1.05rem] leading-relaxed text-slate-600">
                   Verified vendors submit proposals. Review, negotiate, and accept the best offer.
                 </CardDescription>
               </CardHeader>
+              <div className="mx-6 mb-5 h-1 rounded-full bg-gradient-to-r from-emerald-500/80 to-teal-500/80" />
             </Card>
 
-            <Card className="reveal-item border-2 border-purple-200" data-reveal data-reveal-delay="180">
-              <CardHeader>
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="w-8 h-8 text-purple-600"/>
+            <Card className="reveal-item group relative overflow-hidden rounded-[24px] border border-violet-200/80 bg-white/90 shadow-[0_12px_28px_rgba(124,58,237,0.14)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-violet-300 hover:shadow-[0_26px_56px_rgba(124,58,237,0.24)]" data-reveal data-reveal-delay="180">
+              <div className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(circle_at_top_right,rgba(196,181,253,0.22),transparent_58%)]" />
+              <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-violet-200/80 bg-violet-50/90 text-xs font-bold text-violet-600">03</div>
+              <CardHeader className="relative z-10 pb-4">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-200 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold tracking-[0.14em] text-slate-600">DELIVERY</span>
                 </div>
-                <CardTitle>3. Track & Complete</CardTitle>
-                <CardDescription>
-                  Monitor progress with SLA tracking, communicate via chat, and pay securely upon
-                  completion.
+                <CardTitle className="text-[1.65rem] font-bold tracking-tight text-slate-900">Track & Complete</CardTitle>
+                <CardDescription className="mt-2 text-[1.05rem] leading-relaxed text-slate-600">
+                  Monitor progress with SLA tracking, communicate via chat, and pay securely upon completion.
                 </CardDescription>
               </CardHeader>
+              <div className="mx-6 mb-5 h-1 rounded-full bg-gradient-to-r from-violet-500/80 to-pink-500/80" />
             </Card>
           </div>
         </div>
@@ -308,7 +403,9 @@ useEffect(() => {
       <section id="services" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="reveal-item text-center mb-16" data-reveal>
-            <h3 className="text-4xl font-bold text-indigo-500 mb-4">Service Categories</h3>
+            <h3 className="mb-4 bg-gradient-to-r from-violet-600 via-violet-500 to-pink-500 bg-clip-text text-4xl font-bold text-transparent">
+              Service Categories
+            </h3>
             <p className="text-xl text-gray-600">
               Wide range of enterprise services from verified vendors
             </p>
@@ -439,9 +536,13 @@ useEffect(() => {
           <div className="reveal-item grid md:grid-cols-3 gap-8 mb-8" data-reveal>
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
+                <a
+                  href="/"
+                  aria-label="Go to home"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+                >
                   <span className="text-white text-xl font-bold">CS</span>
-                </div>
+                </a>
                 <h4 className="text-xl font-bold text-white">CorpServe</h4>
               </div>
               <p className="text-gray-400">

@@ -53,9 +53,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
         <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
+            <a
+              href="/"
+              aria-label="Go to home"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+            >
               <span className="text-sm font-bold text-white">CS</span>
-            </div>
+            </a>
             <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-black">CorpServe</h1>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -194,7 +198,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
           <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-hidden">
             <div className={`${isSidebarOpen ? 'mx-4 mt-4' : 'mx-3 mt-4'} rounded-2xl border border-indigo-100 bg-white/90 p-3 shadow-sm`}>
               <div className={`flex items-center ${isSidebarOpen ? 'gap-2' : 'justify-center'}`}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-sm font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)]">CS</div>
+                <a
+                  href="/"
+                  aria-label="Go to home"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-sm font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+                >
+                  CS
+                </a>
                 {isSidebarOpen && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600">Workspace</p>

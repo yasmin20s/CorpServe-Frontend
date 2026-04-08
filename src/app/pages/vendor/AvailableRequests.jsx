@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import DarkVeil from '../../components/backgrounds/DarkVeil';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -39,6 +40,7 @@ import {
   Tag,
   Info,
   Search,
+  FileStack,
 } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -58,6 +60,7 @@ import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
+    { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5"/> },
     { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
@@ -119,6 +122,7 @@ function RequestAttachmentsBlock({ request, className = '' }) {
 }
 
 export default function AvailableRequests() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -300,7 +304,15 @@ export default function AvailableRequests() {
         </section>
 
         <section className="space-y-4">
-          <div className="flex justify-start sm:justify-end">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Button
+              variant="outline"
+              className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              onClick={() => navigate('/vendor/my-proposals')}
+            >
+              <FileStack className="h-4 w-4" />
+              View My Proposals
+            </Button>
             <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
               <Badge className="w-fit gap-2 border border-violet-300 bg-gradient-to-r from-violet-100 to-blue-100 px-4 py-1.5 text-sm font-semibold text-violet-800 shadow-sm sm:text-base">
                 <Briefcase className="h-4 w-4" />
