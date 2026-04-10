@@ -6,7 +6,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Badge } from './ui/badge';
 import { useAuth } from '../hooks/useAuth';
 import { getUnreadNotificationCountApi } from '../services/notificationsApi';
+import { getUnreadChatCountApi } from '../services/chatApi';
 import { useSignalREvent } from '../context/SignalRContext';
+import {
+  startChatConnection,
+  stopChatConnection,
+  onUserMessage,
+} from '../lib/chatSignalr';
 
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
@@ -15,6 +21,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const lastContentPathRef = useRef(`/${userRole}/dashboard`);
 
   const refreshUnreadCount = useCallback(() => {
@@ -24,9 +31,17 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       .catch(() => {});
   }, [user?.token]);
 
+  const refreshUnreadChatCount = useCallback(() => {
+    if (!user?.token || userRole === 'admin') return;
+    getUnreadChatCountApi({ token: user.token })
+      .then((count) => setUnreadChatCount(count))
+      .catch(() => {});
+  }, [user?.token, userRole]);
+
   useEffect(() => {
     refreshUnreadCount();
-  }, [refreshUnreadCount, location.pathname]);
+    refreshUnreadChatCount();
+  }, [refreshUnreadCount, refreshUnreadChatCount, location.pathname]);
 
   useEffect(() => {
     const notificationsPath = `/${userRole}/notifications`;
@@ -48,7 +63,22 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
 
   useSignalREvent(null, useCallback(() => {
     refreshUnreadCount();
-  }, [refreshUnreadCount]));
+    refreshUnreadChatCount();
+  }, [refreshUnreadCount, refreshUnreadChatCount]));
+
+  useEffect(() => {
+    if (userRole === 'admin' || !user?.token) return;
+    startChatConnection();
+    return () => stopChatConnection();
+  }, [user?.token, userRole]);
+
+  useEffect(() => {
+    if (userRole === 'admin') return;
+    const unsub = onUserMessage(() => {
+      refreshUnreadChatCount();
+    });
+    return unsub;
+  }, [refreshUnreadChatCount, userRole]);
 
   const togglePanelRoute = useCallback((targetPath) => {
     if (location.pathname === targetPath) {
@@ -143,9 +173,11 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             {!isAdmin && (
               <Button type="button" onClick={handleChatToggle} variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl border border-indigo-100 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100">
                 <MessageSquare className="w-5 h-5"/>
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-blue-500">
-                  5
-                </Badge>
+                {unreadChatCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-indigo-600 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                    {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                  </Badge>
+                )}
               </Button>
             )}
 

@@ -32,6 +32,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getVendorActiveRequestsApi, getVendorSlaContractApi } from '../../services/proposalsApi';
 import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { updateRequestProgressApi } from '../../services/vendorRequestsApi';
+import { getChatRoomByRequestApi } from '../../services/chatApi';
 import { useSignalREvent } from '../../context/SignalRContext';
 
 const menuItems = [
@@ -189,14 +190,14 @@ export default function VendorActiveRequests() {
     void handleViewSla(id);
   }, [pendingOpenSlaRequestId, isLoading, user?.token, handleViewSla]);
 
-  const handleOpenChat = (request) => {
-    navigate('/vendor/chat', {
-      state: {
-        counterpartyName: request.clientName || 'Client',
-        project: request.title,
-        targetRole: 'client',
-      },
-    });
+  const handleOpenChat = async (request) => {
+    if (!user?.token) return;
+    try {
+      const chatRoomId = await getChatRoomByRequestApi({ requestId: request.requestId, token: user.token });
+      navigate('/vendor/chat', { state: { chatRoomId } });
+    } catch (error) {
+      toast.error(error.message || 'Failed to open chat');
+    }
   };
 
   return (

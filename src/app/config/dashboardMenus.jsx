@@ -6,6 +6,7 @@ import {
   FileStack,
   FileText,
   LayoutDashboard,
+  MessageSquare,
   PlusCircle,
   TrendingUp,
   UserCheck,
@@ -19,6 +20,7 @@ export const dashboardMenusByRole = {
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle className="w-5 h-5" /> },
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack className="w-5 h-5" /> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5" /> },
+    { label: 'Chat', path: '/client/chat', icon: <MessageSquare className="w-5 h-5" /> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5" /> },
   ],
   vendor: [
@@ -26,6 +28,7 @@ export const dashboardMenusByRole = {
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5" /> },
     { label: 'My Proposals', path: '/vendor/my-proposals', icon: <FileStack className="w-5 h-5" /> },
     { label: 'Active Requests', path: '/vendor/active-requests', icon: <Activity className="w-5 h-5" /> },
+    { label: 'Chat', path: '/vendor/chat', icon: <MessageSquare className="w-5 h-5" /> },
     { label: 'Completed', path: '/vendor/completed', icon: <CheckCircle className="w-5 h-5" /> },
     { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5" /> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5" /> },

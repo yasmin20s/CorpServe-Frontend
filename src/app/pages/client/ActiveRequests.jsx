@@ -23,6 +23,7 @@ import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { dashboardMenusByRole } from '../../config/dashboardMenus';
 import { getClientActiveRequestsApi, getClientSlaContractApi } from '../../services/proposalsApi';
+import { getChatRoomByRequestApi } from '../../services/chatApi';
 import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { useSignalREvent } from '../../context/SignalRContext';
 
@@ -110,15 +111,14 @@ export default function ClientActiveRequests() {
     }
   };
 
-  const handleOpenChat = (request) => {
-    const counterpartyName = request.vendorName || 'Assigned Vendor';
-    navigate('/client/chat', {
-      state: {
-        counterpartyName,
-        project: request.title,
-        targetRole: 'vendor',
-      },
-    });
+  const handleOpenChat = async (request) => {
+    if (!user?.token) return;
+    try {
+      const chatRoomId = await getChatRoomByRequestApi({ requestId: request.requestId, token: user.token });
+      navigate('/client/chat', { state: { chatRoomId } });
+    } catch (error) {
+      toast.error(error.message || 'Failed to open chat');
+    }
   };
 
   return (
