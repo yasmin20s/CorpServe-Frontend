@@ -5,12 +5,11 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Send, Paperclip, MessageSquare, Image, FileText, X, ArrowLeft, Sparkles, ShieldCheck, Zap, Search } from 'lucide-react';
+import { Send, Pin, MessageSquare, Image, FileText, X, ArrowLeft, Sparkles, ShieldCheck, Zap, Search } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { useRoleFromPath } from '../../hooks/useRoleFromPath';
 import { useAuth } from '../../hooks/useAuth';
-import DarkVeil from '../../components/backgrounds/DarkVeil';
 import { toast } from '../../lib/toast';
 import {
   getChatRoomsApi,
@@ -80,6 +79,74 @@ function getInitials(name) {
     .join('') || '??';
 }
 
+function toEpochMs(value) {
+  if (!value) return 0;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 0;
+  return d.getTime();
+}
+
+function messageStableKey(message) {
+  if (message?.id) return String(message.id);
+  return [
+    message?.chatRoomId || '',
+    message?.sentAt || '',
+    message?.sender || '',
+    message?.content || '',
+    message?.mediaUrl || '',
+  ].join('|');
+}
+
+function sortMessagesByBackendOrder(items) {
+  return [...items].sort((a, b) => {
+    const tDiff = toEpochMs(a?.sentAt) - toEpochMs(b?.sentAt);
+    if (tDiff !== 0) return tDiff;
+    return messageStableKey(a).localeCompare(messageStableKey(b));
+  });
+}
+
+function sortRoomsByLatestActivity(items) {
+  return [...items].sort((a, b) => {
+    const aTime = toEpochMs(a?.lastMessageTime || a?.createdAt);
+    const bTime = toEpochMs(b?.lastMessageTime || b?.createdAt);
+    return bTime - aTime;
+  });
+}
+
+const CHAT_MESSAGES_PAGE_SIZE = 50;
+const CHAT_MESSAGES_MAX_PAGES = 20;
+
+function resolveMediaUrl(mediaUrl, mediaBaseUrl) {
+  if (!mediaUrl) return '';
+  if (/^https?:\/\//i.test(mediaUrl)) return mediaUrl;
+  const normalizedBase = String(mediaBaseUrl || '').replace(/\/+$/, '');
+  const normalizedPath = String(mediaUrl).replace(/^\/+/, '');
+  return `${normalizedBase}/${normalizedPath}`;
+}
+
+function isImageMedia(message) {
+  const mime = String(message?.mediaMimeType || '').toLowerCase();
+  if (mime.startsWith('image/')) return true;
+
+  const type = String(message?.type || '').toLowerCase();
+  if (type.includes('image')) return true;
+
+  const url = String(message?.mediaUrl || '').toLowerCase();
+  return /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/.test(url);
+}
+
+function attachmentDisplayName(message) {
+  if (message?.content?.trim()) return message.content;
+  const url = String(message?.mediaUrl || '');
+  if (!url) return 'File';
+  try {
+    const rawName = url.split('/').pop() || 'File';
+    return decodeURIComponent(rawName.split('?')[0] || 'File');
+  } catch {
+    return 'File';
+  }
+}
+
 export default function Chat() {
   const role = useRoleFromPath();
   const location = useLocation();
@@ -99,20 +166,24 @@ export default function Chat() {
 
   const messagesEndRef = useRef(null);
   const messagesViewportRef = useRef(null);
+  const autoScrollTimerRef = useRef(null);
   const currentRoomRef = useRef(null);
+  const shouldAutoScrollToBottomRef = useRef(true);
   const initialRoomApplied = useRef(false);
   const fileInputRef = useRef(null);
   const [pendingFile, setPendingFile] = useState(null);
   const [mobileShowMessages, setMobileShowMessages] = useState(false);
   const [roomSearch, setRoomSearch] = useState('');
   const [filePickerAccept, setFilePickerAccept] = useState(
-    'image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.xls,.xlsx,.txt',
+    'image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar',
   );
 
   const selectedRoom = useMemo(
     () => rooms.find((r) => r.id === selectedRoomId) || null,
     [rooms, selectedRoomId],
   );
+
+  const hideHeroOnMobile = mobileShowMessages && Boolean(selectedRoom);
 
   const isClient = role === 'client';
 
@@ -136,7 +207,7 @@ export default function Chat() {
     setLoadingRooms(true);
     try {
       const result = await getChatRoomsApi({ token: user.token });
-      setRooms(result);
+      setRooms(sortRoomsByLatestActivity(result));
     } catch (error) {
       toast.error(error.message || 'Failed to load chat rooms');
     } finally {
@@ -164,8 +235,34 @@ export default function Chat() {
     if (!user?.token || !roomId) return;
     setLoadingMessages(true);
     try {
-      const result = await getChatMessagesApi({ chatRoomId: roomId, token: user.token });
-      setMessages(result);
+      const collected = [];
+      const seen = new Set();
+
+      for (let pageIndex = 1; pageIndex <= CHAT_MESSAGES_MAX_PAGES; pageIndex += 1) {
+        const page = await getChatMessagesApi({
+          chatRoomId: roomId,
+          pageIndex,
+          pageSize: CHAT_MESSAGES_PAGE_SIZE,
+          token: user.token,
+        });
+
+        if (!Array.isArray(page) || page.length === 0) {
+          break;
+        }
+
+        page.forEach((message) => {
+          const key = messageStableKey(message);
+          if (seen.has(key)) return;
+          seen.add(key);
+          collected.push(message);
+        });
+
+        if (page.length < CHAT_MESSAGES_PAGE_SIZE) {
+          break;
+        }
+      }
+
+      setMessages(sortMessagesByBackendOrder(collected));
     } catch (error) {
       toast.error(error.message || 'Failed to load messages');
     } finally {
@@ -178,6 +275,7 @@ export default function Chat() {
       setMessages([]);
       return;
     }
+    shouldAutoScrollToBottomRef.current = true;
     loadMessages(selectedRoomId);
   }, [selectedRoomId, loadMessages]);
 
@@ -198,9 +296,48 @@ export default function Chat() {
     }
   }, []);
 
-  useEffect(() => {
+  const forceScrollToLatest = useCallback(() => {
+    if (autoScrollTimerRef.current) {
+      clearInterval(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+
+    let attempts = 0;
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+    autoScrollTimerRef.current = setInterval(() => {
+      scrollToBottom();
+      attempts += 1;
+      if (attempts >= 10) {
+        clearInterval(autoScrollTimerRef.current);
+        autoScrollTimerRef.current = null;
+      }
+    }, 120);
+  }, [scrollToBottom]);
+
+  useEffect(() => () => {
+    if (autoScrollTimerRef.current) {
+      clearInterval(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (shouldAutoScrollToBottomRef.current) {
+      forceScrollToLatest();
+    }
+  }, [messages, forceScrollToLatest]);
+
+  useEffect(() => {
+    if (!selectedRoomId || loadingMessages) return;
+    shouldAutoScrollToBottomRef.current = true;
+    forceScrollToLatest();
+  }, [selectedRoomId, loadingMessages, forceScrollToLatest]);
+
+  useEffect(() => {
+    if (!selectedRoomId || !mobileShowMessages) return;
+    shouldAutoScrollToBottomRef.current = true;
+    forceScrollToLatest();
+  }, [selectedRoomId, mobileShowMessages, forceScrollToLatest]);
 
   useEffect(() => {
     const prev = currentRoomRef.current;
@@ -216,30 +353,31 @@ export default function Chat() {
   useEffect(() => {
     const unsubMsg = onMessage((msg) => {
       const normalized = {
-        id: msg?.id || msg?.Id || '',
-        chatRoomId: msg?.chatRoomId || msg?.ChatRoomId || '',
-        content: msg?.content || msg?.Content || '',
-        type: msg?.type || msg?.Type || 'text',
-        sender: msg?.sender || msg?.Sender || '',
-        sentAt: msg?.sentAt || msg?.SentAt || '',
-        isRead: msg?.isRead || msg?.IsRead || false,
-        mediaUrl: msg?.mediaUrl || msg?.MediaUrl || null,
-        mediaMimeType: msg?.mediaMimeType || msg?.MediaMimeType || null,
-        mediaSizeBytes: msg?.mediaSizeBytes || msg?.MediaSizeBytes || null,
+        id: String(msg?.id ?? msg?.Id ?? ''),
+        chatRoomId: String(msg?.chatRoomId ?? msg?.ChatRoomId ?? ''),
+        content: String(msg?.content ?? msg?.Content ?? ''),
+        type: String(msg?.type ?? msg?.Type ?? 'text'),
+        sender: String(msg?.sender ?? msg?.Sender ?? ''),
+        sentAt: msg?.sentAt ?? msg?.SentAt ?? '',
+        isRead: Boolean(msg?.isRead ?? msg?.IsRead ?? false),
+        mediaUrl: msg?.mediaUrl ?? msg?.MediaUrl ?? msg?.attachmentUrl ?? msg?.AttachmentUrl ?? msg?.fileUrl ?? msg?.FileUrl ?? null,
+        mediaMimeType: msg?.mediaMimeType ?? msg?.MediaMimeType ?? msg?.mimeType ?? msg?.MimeType ?? msg?.fileType ?? msg?.FileType ?? null,
+        mediaSizeBytes: msg?.mediaSizeBytes ?? msg?.MediaSizeBytes ?? msg?.fileSizeBytes ?? msg?.FileSizeBytes ?? msg?.size ?? msg?.Size ?? null,
       };
 
       if (normalized.chatRoomId === currentRoomRef.current) {
         setMessages((prev) => {
-          if (prev.some((m) => m.id === normalized.id)) return prev;
-          return [...prev, normalized];
+          const nextKey = messageStableKey(normalized);
+          if (prev.some((m) => messageStableKey(m) === nextKey)) return prev;
+          return sortMessagesByBackendOrder([...prev, normalized]);
         });
         if (user?.token) {
           markMessagesReadApi({ chatRoomId: normalized.chatRoomId, token: user.token }).catch(() => {});
         }
       }
 
-      setRooms((prev) =>
-        prev.map((r) => {
+      setRooms((prev) => {
+        const updated = prev.map((r) => {
           if (r.id !== normalized.chatRoomId) return r;
           const isCurrentRoom = normalized.chatRoomId === currentRoomRef.current;
           return {
@@ -248,8 +386,9 @@ export default function Chat() {
             lastMessageTime: normalized.sentAt,
             unreadCount: isCurrentRoom ? 0 : r.unreadCount + 1,
           };
-        }),
-      );
+        });
+        return sortRoomsByLatestActivity(updated);
+      });
     });
 
     const unsubRead = onUserMessagesRead((chatRoomId, readByUserId) => {
@@ -269,8 +408,12 @@ export default function Chat() {
   }, [user?.token, isClient]);
 
   const handleSelectRoom = (roomId) => {
+    shouldAutoScrollToBottomRef.current = true;
     setSelectedRoomId(roomId);
     setMobileShowMessages(true);
+    requestAnimationFrame(() => {
+      forceScrollToLatest();
+    });
   };
 
   const handleBackToRooms = () => {
@@ -307,11 +450,11 @@ export default function Chat() {
     if (sending) return;
 
     if (mode === 'image') {
-      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp');
+      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml');
     } else if (mode === 'file') {
-      setFilePickerAccept('.pdf,.doc,.docx,.xls,.xlsx,.txt');
+      setFilePickerAccept('.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar');
     } else {
-      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.xls,.xlsx,.txt');
+      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar');
     }
 
     requestAnimationFrame(() => {
@@ -428,7 +571,7 @@ export default function Chat() {
   );
 
   const messagePanel = (
-    <Card className="h-full flex flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
+    <Card className="h-full min-h-0 flex flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
         {!selectedRoom ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
@@ -465,7 +608,7 @@ export default function Chat() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4" ref={messagesViewportRef}>
+            <div className="flex-1 min-h-0 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4" ref={messagesViewportRef}>
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-12">
                   <p className="text-slate-500">Loading messages...</p>
@@ -480,13 +623,13 @@ export default function Chat() {
               ) : (
                 <div className="space-y-4">
                   <AnimatePresence initial={false}>
-                    {messages.map((msg) => {
+                    {messages.map((msg, index) => {
                     const isMe = msg.sender === mySenderType;
                     const prev = messages[index - 1];
                     const showDayDivider = index === 0 || messageDayKey(prev?.sentAt) !== messageDayKey(msg.sentAt);
                     return (
                       <motion.div
-                        key={msg.id}
+                        key={messageStableKey(msg)}
                         initial={{ opacity: 0, y: 12, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -501,6 +644,10 @@ export default function Chat() {
                           </div>
                         )}
                         <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          {(() => {
+                            const mediaHref = resolveMediaUrl(msg.mediaUrl, mediaBaseUrl);
+                            const imageMedia = isImageMedia(msg);
+                            return (
                           <div
                             className={`max-w-[78%] rounded-2xl p-3 shadow-sm ${
                               isMe
@@ -508,23 +655,24 @@ export default function Chat() {
                                 : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100'
                             }`}
                           >
-                          {msg.mediaUrl && msg.mediaMimeType?.startsWith('image/') && (
+                          {msg.mediaUrl && imageMedia && (
                             <a
-                              href={`${mediaBaseUrl}${msg.mediaUrl}`}
+                              href={mediaHref}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="block mb-2"
                             >
                               <img
-                                src={`${mediaBaseUrl}${msg.mediaUrl}`}
+                                src={mediaHref}
                                 alt={msg.content || 'Attachment'}
                                 className="max-w-full max-h-60 rounded-lg object-cover"
+                                onLoad={forceScrollToLatest}
                               />
                             </a>
                           )}
-                          {msg.mediaUrl && !msg.mediaMimeType?.startsWith('image/') && (
+                          {msg.mediaUrl && !imageMedia && (
                             <a
-                              href={`${mediaBaseUrl}${msg.mediaUrl}`}
+                              href={mediaHref}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={`flex items-center gap-2 mb-2 rounded-lg border px-3 py-2 text-sm ${
@@ -534,7 +682,7 @@ export default function Chat() {
                               }`}
                             >
                               <FileText className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{msg.content || 'File'}</span>
+                              <span className="truncate">{attachmentDisplayName(msg)}</span>
                               {msg.mediaSizeBytes && (
                                 <span className="text-xs opacity-70 flex-shrink-0">
                                   {(msg.mediaSizeBytes / 1024).toFixed(0)} KB
@@ -542,7 +690,7 @@ export default function Chat() {
                               )}
                             </a>
                           )}
-                          {(!msg.mediaUrl || msg.mediaMimeType?.startsWith('image/')) && (
+                          {(!msg.mediaUrl || imageMedia) && (
                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                           )}
                           <div
@@ -569,6 +717,8 @@ export default function Chat() {
                             )}
                           </div>
                           </div>
+                            );
+                          })()}
                         </div>
                       </motion.div>
                     );
@@ -608,41 +758,17 @@ export default function Chat() {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50/70 p-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
-                    disabled={sending}
-                    onClick={() => openFilePicker('all')}
-                    title="Attach"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
-                    disabled={sending}
-                    onClick={() => openFilePicker('image')}
-                    title="Upload photo"
-                  >
-                    <Image className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
-                    disabled={sending}
-                    onClick={() => openFilePicker('file')}
-                    title="Upload file"
-                  >
-                    <FileText className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 rounded-xl border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100"
+                  disabled={sending}
+                  onClick={() => openFilePicker('all')}
+                  title="Attach"
+                >
+                  <Pin className="w-4 h-4" />
+                </Button>
                 <Input
                   placeholder={pendingFile ? 'Add a caption (optional)...' : 'Type your message...'}
                   value={messageText}
@@ -675,24 +801,13 @@ export default function Chat() {
 
   return (
     <DashboardLayout menuItems={menuItems} userRole={role}>
-      <div className="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
-        <div className="relative mb-4 flex-shrink-0 overflow-hidden rounded-3xl border border-violet-200/50 bg-gradient-to-br from-violet-800 via-indigo-700 to-blue-700 p-4 text-white shadow-[0_16px_36px_rgba(37,18,94,0.34)] sm:p-6">
-          <div className="pointer-events-none absolute inset-0">
-            <DarkVeil hueShift={0} noiseIntensity={0} scanlineIntensity={0} speed={4} scanlineFrequency={0} warpAmount={0} />
-          </div>
+      <div className="-mt-4 flex h-[calc(100dvh-3.25rem)] flex-col overflow-hidden sm:-mt-6 sm:h-[calc(100dvh-3.75rem)] lg:-mt-8 lg:h-[calc(100dvh-4.25rem)]">
+        <div className={`${hideHeroOnMobile ? 'hidden lg:block' : ''} relative mb-3 flex-shrink-0 overflow-hidden rounded-3xl border border-violet-200/50 bg-gradient-to-br from-violet-800 via-indigo-700 to-blue-700 p-3 text-white shadow-[0_16px_36px_rgba(37,18,94,0.34)] sm:p-4`}>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-900/55 via-indigo-900/50 to-blue-900/55" />
-          <motion.div
-            className="pointer-events-none absolute -left-20 top-6 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl"
-            animate={{ x: [0, 18, 0], y: [0, 14, 0], scale: [1, 1.07, 1] }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-blue-300/20 blur-3xl"
-            animate={{ x: [0, -22, 0], y: [0, -12, 0], scale: [1, 1.08, 1] }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          <div className="pointer-events-none absolute -left-20 top-6 h-56 w-56 rounded-full bg-violet-300/20 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-blue-300/15 blur-3xl" />
 
-          <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="relative flex flex-col gap-3 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-violet-200/40 bg-violet-200/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-100">
                 <Sparkles className="h-3.5 w-3.5 text-amber-300" />
@@ -705,7 +820,7 @@ export default function Chat() {
                 Real-time conversation with {role === 'client' ? 'vendors' : 'clients'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
               <motion.div
                 animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
