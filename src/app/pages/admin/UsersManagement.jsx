@@ -1,145 +1,546 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, Search, Ban, CheckCircle2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  FileText,
+  DollarSign,
+  TrendingUp,
+  UserCheck,
+  Search,
+  Ban,
+  UserRound,
+  Building2,
+  Sparkles,
+  CalendarClock,
+  ShieldCheck,
+  UserX,
+  Activity,
+  Filter,
+} from 'lucide-react';
 import { toast } from '../../lib/toast';
+
 const menuItems = [
-    { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
-    { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
-    { label: 'Users', path: '/admin/users', icon: <Users className="w-5 h-5"/> },
-    { label: 'Categories', path: '/admin/categories', icon: <Briefcase className="w-5 h-5"/> },
-    { label: 'Requests Monitor', path: '/admin/requests-monitor', icon: <FileText className="w-5 h-5"/> },
-    { label: 'SLA Monitor', path: '/admin/sla-monitor', icon: <FileText className="w-5 h-5"/> },
-    { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5"/> },
-    { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
+  { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5" /> },
+  { label: 'Users', path: '/admin/users', icon: <Users className="w-5 h-5" /> },
+  { label: 'Categories', path: '/admin/categories', icon: <Briefcase className="w-5 h-5" /> },
+  { label: 'Requests Monitor', path: '/admin/requests-monitor', icon: <FileText className="w-5 h-5" /> },
+  { label: 'SLA Monitor', path: '/admin/sla-monitor', icon: <FileText className="w-5 h-5" /> },
+  { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5" /> },
+  { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5" /> },
 ];
+
 const users = [
-  { id: '1', name: 'John Doe', companyName: 'Acme Corp', email: 'john@acmecorp.com', phoneNumber: '+20 100 111 2233', role: 'client', status: 'active', requestsCreated: 12, requestsHandled: 0 },
-  { id: '2', name: 'Jane Smith', companyName: 'TechPro Solutions', email: 'jane@techpro.com', phoneNumber: '+20 101 765 8800', role: 'vendor', status: 'active', requestsCreated: 0, requestsHandled: 45 },
-  { id: '3', name: 'Bob Johnson', companyName: 'Startup XYZ', email: 'bob@startup.com', phoneNumber: '+20 102 456 7788', role: 'client', status: 'suspended', requestsCreated: 3, requestsHandled: 0 },
-  { id: '4', name: 'Alice Brown', companyName: 'CleanCo Services', email: 'alice@cleanco.com', phoneNumber: '+20 109 335 6621', role: 'vendor', status: 'active', requestsCreated: 0, requestsHandled: 52 },
+  { id: '1', name: 'John Doe', email: 'john@acmecorp.com', role: 'client', status: 'active', joinedDate: '2026-01-15', requests: 12 },
+  { id: '2', name: 'Jane Smith', email: 'jane@techpro.com', role: 'vendor', status: 'active', joinedDate: '2026-01-20', requests: 45 },
+  { id: '3', name: 'Bob Johnson', email: 'bob@startup.com', role: 'client', status: 'suspended', joinedDate: '2026-02-10', requests: 3 },
+  { id: '4', name: 'Alice Brown', email: 'alice@cleanco.com', role: 'vendor', status: 'active', joinedDate: '2026-02-15', requests: 52 },
 ];
+
+const ROLE_META = {
+  client: {
+    label: 'Client',
+    icon: UserRound,
+    badgeClass: 'border border-sky-200 bg-sky-50 text-sky-700',
+    iconWrapClass: 'border-sky-200 bg-sky-100 text-sky-700',
+  },
+  vendor: {
+    label: 'Vendor',
+    icon: Building2,
+    badgeClass: 'border border-indigo-200 bg-indigo-50 text-indigo-700',
+    iconWrapClass: 'border-indigo-200 bg-indigo-100 text-indigo-700',
+  },
+};
+
+const STATUS_META = {
+  active: {
+    label: 'Active',
+    badgeClass: 'border border-emerald-200 bg-emerald-50 text-emerald-700',
+    dotClass: 'bg-emerald-500',
+  },
+  suspended: {
+    label: 'Suspended',
+    badgeClass: 'border border-rose-200 bg-rose-50 text-rose-700',
+    dotClass: 'bg-rose-500',
+  },
+};
+
+function formatDate(dateValue) {
+  return new Date(dateValue).toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  });
+}
+
+const USERS_PER_PAGE = 5;
+
 export default function UsersManagement() {
-    const [selectedRole, setSelectedRole] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [userRows, setUserRows] = useState(users);
+  const [usersData, setUsersData] = useState(users);
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredUsers = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    return userRows.filter((user) => {
-      const roleMatched = selectedRole === 'all' || user.role === selectedRole;
-      if (!roleMatched) return false;
-      if (!normalizedQuery) return true;
-      return user.name.toLowerCase().includes(normalizedQuery) || user.role.toLowerCase().includes(normalizedQuery);
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return usersData.filter((user) => {
+      const roleMatches = selectedRole === 'all' || user.role === selectedRole;
+      if (!roleMatches) return false;
+      if (!normalizedSearch) return true;
+      return `${user.name} ${user.email}`.toLowerCase().includes(normalizedSearch);
     });
-  }, [searchQuery, selectedRole, userRows]);
+  }, [searchTerm, selectedRole, usersData]);
 
-  const handleStatusToggle = (id) => {
-    let nextStatus = 'active';
-    let toggledUserName = '';
+  const summary = useMemo(() => {
+    const active = filteredUsers.filter((user) => user.status === 'active').length;
+    const suspended = filteredUsers.filter((user) => user.status === 'suspended').length;
+    const clients = filteredUsers.filter((user) => user.role === 'client').length;
+    const vendors = filteredUsers.filter((user) => user.role === 'vendor').length;
 
-    setUserRows((prevUsers) => prevUsers.map((user) => {
-      if (user.id !== id) return user;
-      nextStatus = user.status === 'active' ? 'suspended' : 'active';
-      toggledUserName = user.name;
-      return { ...user, status: nextStatus };
-    }));
+    return { total: filteredUsers.length, active, suspended, clients, vendors };
+  }, [filteredUsers]);
 
-    toast.success(`${toggledUserName} account is now ${nextStatus}`);
+  const roleCounts = useMemo(() => {
+    const clients = usersData.filter((user) => user.role === 'client').length;
+    const vendors = usersData.filter((user) => user.role === 'vendor').length;
+
+    return {
+      all: usersData.length,
+      client: clients,
+      vendor: vendors,
     };
-    return (<DashboardLayout menuItems={menuItems} userRole="admin">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Users Management</h1>
-          <p className="text-gray-600">Manage all platform users</p>
-        </div>
+  }, [usersData]);
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="relative md:col-span-2">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400"/>
-                <Input
-                  placeholder="Search by name or role (client/vendor)..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE)), [filteredUsers.length]);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+    return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
+  }, [filteredUsers, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRole]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handleStatusToggleClick = (user) => {
+    setPendingStatusChange({
+      user,
+      nextStatus: user.status === 'suspended' ? 'active' : 'suspended',
+    });
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!pendingStatusChange) return;
+
+    const { user: targetUser, nextStatus } = pendingStatusChange;
+
+    setUsersData((prevUsers) => prevUsers.map((user) => (
+      user.id === targetUser.id
+        ? { ...user, status: nextStatus }
+        : user
+    )));
+
+    toast.success(nextStatus === 'suspended' ? `${targetUser.name} suspended` : `${targetUser.name} unsuspended`);
+    setPendingStatusChange(null);
+  };
+
+  return (
+    <DashboardLayout menuItems={menuItems} userRole="admin">
+      <div className="space-y-6">
+        <Card className="group relative overflow-hidden border-indigo-300/80 bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100 shadow-[0_18px_45px_rgba(79,70,229,0.16)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_30px_60px_rgba(79,70,229,0.25)]">
+          <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:linear-gradient(to_right,rgba(79,70,229,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(79,70,229,0.1)_1px,transparent_1px)] [background-size:28px_28px]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-cyan-500 to-violet-500" />
+          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-indigo-300/35 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
+          <CardContent className="relative p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Admin Control Room
+                </p>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+                  Users <span className="bg-gradient-to-r from-indigo-700 to-violet-700 bg-clip-text text-transparent">Management</span>
+                </h1>
+                <p className="mt-1 text-sm text-indigo-900/80 sm:text-base">Creative, high-contrast oversight for all platform users.</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {summary.active} Active
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-rose-700">
+                    <UserX className="h-3.5 w-3.5" />
+                    {summary.suspended} Suspended
+                  </span>
+                </div>
               </div>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by role"/>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="client">Clients</SelectItem>
-                  <SelectItem value="vendor">Vendors</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm transition-all duration-300 group-hover:translate-x-0.5">
+                  <Activity className="h-4 w-4 animate-pulse" />
+                  <span>Live Directory</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Policy Guard Enabled</span>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-2.5 py-2 shadow-sm">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 text-sky-600">
+                    <UserRound className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600">
+                    <Building2 className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card className="group relative overflow-hidden border-indigo-200 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-600">Total</p>
+                  <p className="mt-1 text-2xl font-black text-slate-900">{summary.total}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-indigo-500">Directory visibility</p>
+                </div>
+                <span className="rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                  <Users className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="group relative overflow-hidden border-emerald-200 bg-emerald-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-green-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">Active</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-900">{summary.active}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-emerald-700">Healthy accounts</p>
+                </div>
+                <span className="rounded-xl border border-emerald-200 bg-white/80 p-2 text-emerald-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="group relative overflow-hidden border-rose-200 bg-rose-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 to-red-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-rose-700">Suspended</p>
+                  <p className="mt-1 text-2xl font-black text-rose-900">{summary.suspended}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-rose-700">Needs review</p>
+                </div>
+                <span className="rounded-xl border border-rose-200 bg-white/80 p-2 text-rose-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                  <UserX className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="group relative overflow-hidden border-sky-200 bg-sky-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 to-cyan-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-700">Role Split</p>
+                  <p className="mt-1 text-sm font-bold text-sky-900">{summary.clients} Clients / {summary.vendors} Vendors</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-sky-700">Balance indicator</p>
+                </div>
+                <span className="rounded-xl border border-sky-200 bg-white/80 p-2 text-sky-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                  <Filter className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-indigo-200 bg-white/90 shadow-sm">
+          <CardContent className="p-4 sm:p-5">
+            <div className="grid gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-3.5 h-4 w-4 text-indigo-400" />
+                <Input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search by name or email..."
+                  className="h-11 border-indigo-200 bg-indigo-50/30 pl-10 text-slate-800 placeholder:text-slate-400 focus-visible:border-indigo-300"
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {[
+                { key: 'all', label: 'All Users', icon: Users, count: roleCounts.all },
+                { key: 'client', label: 'Clients', icon: UserRound, count: roleCounts.client },
+                { key: 'vendor', label: 'Vendors', icon: Building2, count: roleCounts.vendor },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = selectedRole === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setSelectedRole(item.key)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-300 ${
+                      isActive
+                        ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_8px_18px_rgba(79,70,229,0.35)]'
+                        : 'border-indigo-200 bg-white text-indigo-700 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{item.label}</span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                      {item.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-2 text-xs font-semibold uppercase tracking-[0.1em] text-indigo-600 md:hidden">
+          <span>Page {currentPage} of {totalPages} · 5 users per page</span>
+        </div>
+
+        <div className="md:hidden space-y-3">
+          {paginatedUsers.map((user) => {
+            const role = ROLE_META[user.role];
+            const status = STATUS_META[user.status];
+            const RoleIcon = role.icon;
+
+            return (
+              <Card key={user.id} className="group relative overflow-hidden border-indigo-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-violet-500" />
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-6 ${role.iconWrapClass}`}>
+                        <RoleIcon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+                        <p className="truncate text-xs text-slate-600">{user.email}</p>
+                      </div>
+                    </div>
+                    <Badge className={role.badgeClass}>{role.label}</Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarClock className="h-3.5 w-3.5 text-indigo-500" />
+                      {formatDate(user.joinedDate)}
+                    </span>
+                    <Badge className={status.badgeClass}>
+                      <span className={`mr-1.5 h-2 w-2 rounded-full ${status.dotClass}`} />
+                      {status.label}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Requests: <span className="text-slate-900">{user.requests}</span></p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-rose-200 text-rose-700 hover:bg-rose-50'}`}
+                      onClick={() => handleStatusToggleClick(user)}
+                    >
+                      {user.status === 'suspended' ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                      {user.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+          {filteredUsers.length === 0 && (
+            <Card className="border-dashed border-indigo-300 bg-indigo-50/50">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm font-medium text-indigo-700">No users match your search/filter.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <Card className="hidden md:block border-indigo-200 bg-white/95 shadow-sm">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Name</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Company Name</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Email</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Phone Number</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Role</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-600">Status</th>
-                    <th className="text-right py-4 px-6 text-sm font-medium text-gray-600">Requests Created (Client)</th>
-                    <th className="text-right py-4 px-6 text-sm font-medium text-gray-600">Requests Handled (Vendor)</th>
-                    <th className="text-center py-4 px-6 text-sm font-medium text-gray-600">Actions</th>
+                  <tr className="border-b border-indigo-100 bg-indigo-50/60">
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">User</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Role</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Joined</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Requests</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (<tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-6 font-medium">{user.name}</td>
-                      <td className="py-4 px-6 text-sm text-gray-700">{user.companyName}</td>
-                      <td className="py-4 px-6 text-sm text-gray-600">{user.email}</td>
-                      <td className="py-4 px-6 text-sm text-gray-600">{user.phoneNumber}</td>
-                      <td className="py-4 px-6">
-                        <Badge variant="outline" className="capitalize">{user.role}</Badge>
+                  {paginatedUsers.map((user) => {
+                    const role = ROLE_META[user.role];
+                    const status = STATUS_META[user.status];
+                    const RoleIcon = role.icon;
+
+                    return (
+                      <tr key={user.id} className="group border-b border-indigo-100/70 transition-colors hover:bg-indigo-50/50">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-6 ${role.iconWrapClass}`}>
+                              <RoleIcon className="h-4 w-4" />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+                              <p className="truncate text-xs text-slate-600">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge className={role.badgeClass}>{role.label}</Badge>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge className={status.badgeClass}>
+                            <span className={`mr-1.5 h-2 w-2 rounded-full ${status.dotClass}`} />
+                            {status.label}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-700">{formatDate(user.joinedDate)}</td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-700">
+                            <Activity className="h-3 w-3" />
+                            {user.requests}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-rose-200 text-rose-700 hover:bg-rose-50'}`}
+                            onClick={() => handleStatusToggleClick(user)}
+                          >
+                            {user.status === 'suspended' ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                            {user.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-indigo-700">
+                        No users match your search/filter.
                       </td>
-                      <td className="py-4 px-6">
-                        <Badge className={user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
-                          {user.status === 'active' ? 'Active' : 'Suspended'}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6 text-right font-medium text-gray-700">{user.role === 'client' ? user.requestsCreated : '-'}</td>
-                      <td className="py-4 px-6 text-right font-medium text-gray-700">{user.role === 'vendor' ? user.requestsHandled : '-'}</td>
-                      <td className="py-4 px-6 text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className={user.status === 'active' ? 'gap-2 text-red-600 border-red-200 hover:bg-red-50' : 'gap-2 text-emerald-700 border-emerald-200 hover:bg-emerald-50'}
-                          onClick={() => handleStatusToggle(user.id)}
-                        >
-                          {user.status === 'active' ? <Ban className="w-4 h-4"/> : <CheckCircle2 className="w-4 h-4"/>}
-                          {user.status === 'active' ? 'Suspend' : 'Activate Account'}
-                        </Button>
-                      </td>
-                    </tr>))}
-                  {filteredUsers.length === 0 && (<tr>
-                      <td colSpan={9} className="py-8 text-center text-sm text-gray-500">
-                        No users found for this search/filter.
-                      </td>
-                    </tr>)}
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </CardContent>
         </Card>
+
+        {filteredUsers.length > 0 && (
+          <Card className="border-indigo-200 bg-white/90 shadow-sm">
+            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700">
+                Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(currentPage * USERS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length}
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <Button
+                    key={page}
+                    type="button"
+                    size="sm"
+                    variant={page === currentPage ? 'default' : 'outline'}
+                    className={page === currentPage
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <AlertDialog open={Boolean(pendingStatusChange)} onOpenChange={(open) => !open && setPendingStatusChange(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{pendingStatusChange?.nextStatus === 'active' ? 'Confirm unsuspend' : 'Confirm suspension'}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingStatusChange
+                  ? (pendingStatusChange.nextStatus === 'active'
+                    ? `Are you sure you want to unsuspend ${pendingStatusChange.user.name} (${pendingStatusChange.user.email}) and restore active status?`
+                    : `Are you sure you want to suspend ${pendingStatusChange.user.name} (${pendingStatusChange.user.email})?`)
+                  : 'Are you sure you want to change this user status?'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmStatusChange}
+                className={pendingStatusChange?.nextStatus === 'active'
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500'
+                  : 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500'}
+              >
+                {pendingStatusChange?.nextStatus === 'active' ? 'Unsuspend user' : 'Suspend user'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-    </DashboardLayout>);
+    </DashboardLayout>
+  );
 }
 

@@ -9,6 +9,19 @@ function pick(obj, ...keys) {
   return undefined;
 }
 
+function asCollection(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (!raw || typeof raw !== 'object') return [];
+
+  const fromData = pick(raw, 'data', 'Data');
+  if (Array.isArray(fromData)) return fromData;
+
+  const fromItems = pick(raw, 'items', 'Items', 'messages', 'Messages', 'results', 'Results');
+  if (Array.isArray(fromItems)) return fromItems;
+
+  return [];
+}
+
 function normalizeChatRoom(raw) {
   if (!raw || typeof raw !== 'object') return null;
   return {
@@ -35,16 +48,15 @@ function normalizeMessage(raw) {
     sender: String(pick(raw, 'sender', 'Sender') ?? ''),
     sentAt: pick(raw, 'sentAt', 'SentAt') ?? '',
     isRead: Boolean(pick(raw, 'isRead', 'IsRead')),
-    mediaUrl: pick(raw, 'mediaUrl', 'MediaUrl') ?? null,
-    mediaMimeType: pick(raw, 'mediaMimeType', 'MediaMimeType') ?? null,
-    mediaSizeBytes: pick(raw, 'mediaSizeBytes', 'MediaSizeBytes') ?? null,
+    mediaUrl: pick(raw, 'mediaUrl', 'MediaUrl', 'attachmentUrl', 'AttachmentUrl', 'fileUrl', 'FileUrl') ?? null,
+    mediaMimeType: pick(raw, 'mediaMimeType', 'MediaMimeType', 'mimeType', 'MimeType', 'fileType', 'FileType') ?? null,
+    mediaSizeBytes: pick(raw, 'mediaSizeBytes', 'MediaSizeBytes', 'fileSizeBytes', 'FileSizeBytes', 'size', 'Size') ?? null,
   };
 }
 
 export async function getChatRoomsApi({ token }) {
   const raw = await request('/api/Chat/rooms', { method: 'GET', token });
-  if (!Array.isArray(raw)) return [];
-  return raw.map(normalizeChatRoom).filter(Boolean);
+  return asCollection(raw).map(normalizeChatRoom).filter(Boolean);
 }
 
 export async function getChatMessagesApi({ chatRoomId, pageIndex = 1, pageSize = 30, token }) {
@@ -56,8 +68,7 @@ export async function getChatMessagesApi({ chatRoomId, pageIndex = 1, pageSize =
     method: 'GET',
     token,
   });
-  if (!Array.isArray(raw)) return [];
-  return raw.map(normalizeMessage).filter(Boolean);
+  return asCollection(raw).map(normalizeMessage).filter(Boolean);
 }
 
 export async function sendMessageApi({ chatRoomId, content, type = 1, token }) {
@@ -71,16 +82,38 @@ export async function sendMessageApi({ chatRoomId, content, type = 1, token }) {
 }
 
 export async function sendAttachmentApi({ chatRoomId, file, content, token }) {
-  const formData = new FormData();
-  formData.append('File', file);
-  if (content) formData.append('Content', content);
+  const fieldVariants = [
+    { fileKey: 'File', contentKey: 'Content' },
+    { fileKey: 'file', contentKey: 'content' },
+    { fileKey: 'Attachment', contentKey: 'Content' },
+    { fileKey: 'attachment', contentKey: 'content' },
+  ];
 
-  const raw = await request(`/api/Chat/rooms/${chatRoomId}/attachment`, {
-    method: 'POST',
-    token,
-    body: formData,
-  });
-  return normalizeMessage(raw);
+  let lastError;
+  for (const variant of fieldVariants) {
+    try {
+      const formData = new FormData();
+      formData.append(variant.fileKey, file);
+      if (content) formData.append(variant.contentKey, content);
+
+      const raw = await request(`/api/Chat/rooms/${chatRoomId}/attachment`, {
+        method: 'POST',
+        token,
+        body: formData,
+      });
+
+      return normalizeMessage(raw);
+    } catch (error) {
+      lastError = error;
+      const status = Number(error?.status || 0);
+      const isLikelyFieldMismatch = status === 400 || status === 415 || status === 422;
+      if (!isLikelyFieldMismatch) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 export async function markMessagesReadApi({ chatRoomId, token }) {
@@ -89,7 +122,8 @@ export async function markMessagesReadApi({ chatRoomId, token }) {
 
 export async function getUnreadChatCountApi({ token }) {
   const raw = await request('/api/Chat/unread-count', { method: 'GET', token });
-  return typeof raw === 'number' ? raw : 0;
+  const value = typeof raw === 'number' ? raw : Number(pick(raw, 'count', 'Count', 'data', 'Data') ?? 0);
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
 export async function getChatRoomByRequestApi({ requestId, token }) {

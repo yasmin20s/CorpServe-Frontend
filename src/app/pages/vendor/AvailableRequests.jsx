@@ -240,7 +240,7 @@ export default function AvailableRequests() {
       <div className="space-y-6 lg:space-y-8">
         <section className="relative overflow-hidden rounded-3xl border border-violet-200/50 bg-gradient-to-br from-violet-800 via-indigo-700 to-blue-700 p-4 text-white sm:p-6 lg:p-8">
           <div className="pointer-events-none absolute inset-0">
-            <DarkVeil hueShift={0} noiseIntensity={0} scanlineIntensity={0} speed={3} scanlineFrequency={0} warpAmount={0} />
+            <DarkVeil hueShift={0} noiseIntensity={0} scanlineIntensity={0} speed={4} scanlineFrequency={0} warpAmount={0} />
           </div>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-900/55 via-indigo-900/50 to-blue-900/55" />
           <motion.div
