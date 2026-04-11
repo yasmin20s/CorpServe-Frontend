@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Send, Paperclip, MessageSquare, Image, FileText, X, ArrowLeft } from 'lucide-react';
+import { Send, Paperclip, MessageSquare, Image, FileText, X, ArrowLeft, Sparkles, ShieldCheck, Zap, Search } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { useRoleFromPath } from '../../hooks/useRoleFromPath';
 import { useAuth } from '../../hooks/useAuth';
+import DarkVeil from '../../components/backgrounds/DarkVeil';
 import { toast } from '../../lib/toast';
 import {
   getChatRoomsApi,
@@ -46,6 +48,29 @@ function formatMessageTime(value) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function messageDayKey(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function messageDayLabel(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startMsgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const oneDay = 86400000;
+
+  if (startMsgDay === startToday) return 'Today';
+  if (startMsgDay === startToday - oneDay) return 'Yesterday';
+
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 function getInitials(name) {
   return (name || '')
     .split(/\s+/)
@@ -79,6 +104,10 @@ export default function Chat() {
   const fileInputRef = useRef(null);
   const [pendingFile, setPendingFile] = useState(null);
   const [mobileShowMessages, setMobileShowMessages] = useState(false);
+  const [roomSearch, setRoomSearch] = useState('');
+  const [filePickerAccept, setFilePickerAccept] = useState(
+    'image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.xls,.xlsx,.txt',
+  );
 
   const selectedRoom = useMemo(
     () => rooms.find((r) => r.id === selectedRoomId) || null,
@@ -91,6 +120,16 @@ export default function Chat() {
     if (!selectedRoom) return '';
     return isClient ? selectedRoom.vendorName : selectedRoom.clientName;
   }, [selectedRoom, isClient]);
+
+  const visibleRooms = useMemo(() => {
+    const q = roomSearch.trim().toLowerCase();
+    if (!q) return rooms;
+    return rooms.filter((room) => {
+      const peerName = (role === 'client' ? room.vendorName : room.clientName) || '';
+      const preview = room.lastMessage || '';
+      return `${peerName} ${preview}`.toLowerCase().includes(q);
+    });
+  }, [roomSearch, rooms, role]);
 
   const loadRooms = useCallback(async () => {
     if (!user?.token) return;
@@ -264,6 +303,22 @@ export default function Chat() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const openFilePicker = (mode = 'all') => {
+    if (sending) return;
+
+    if (mode === 'image') {
+      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp');
+    } else if (mode === 'file') {
+      setFilePickerAccept('.pdf,.doc,.docx,.xls,.xlsx,.txt');
+    } else {
+      setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.xls,.xlsx,.txt');
+    }
+
+    requestAnimationFrame(() => {
+      fileInputRef.current?.click();
+    });
+  };
+
   const handleSendAttachment = async () => {
     if (!pendingFile || !selectedRoomId || !user?.token || sending) return;
     setSending(true);
@@ -290,9 +345,27 @@ export default function Chat() {
   const mySenderType = isClient ? 'Client' : 'Vendor';
 
   const roomsList = (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col overflow-hidden border-indigo-200 bg-white/90 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
       <CardContent className="p-0 flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-indigo-700 inline-flex items-center gap-1.5">
+              <MessageSquare className="h-4 w-4" />
+              Conversations
+            </h3>
+            <Badge className="border border-indigo-200 bg-white text-indigo-700">{visibleRooms.length}</Badge>
+          </div>
+          <div className="mt-2 relative">
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-indigo-400" />
+            <Input
+              value={roomSearch}
+              onChange={(e) => setRoomSearch(e.target.value)}
+              placeholder="Search conversation"
+              className="h-8 border-indigo-200 bg-white/90 pl-8 text-xs text-slate-700"
+            />
+          </div>
+        </div>
+        <div className="h-full overflow-y-auto bg-[linear-gradient(to_bottom,rgba(255,255,255,0.65),rgba(238,242,255,0.35))]">
           {loadingRooms && (
             <div className="p-6 text-center text-slate-500">Loading chats...</div>
           )}
@@ -305,18 +378,26 @@ export default function Chat() {
               </p>
             </div>
           )}
-          {rooms.map((room) => {
+          {!loadingRooms && rooms.length > 0 && visibleRooms.length === 0 && (
+            <div className="p-6 text-center text-sm text-indigo-700">No conversation matches your search.</div>
+          )}
+          {visibleRooms.map((room) => {
             const name = role === 'client' ? room.vendorName : room.clientName;
             return (
-              <div
+              <motion.div
                 key={room.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.22 }}
                 onClick={() => handleSelectRoom(room.id)}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedRoomId === room.id ? 'bg-indigo-50' : ''
+                className={`group mx-2 my-1.5 rounded-2xl border cursor-pointer transition-all duration-300 ${
+                  selectedRoomId === room.id
+                    ? 'border-indigo-300 bg-indigo-100/80 shadow-[0_10px_22px_rgba(79,70,229,0.16)]'
+                    : 'border-transparent hover:border-indigo-200 hover:bg-indigo-50/80 hover:translate-x-0.5'
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                <div className="flex items-start gap-3 p-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10px_18px_rgba(79,70,229,0.3)]">
                     {getInitials(name)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -338,7 +419,7 @@ export default function Chat() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -347,7 +428,7 @@ export default function Chat() {
   );
 
   const messagePanel = (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
         {!selectedRoom ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
@@ -362,7 +443,7 @@ export default function Chat() {
         ) : (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="p-4 border-b border-indigo-100 bg-gradient-to-r from-white via-indigo-50/60 to-sky-50/60 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBackToRooms}
@@ -370,12 +451,13 @@ export default function Chat() {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10px_18px_rgba(79,70,229,0.3)]">
                   {getInitials(counterpartyName)}
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-gray-900 truncate">{counterpartyName}</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     {isClient ? 'Vendor' : 'Client'}
                   </p>
                 </div>
@@ -383,7 +465,7 @@ export default function Chat() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4" ref={messagesViewportRef}>
+            <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4" ref={messagesViewportRef}>
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-12">
                   <p className="text-slate-500">Loading messages...</p>
@@ -397,20 +479,35 @@ export default function Chat() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {messages.map((msg) => {
+                  <AnimatePresence initial={false}>
+                    {messages.map((msg) => {
                     const isMe = msg.sender === mySenderType;
+                    const prev = messages[index - 1];
+                    const showDayDivider = index === 0 || messageDayKey(prev?.sentAt) !== messageDayKey(msg.sentAt);
                     return (
-                      <div
+                      <motion.div
                         key={msg.id}
-                        className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ duration: 0.22 }}
+                        className="space-y-2"
                       >
-                        <div
-                          className={`max-w-[70%] rounded-2xl p-3 ${
-                            isMe
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-100 text-gray-900'
-                          }`}
-                        >
+                        {showDayDivider && (
+                          <div className="flex justify-center">
+                            <span className="rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 shadow-sm">
+                              {messageDayLabel(msg.sentAt)}
+                            </span>
+                          </div>
+                        )}
+                        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          <div
+                            className={`max-w-[78%] rounded-2xl p-3 shadow-sm ${
+                              isMe
+                                ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-md'
+                                : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100'
+                            }`}
+                          >
                           {msg.mediaUrl && msg.mediaMimeType?.startsWith('image/') && (
                             <a
                               href={`${mediaBaseUrl}${msg.mediaUrl}`}
@@ -432,8 +529,8 @@ export default function Chat() {
                               rel="noopener noreferrer"
                               className={`flex items-center gap-2 mb-2 rounded-lg border px-3 py-2 text-sm ${
                                 isMe
-                                  ? 'border-indigo-400/40 bg-indigo-500/30 text-white hover:bg-indigo-500/50'
-                                  : 'border-gray-200 bg-white text-slate-700 hover:bg-gray-50'
+                                  ? 'border-indigo-300/40 bg-indigo-500/30 text-white hover:bg-indigo-500/50'
+                                  : 'border-indigo-200 bg-indigo-50 text-slate-700 hover:bg-indigo-100/60'
                               }`}
                             >
                               <FileText className="w-4 h-4 flex-shrink-0" />
@@ -471,26 +568,28 @@ export default function Chat() {
                               </span>
                             )}
                           </div>
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
+                  </AnimatePresence>
                   <div ref={messagesEndRef} />
                 </div>
               )}
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-gray-200 flex-shrink-0">
+            <div className="p-4 border-t border-indigo-100 bg-white flex-shrink-0">
               <input
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                accept={filePickerAccept}
                 onChange={handleFileSelect}
               />
               {pendingFile && (
-                <div className="mb-2 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm">
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm">
                   {pendingFile.type.startsWith('image/') ? (
                     <Image className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                   ) : (
@@ -509,15 +608,41 @@ export default function Chat() {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="flex-shrink-0"
-                  disabled={sending}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50/70 p-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
+                    disabled={sending}
+                    onClick={() => openFilePicker('all')}
+                    title="Attach"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
+                    disabled={sending}
+                    onClick={() => openFilePicker('image')}
+                    title="Upload photo"
+                  >
+                    <Image className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-indigo-700 hover:bg-indigo-100"
+                    disabled={sending}
+                    onClick={() => openFilePicker('file')}
+                    title="Upload file"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                </div>
                 <Input
                   placeholder={pendingFile ? 'Add a caption (optional)...' : 'Type your message...'}
                   value={messageText}
@@ -533,13 +658,14 @@ export default function Chat() {
                 />
                 <Button
                   onClick={pendingFile ? handleSendAttachment : handleSend}
-                  className="gap-2 bg-indigo-600 hover:bg-indigo-700 flex-shrink-0"
+                  className="gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 flex-shrink-0"
                   disabled={(!messageText.trim() && !pendingFile) || sending}
                 >
                   <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">Send</span>
                 </Button>
               </div>
+              <p className="mt-2 text-[11px] font-medium text-indigo-500">Press Enter to send. Shift + Enter for new line.</p>
             </div>
           </>
         )}
@@ -550,11 +676,54 @@ export default function Chat() {
   return (
     <DashboardLayout menuItems={menuItems} userRole={role}>
       <div className="flex flex-col h-[calc(100vh-7rem)] overflow-hidden">
-        <div className="mb-4 flex-shrink-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Messages</h1>
-          <p className="text-gray-600 text-sm">
-            Communicate with {role === 'client' ? 'vendors' : 'clients'}
-          </p>
+        <div className="relative mb-4 flex-shrink-0 overflow-hidden rounded-3xl border border-violet-200/50 bg-gradient-to-br from-violet-800 via-indigo-700 to-blue-700 p-4 text-white shadow-[0_16px_36px_rgba(37,18,94,0.34)] sm:p-6">
+          <div className="pointer-events-none absolute inset-0">
+            <DarkVeil hueShift={0} noiseIntensity={0} scanlineIntensity={0} speed={4} scanlineFrequency={0} warpAmount={0} />
+          </div>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-900/55 via-indigo-900/50 to-blue-900/55" />
+          <motion.div
+            className="pointer-events-none absolute -left-20 top-6 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl"
+            animate={{ x: [0, 18, 0], y: [0, 14, 0], scale: [1, 1.07, 1] }}
+            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-blue-300/20 blur-3xl"
+            animate={{ x: [0, -22, 0], y: [0, -12, 0], scale: [1, 1.08, 1] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-violet-200/40 bg-violet-200/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-100">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                Chat Lounge
+              </p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                Messages <span className="text-violet-200">Live</span>
+              </h1>
+              <p className="mt-1 text-sm text-slate-200">
+                Real-time conversation with {role === 'client' ? 'vendors' : 'clients'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200/60 bg-emerald-200/15 px-2.5 py-1 text-xs font-semibold text-emerald-100"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Secure
+              </motion.div>
+              <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 1.8, delay: 0.25, repeat: Infinity, ease: 'easeInOut' }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200/70 bg-amber-200/15 px-2.5 py-1 text-xs font-semibold text-amber-100"
+              >
+                <Zap className="h-3.5 w-3.5" />
+                Instant
+              </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Desktop: side-by-side */}
