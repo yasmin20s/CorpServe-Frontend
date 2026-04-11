@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -34,6 +35,8 @@ import {
   Filter,
 } from 'lucide-react';
 import { toast } from '../../lib/toast';
+import { useAuth } from '../../hooks/useAuth';
+import { activateAdminUserApi, getAdminUsersApi, suspendAdminUserApi } from '../../services/adminMonitorApi';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -44,13 +47,6 @@ const menuItems = [
   { label: 'SLA Monitor', path: '/admin/sla-monitor', icon: <FileText className="w-5 h-5" /> },
   { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5" /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5" /> },
-];
-
-const users = [
-  { id: '1', name: 'John Doe', email: 'john@acmecorp.com', role: 'client', status: 'active', joinedDate: '2026-01-15', requests: 12 },
-  { id: '2', name: 'Jane Smith', email: 'jane@techpro.com', role: 'vendor', status: 'active', joinedDate: '2026-01-20', requests: 45 },
-  { id: '3', name: 'Bob Johnson', email: 'bob@startup.com', role: 'client', status: 'suspended', joinedDate: '2026-02-10', requests: 3 },
-  { id: '4', name: 'Alice Brown', email: 'alice@cleanco.com', role: 'vendor', status: 'active', joinedDate: '2026-02-15', requests: 52 },
 ];
 
 const ROLE_META = {
@@ -92,48 +88,77 @@ function formatDate(dateValue) {
 const USERS_PER_PAGE = 5;
 
 export default function UsersManagement() {
-  const [usersData, setUsersData] = useState(users);
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [usersPage, setUsersPage] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [summary, setSummary] = useState({
+    total: 0,
+    active: 0,
+    suspended: 0,
+    clients: 0,
+    vendors: 0,
+  });
+  const [selectedRole, setSelectedRole] = useState(() => searchParams.get('role') || 'all');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') || '');
+  const [currentPage, setCurrentPage] = useState(() => Math.max(1, Number(searchParams.get('page')) || 1));
+  const [isLoading, setIsLoading] = useState(true);
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredUsers = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    return usersData.filter((user) => {
-      const roleMatches = selectedRole === 'all' || user.role === selectedRole;
-      if (!roleMatches) return false;
-      if (!normalizedSearch) return true;
-      return `${user.name} ${user.email}`.toLowerCase().includes(normalizedSearch);
-    });
-  }, [searchTerm, selectedRole, usersData]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (currentPage > 1) next.set('page', String(currentPage));
+    if (searchTerm.trim()) next.set('q', searchTerm.trim());
+    if (selectedRole !== 'all') next.set('role', selectedRole);
+    setSearchParams(next, { replace: true });
+  }, [currentPage, searchTerm, selectedRole, setSearchParams]);
 
-  const summary = useMemo(() => {
-    const active = filteredUsers.filter((user) => user.status === 'active').length;
-    const suspended = filteredUsers.filter((user) => user.status === 'suspended').length;
-    const clients = filteredUsers.filter((user) => user.role === 'client').length;
-    const vendors = filteredUsers.filter((user) => user.role === 'vendor').length;
+  const loadUsers = useCallback(async () => {
+    if (!user?.token) return;
+    setIsLoading(true);
+    try {
+      const roleParam = selectedRole === 'all' ? undefined : selectedRole;
+      const result = await getAdminUsersApi({
+        token: user.token,
+        pageIndex: currentPage,
+        pageSize: USERS_PER_PAGE,
+        role: roleParam,
+        search: searchTerm,
+      });
+      setTotalCount(result.count);
+      setSummary({
+        total: result.summary?.totalUsers ?? result.count,
+        active: result.summary?.activeCount ?? 0,
+        suspended: result.summary?.suspendedCount ?? 0,
+        clients: result.summary?.clientsCount ?? 0,
+        vendors: result.summary?.vendorsCount ?? 0,
+      });
+      setUsersPage(
+        result.data.map((u) => ({
+          id: u.userId,
+          name: u.fullName,
+          email: u.email,
+          role: u.role,
+          status: u.status,
+          joinedDate: u.joined,
+          requests: u.role === 'client' ? u.requestsCreatedCount : u.requestsHandledCount,
+        })),
+      );
+    } catch (error) {
+      toast.error(error.message || 'Failed to load users');
+      setUsersPage([]);
+      setTotalCount(0);
+      setSummary({ total: 0, active: 0, suspended: 0, clients: 0, vendors: 0 });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.token, currentPage, searchTerm, selectedRole]);
 
-    return { total: filteredUsers.length, active, suspended, clients, vendors };
-  }, [filteredUsers]);
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
-  const roleCounts = useMemo(() => {
-    const clients = usersData.filter((user) => user.role === 'client').length;
-    const vendors = usersData.filter((user) => user.role === 'vendor').length;
-
-    return {
-      all: usersData.length,
-      client: clients,
-      vendor: vendors,
-    };
-  }, [usersData]);
-
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE)), [filteredUsers.length]);
-
-  const paginatedUsers = useMemo(() => {
-    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
-    return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
-  }, [filteredUsers, currentPage]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / USERS_PER_PAGE));
 
   useEffect(() => {
     setCurrentPage(1);
@@ -145,26 +170,29 @@ export default function UsersManagement() {
     }
   }, [currentPage, totalPages]);
 
-  const handleStatusToggleClick = (user) => {
+  const handleStatusToggleClick = (u) => {
     setPendingStatusChange({
-      user,
-      nextStatus: user.status === 'suspended' ? 'active' : 'suspended',
+      user: u,
+      nextStatus: u.status === 'suspended' ? 'active' : 'suspended',
     });
   };
 
-  const handleConfirmStatusChange = () => {
-    if (!pendingStatusChange) return;
-
+  const handleConfirmStatusChange = async () => {
+    if (!pendingStatusChange || !user?.token) return;
     const { user: targetUser, nextStatus } = pendingStatusChange;
-
-    setUsersData((prevUsers) => prevUsers.map((user) => (
-      user.id === targetUser.id
-        ? { ...user, status: nextStatus }
-        : user
-    )));
-
-    toast.success(nextStatus === 'suspended' ? `${targetUser.name} suspended` : `${targetUser.name} unsuspended`);
-    setPendingStatusChange(null);
+    try {
+      if (nextStatus === 'suspended') {
+        await suspendAdminUserApi({ token: user.token, userId: targetUser.id });
+        toast.success(`${targetUser.name} suspended`);
+      } else {
+        await activateAdminUserApi({ token: user.token, userId: targetUser.id });
+        toast.success(`${targetUser.name} unsuspended`);
+      }
+      setPendingStatusChange(null);
+      await loadUsers();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update user status');
+    }
   };
 
   return (
@@ -246,6 +274,7 @@ export default function UsersManagement() {
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">Active</p>
                   <p className="mt-1 text-2xl font-black text-emerald-900">{summary.active}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-emerald-700">Healthy accounts</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-emerald-600/90">Whole platform data</p>
                 </div>
                 <span className="rounded-xl border border-emerald-200 bg-white/80 p-2 text-emerald-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                   <ShieldCheck className="h-4 w-4" />
@@ -261,6 +290,7 @@ export default function UsersManagement() {
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-rose-700">Suspended</p>
                   <p className="mt-1 text-2xl font-black text-rose-900">{summary.suspended}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-rose-700">Needs review</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-rose-600/90">Whole platform data</p>
                 </div>
                 <span className="rounded-xl border border-rose-200 bg-white/80 p-2 text-rose-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                   <UserX className="h-4 w-4" />
@@ -276,6 +306,7 @@ export default function UsersManagement() {
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-700">Role Split</p>
                   <p className="mt-1 text-sm font-bold text-sky-900">{summary.clients} Clients / {summary.vendors} Vendors</p>
                   <p className="mt-0.5 text-[11px] font-medium text-sky-700">Balance indicator</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-sky-600/90">Whole platform data</p>
                 </div>
                 <span className="rounded-xl border border-sky-200 bg-white/80 p-2 text-sky-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                   <Filter className="h-4 w-4" />
@@ -300,9 +331,9 @@ export default function UsersManagement() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {[
-                { key: 'all', label: 'All Users', icon: Users, count: roleCounts.all },
-                { key: 'client', label: 'Clients', icon: UserRound, count: roleCounts.client },
-                { key: 'vendor', label: 'Vendors', icon: Building2, count: roleCounts.vendor },
+                { key: 'all', label: 'All Users', icon: Users },
+                { key: 'client', label: 'Clients', icon: UserRound },
+                { key: 'vendor', label: 'Vendors', icon: Building2 },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = selectedRole === item.key;
@@ -319,9 +350,11 @@ export default function UsersManagement() {
                   >
                     <Icon className="h-3.5 w-3.5" />
                     <span>{item.label}</span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
-                      {item.count}
-                    </span>
+                    {selectedRole === item.key ? (
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                        {totalCount}
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}
@@ -329,12 +362,16 @@ export default function UsersManagement() {
           </CardContent>
         </Card>
 
+        {isLoading ? (
+          <p className="text-sm font-medium text-indigo-700">Loading users…</p>
+        ) : null}
+
         <div className="space-y-2 text-xs font-semibold uppercase tracking-[0.1em] text-indigo-600 md:hidden">
-          <span>Page {currentPage} of {totalPages} · 5 users per page</span>
+          <span>Page {currentPage} of {totalPages} · {USERS_PER_PAGE} users per page</span>
         </div>
 
         <div className="md:hidden space-y-3">
-          {paginatedUsers.map((user) => {
+          {usersPage.map((user) => {
             const role = ROLE_META[user.role];
             const status = STATUS_META[user.status];
             const RoleIcon = role.icon;
@@ -381,7 +418,7 @@ export default function UsersManagement() {
               </Card>
             );
           })}
-          {filteredUsers.length === 0 && (
+          {!isLoading && usersPage.length === 0 && (
             <Card className="border-dashed border-indigo-300 bg-indigo-50/50">
               <CardContent className="p-6 text-center">
                 <p className="text-sm font-medium text-indigo-700">No users match your search/filter.</p>
@@ -405,7 +442,7 @@ export default function UsersManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedUsers.map((user) => {
+                  {usersPage.map((user) => {
                     const role = ROLE_META[user.role];
                     const status = STATUS_META[user.status];
                     const RoleIcon = role.icon;
@@ -453,7 +490,7 @@ export default function UsersManagement() {
                       </tr>
                     );
                   })}
-                  {filteredUsers.length === 0 && (
+                  {!isLoading && usersPage.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-indigo-700">
                         No users match your search/filter.
@@ -466,11 +503,11 @@ export default function UsersManagement() {
           </CardContent>
         </Card>
 
-        {filteredUsers.length > 0 && (
+        {!isLoading && totalCount > 0 && (
           <Card className="border-indigo-200 bg-white/90 shadow-sm">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700">
-                Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(currentPage * USERS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length}
+                Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(currentPage * USERS_PER_PAGE, totalCount)} of {totalCount}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
                 <Button
@@ -479,7 +516,7 @@ export default function UsersManagement() {
                   variant="outline"
                   className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || isLoading}
                 >
                   Previous
                 </Button>
@@ -494,6 +531,7 @@ export default function UsersManagement() {
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                       : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'}
                     onClick={() => setCurrentPage(page)}
+                    disabled={isLoading}
                   >
                     {page}
                   </Button>
@@ -505,7 +543,7 @@ export default function UsersManagement() {
                   variant="outline"
                   className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || isLoading}
                 >
                   Next
                 </Button>
