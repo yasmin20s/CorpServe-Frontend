@@ -1,3 +1,73 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+@keyframes csGlowFloat {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.35;
+	}
+	50% {
+		transform: translate3d(10px, -12px, 0) scale(1.07);
+		opacity: 0.7;
+	}
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.35;
+	}
+}
+
+@keyframes csShimmerSweep {
+	0% {
+		transform: translateX(-130%) skewX(-18deg);
+		opacity: 0;
+	}
+	30% {
+		opacity: 0.5;
+	}
+	100% {
+		transform: translateX(130%) skewX(-18deg);
+		opacity: 0;
+	}
+}
+
+@keyframes csCardRise {
+	0% {
+		transform: translateY(16px);
+		opacity: 0;
+	}
+	100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.cs-glow-orb {
+	animation: csGlowFloat 7s ease-in-out infinite;
+}
+
+.cs-glow-orb-delayed {
+	animation: csGlowFloat 9s ease-in-out infinite;
+	animation-delay: 0.8s;
+}
+
+.cs-glow-sweep {
+	position: relative;
+	overflow: hidden;
+}
+
+.cs-glow-sweep::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	width: 36%;
+	background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.42) 48%, rgba(255, 255, 255, 0.1) 70%, transparent 100%);
+	animation: csShimmerSweep 6.5s ease-in-out infinite;
+	pointer-events: none;
+}
+
+.cs-card-rise {
+	opacity: 0;
+	animation: csCardRise 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
