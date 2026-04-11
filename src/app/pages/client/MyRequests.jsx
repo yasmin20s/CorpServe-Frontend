@@ -157,7 +157,6 @@ export default function MyRequests() {
 
     const getDeadlineLabel = () => 'Expected Deadline';
     const getDeadlineValue = (request) => request.expectedDeadline || '-';
-    const hasVendorSelected = (request) => Boolean(String(request?.vendor || '').trim());
 
     const openDocument = (fileUrl) => {
       if (!fileUrl) return;
@@ -260,7 +259,9 @@ export default function MyRequests() {
 
       setIsLoading(true);
       try {
-        const requestStatusParam = 1;
+        const requestStatusParam = statusFilter === 'all'
+          ? null
+          : (statusFilter === 'pending' ? 1 : statusFilter === 'active' ? 2 : statusFilter === 'completed' ? 3 : null);
         const result = await getMyRequestsApi({
           token: user.token,
           search: searchQuery,
@@ -328,12 +329,8 @@ export default function MyRequests() {
           }),
         );
 
-        const unassignedPendingRequests = withProposalCounts.filter(
-          (row) => row.status === 'pending' && !hasVendorSelected(row),
-        );
-
-        setRequests(unassignedPendingRequests);
-        setTotalCount(result?.count || unassignedPendingRequests.length);
+        setRequests(withProposalCounts);
+        setTotalCount(result?.count || withProposalCounts.length);
       } catch (error) {
         setRequests([]);
         setTotalCount(0);
@@ -1022,11 +1019,13 @@ export default function MyRequests() {
               </Select>
               <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pending only" />
+                  <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Pending only</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending only</SelectItem>
+                  <SelectItem value="active">Active only</SelectItem>
+                  <SelectItem value="completed">Completed only</SelectItem>
                 </SelectContent>
               </Select>
             </div>

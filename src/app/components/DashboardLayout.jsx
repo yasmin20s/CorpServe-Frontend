@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { BellRing, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings } from 'lucide-react';
+import { BellRing, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings, LayoutGrid, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getUnreadNotificationCountApi } from '../services/notificationsApi';
 import { getUnreadChatCountApi } from '../services/chatApi';
 import { useSignalREvent } from '../context/SignalRContext';
+import { dashboardMenusByRole } from '../config/dashboardMenus';
 import {
   startChatConnection,
   stopChatConnection,
@@ -24,12 +25,19 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const lastContentPathRef = useRef(`/${userRole}/dashboard`);
 
+  const normalizeCount = useCallback((value) => {
+    const n = typeof value === 'number'
+      ? value
+      : Number(value?.data ?? value?.count ?? 0);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }, []);
+
   const refreshUnreadCount = useCallback(() => {
     if (!user?.token) return;
     getUnreadNotificationCountApi({ token: user.token })
-      .then((result) => setUnreadCount(typeof result === 'number' ? result : (result?.data ?? 0)))
+      .then((result) => setUnreadCount(normalizeCount(result)))
       .catch(() => {});
-  }, [user?.token]);
+  }, [normalizeCount, user?.token]);
 
   const refreshUnreadChatCount = useCallback(() => {
     if (!user?.token || userRole === 'admin') return;
@@ -95,9 +103,60 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const handleChatToggle = useCallback(() => {
     togglePanelRoute(`/${userRole}/chat`);
   }, [togglePanelRoute, userRole]);
+  const normalizedRole = (userRole || '').toLowerCase();
+  const effectiveMenuItems = normalizedRole === 'vendor'
+    ? (dashboardMenusByRole.vendor ?? menuItems)
+    : menuItems;
+  const sidebarMenuItems = effectiveMenuItems.filter((item) => !/\/chat\/?$/i.test(String(item?.path || '')));
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
+
+  const theme = {
+    appShellClass: 'min-h-screen bg-slate-50',
+    headerClass: 'h-16 fixed top-0 left-0 right-0 z-50 border-b border-indigo-200/90 bg-gradient-to-r from-[#f5f7ff]/95 via-[#eef0ff]/95 to-[#e7edff]/95 shadow-[0_10px_24px_rgba(79,70,229,0.14)] backdrop-blur supports-[backdrop-filter]:bg-white/70',
+    brandTitleClass: 'text-black',
+    mobileMenuButtonClass: 'md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
+    notificationButtonClass: 'relative h-10 w-10 rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-100 text-indigo-700 shadow-[0_6px_14px_rgba(99,102,241,0.14)] transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:from-indigo-50 hover:to-violet-100 hover:shadow-[0_10px_22px_rgba(79,70,229,0.22)]',
+    notificationBadgeClass: 'absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-fuchsia-600 px-1.5 text-[10px] font-bold text-white shadow-[0_6px_14px_rgba(192,38,211,0.35)]',
+    chatButtonClass: 'relative h-10 w-10 rounded-2xl border border-sky-200/80 bg-gradient-to-br from-white to-sky-100 text-sky-700 shadow-[0_6px_14px_rgba(14,165,233,0.16)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:from-sky-50 hover:to-cyan-100 hover:shadow-[0_10px_22px_rgba(14,165,233,0.24)]',
+    chatBadgeClass: 'absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-sky-600 px-1.5 text-[10px] font-bold text-white shadow-[0_6px_14px_rgba(2,132,199,0.35)]',
+    profileTriggerClass: 'h-auto gap-2 rounded-2xl border border-transparent bg-transparent py-1.5 px-1 sm:px-2 transition-colors hover:border-indigo-200 hover:bg-white/60',
+    profileAvatarWrapClass: 'flex h-9 w-9 items-center justify-center rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-100 via-blue-100 to-cyan-100 shadow-[0_6px_14px_rgba(99,102,241,0.16)]',
+    profileAvatarIconClass: 'w-4 h-4 text-indigo-700',
+    profileRoleTextClass: 'text-indigo-600',
+    sidebarClass: 'border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff]',
+    workspaceCardClass: 'group flex items-center rounded-2xl border border-indigo-200 bg-gradient-to-r from-white to-indigo-50/70 p-3 shadow-[0_8px_18px_rgba(79,70,229,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-[0_14px_28px_rgba(79,70,229,0.2)]',
+    workspaceIconWrapClass: 'flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 transition-colors duration-300 group-hover:bg-indigo-100',
+    workspaceTitleClass: 'text-base font-bold tracking-tight text-indigo-700',
+    workspaceLiveBadgeClass: 'inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-red-700 shadow-[0_6px_14px_rgba(220,38,38,0.16)]',
+    workspaceLiveIconClass: 'h-3.5 w-3.5 text-red-500 animate-pulse',
+    navActiveClass: 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_10px_24px_rgba(79,70,229,0.28)]',
+    navInactiveClass: 'text-slate-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-violet-100 hover:shadow-sm',
+    navHoverBorderClass: 'pointer-events-none absolute inset-0 rounded-xl border border-transparent group-hover:border-indigo-100',
+    navIconInactiveClass: 'text-indigo-600',
+  };
+
+  const roleStructure = {
+    admin: {
+      workspaceIcon: ShieldCheck,
+      workspaceSubtitle: 'Admin Command',
+      navItemShapeClass: 'rounded-xl',
+    },
+    vendor: {
+      workspaceIcon: MessageSquare,
+      workspaceSubtitle: 'Vendor Flow',
+      navItemShapeClass: 'rounded-2xl',
+    },
+    client: {
+      workspaceIcon: LayoutGrid,
+      workspaceSubtitle: 'Dashboard Hub',
+      navItemShapeClass: 'rounded-xl',
+    },
+  };
+
+  const structure = roleStructure[userRole] || roleStructure.client;
+  const WorkspaceIcon = structure.workspaceIcon;
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -107,9 +166,9 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
     setIsLoggingOut(false);
   };
 
-  return (<div className="min-h-screen bg-slate-50">
+  return (<div className={theme.appShellClass}>
       {/* Top Navbar */}
-      <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
+      <header className={theme.headerClass}>
         <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <a
@@ -119,10 +178,10 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             >
               <span className="text-sm font-bold text-white">CS</span>
             </a>
-            <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-black">CorpServe</h1>
+            <h1 className={`text-base sm:text-lg lg:text-xl font-semibold ${theme.brandTitleClass}`}>CorpServe</h1>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="sm" className="md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                <Button type="button" variant="outline" size="sm" className={theme.mobileMenuButtonClass}>
                   <Menu className="h-4 w-4" />
                   Menu
                 </Button>
@@ -130,7 +189,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
               <DropdownMenuContent align="start" className="w-56 md:hidden">
                 <DropdownMenuLabel>Navigate</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {menuItems.map((item) => (
+                {sidebarMenuItems.map((item) => (
                   <DropdownMenuItem key={item.path} asChild>
                     <Link to={item.path} className="flex items-center gap-2">
                       {item.icon}
@@ -159,22 +218,22 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
               onClick={handleNotificationToggle}
               variant="ghost"
               size="icon"
-              className="relative h-9 w-9 rounded-xl border border-indigo-100 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100"
+              className={theme.notificationButtonClass}
               aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount})` : ''}`.trim()}
             >
               <BellRing className="w-5 h-5"/>
               {unreadCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-indigo-600 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                <Badge className={theme.notificationBadgeClass}>
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </Badge>
               )}
             </Button>
 
             {!isAdmin && (
-              <Button type="button" onClick={handleChatToggle} variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl border border-indigo-100 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100">
+              <Button type="button" onClick={handleChatToggle} variant="ghost" size="icon" className={theme.chatButtonClass}>
                 <MessageSquare className="w-5 h-5"/>
                 {unreadChatCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-indigo-600 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                  <Badge className={theme.chatBadgeClass}>
                     {unreadChatCount > 99 ? '99+' : unreadChatCount}
                   </Badge>
                 )}
@@ -184,12 +243,12 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             {/* User Profile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-auto gap-2 py-1.5 px-1 sm:px-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User className="w-4 h-4 text-blue-600"/>
+                <Button variant="ghost" className={theme.profileTriggerClass}>
+                  <div className={theme.profileAvatarWrapClass}>
+                    <User className={theme.profileAvatarIconClass}/>
                   </div>
                   <div className="text-left leading-tight hidden sm:block">
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600">
+                    <div className={`flex items-center gap-1 text-[11px] font-semibold ${theme.profileRoleTextClass}`}>
                       <ShieldCheck className="h-3.5 w-3.5" />
                       <span>{roleLabel}</span>
                     </div>
@@ -258,42 +317,50 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
 
       <div className="flex min-h-[calc(100vh-4rem)] pt-16">
         {/* Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} hidden md:block shrink-0 border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff] transition-all duration-300`}>
+        <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} hidden md:block shrink-0 ${theme.sidebarClass} transition-all duration-300`}>
           <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-hidden">
-            <div className={`${isSidebarOpen ? 'mx-4 mt-4' : 'mx-3 mt-4'} rounded-2xl border border-indigo-100 bg-white/90 p-3 shadow-sm`}>
-              <div className={`flex items-center ${isSidebarOpen ? 'gap-2' : 'justify-center'}`}>
-                <a
-                  href="/"
-                  aria-label="Go to home"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-sm font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
-                >
-                  CS
-                </a>
+            <div className={`${isSidebarOpen ? 'mx-4 mt-4' : 'mx-3 mt-4'}`}>
+              <Link
+                to={`/${userRole}/dashboard`}
+                aria-label="Open workspace"
+                className={`${theme.workspaceCardClass} ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}
+              >
+                <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : ''}`}>
+                  <span className={theme.workspaceIconWrapClass}>
+                    <WorkspaceIcon className="h-4 w-4" />
+                  </span>
+                  {isSidebarOpen && (
+                    <div className="leading-tight">
+                      <p className={theme.workspaceTitleClass}>Workspace</p>
+                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-slate-900">{structure.workspaceSubtitle}</p>
+                    </div>
+                  )}
+                </div>
                 {isSidebarOpen && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600">Workspace</p>
-                    <p className="text-sm font-bold text-slate-900">CorpServe</p>
-                  </div>
+                  <span className={theme.workspaceLiveBadgeClass}>
+                    <Activity className={theme.workspaceLiveIconClass} />
+                    <span>Live</span>
+                  </span>
                 )}
-              </div>
+              </Link>
             </div>
 
             <nav className="mt-3 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-            {menuItems.map((item) => {
+            {sidebarMenuItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link key={item.path} to={item.path}>
                   <div
-                    className={`group relative flex items-center ${isSidebarOpen ? 'gap-3 px-3.5' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-300 ${
+                    className={`group relative flex items-center ${isSidebarOpen ? 'gap-3 px-3.5' : 'justify-center px-2'} py-3 ${structure.navItemShapeClass} transition-all duration-300 ${
                       isActive
-                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_10px_24px_rgba(79,70,229,0.28)]'
-                        : 'text-slate-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-violet-100 hover:shadow-sm'
+                        ? theme.navActiveClass
+                        : theme.navInactiveClass
                     }`}
                   >
                     {!isActive && (
-                      <div className="pointer-events-none absolute inset-0 rounded-xl border border-transparent group-hover:border-indigo-100" />
+                      <div className={`${theme.navHoverBorderClass} ${structure.navItemShapeClass}`} />
                     )}
-                    <span className={isActive ? 'text-white' : 'text-indigo-600'}>{item.icon}</span>
+                    <span className={isActive ? 'text-white' : theme.navIconInactiveClass}>{item.icon}</span>
                     {isSidebarOpen && <span className="font-semibold tracking-tight">{item.label}</span>}
                   </div>
                 </Link>
