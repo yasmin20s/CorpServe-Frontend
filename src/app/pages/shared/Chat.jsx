@@ -24,6 +24,8 @@ import {
   leaveRoom,
   onMessage,
   onUserMessagesRead,
+  onChatReconnected,
+  startChatConnection,
 } from '../../lib/chatSignalr';
 
 function formatTime(value) {
@@ -97,6 +99,10 @@ function messageStableKey(message) {
   ].join('|');
 }
 
+function sameChatRoomId(a, b) {
+  return String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
+}
+
 function sortMessagesByBackendOrder(items) {
   return [...items].sort((a, b) => {
     const tDiff = toEpochMs(a?.sentAt) - toEpochMs(b?.sentAt);
@@ -127,10 +133,8 @@ function resolveMediaUrl(mediaUrl, mediaBaseUrl) {
 function isImageMedia(message) {
   const mime = String(message?.mediaMimeType || '').toLowerCase();
   if (mime.startsWith('image/')) return true;
-
   const type = String(message?.type || '').toLowerCase();
   if (type.includes('image')) return true;
-
   const url = String(message?.mediaUrl || '').toLowerCase();
   return /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/.test(url);
 }
@@ -166,9 +170,7 @@ export default function Chat() {
 
   const messagesEndRef = useRef(null);
   const messagesViewportRef = useRef(null);
-  const autoScrollTimerRef = useRef(null);
   const currentRoomRef = useRef(null);
-  const shouldAutoScrollToBottomRef = useRef(true);
   const initialRoomApplied = useRef(false);
   const fileInputRef = useRef(null);
   const [pendingFile, setPendingFile] = useState(null);
@@ -178,13 +180,18 @@ export default function Chat() {
     'image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar',
   );
 
+  const canonicalRoomId = useMemo(() => {
+    if (selectedRoomId == null || selectedRoomId === '') return null;
+    const room = rooms.find((r) => sameChatRoomId(r.id, selectedRoomId));
+    return room ? room.id : String(selectedRoomId);
+  }, [rooms, selectedRoomId]);
+
   const selectedRoom = useMemo(
-    () => rooms.find((r) => r.id === selectedRoomId) || null,
+    () => rooms.find((r) => sameChatRoomId(r.id, selectedRoomId)) || null,
     [rooms, selectedRoomId],
   );
 
   const hideHeroOnMobile = mobileShowMessages && Boolean(selectedRoom);
-
   const isClient = role === 'client';
 
   const counterpartyName = useMemo(() => {
@@ -222,9 +229,9 @@ export default function Chat() {
   useEffect(() => {
     if (initialRoomApplied.current || loadingRooms || rooms.length === 0) return;
     if (targetRoomId) {
-      const exists = rooms.find((r) => r.id === targetRoomId);
+      const exists = rooms.find((r) => sameChatRoomId(r.id, targetRoomId));
       if (exists) {
-        setSelectedRoomId(targetRoomId);
+        setSelectedRoomId(exists.id);
         setMobileShowMessages(true);
         initialRoomApplied.current = true;
       }
@@ -246,9 +253,7 @@ export default function Chat() {
           token: user.token,
         });
 
-        if (!Array.isArray(page) || page.length === 0) {
-          break;
-        }
+        if (!Array.isArray(page) || page.length === 0) break;
 
         page.forEach((message) => {
           const key = messageStableKey(message);
@@ -257,9 +262,7 @@ export default function Chat() {
           collected.push(message);
         });
 
-        if (page.length < CHAT_MESSAGES_PAGE_SIZE) {
-          break;
-        }
+        if (page.length < CHAT_MESSAGES_PAGE_SIZE) break;
       }
 
       setMessages(sortMessagesByBackendOrder(collected));
@@ -275,80 +278,65 @@ export default function Chat() {
       setMessages([]);
       return;
     }
-    shouldAutoScrollToBottomRef.current = true;
-    loadMessages(selectedRoomId);
-  }, [selectedRoomId, loadMessages]);
+    if (!canonicalRoomId) return;
+    loadMessages(canonicalRoomId);
+  }, [selectedRoomId, canonicalRoomId, loadMessages]);
 
   useEffect(() => {
-    if (!selectedRoomId || !user?.token) return;
-    markMessagesReadApi({ chatRoomId: selectedRoomId, token: user.token }).catch(() => {});
+    if (!canonicalRoomId || !user?.token) return;
+    markMessagesReadApi({ chatRoomId: canonicalRoomId, token: user.token }).catch(() => {});
     setRooms((prev) =>
-      prev.map((r) => (r.id === selectedRoomId ? { ...r, unreadCount: 0 } : r)),
+      prev.map((r) => (sameChatRoomId(r.id, canonicalRoomId) ? { ...r, unreadCount: 0 } : r)),
     );
-  }, [selectedRoomId, user?.token]);
+  }, [canonicalRoomId, user?.token]);
 
+  // ✅ scrollToBottom: الطريقتين مع بعض لضمان الشغل في normal + fullscreen
   const scrollToBottom = useCallback(() => {
-    const viewport = messagesViewportRef.current;
-    if (viewport) {
-      requestAnimationFrame(() => {
-        viewport.scrollTop = viewport.scrollHeight;
-      });
-    }
+    const vp = messagesViewportRef.current;
+    const end = messagesEndRef.current;
+    if (vp) vp.scrollTop = vp.scrollHeight;
+    if (end) end.scrollIntoView({ block: 'end', behavior: 'instant' });
   }, []);
 
-  const forceScrollToLatest = useCallback(() => {
-    if (autoScrollTimerRef.current) {
-      clearInterval(autoScrollTimerRef.current);
-      autoScrollTimerRef.current = null;
-    }
-
-    let attempts = 0;
+  // ✅ 3 توقيتات: فوري + 100ms (بعد framer-motion) + 300ms (للـ fullscreen)
+  useEffect(() => {
+    if (loadingMessages || messages.length === 0) return;
     scrollToBottom();
-    autoScrollTimerRef.current = setInterval(() => {
-      scrollToBottom();
-      attempts += 1;
-      if (attempts >= 10) {
-        clearInterval(autoScrollTimerRef.current);
-        autoScrollTimerRef.current = null;
+    const t1 = setTimeout(scrollToBottom, 100);
+    const t2 = setTimeout(scrollToBottom, 300);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [messages, loadingMessages, scrollToBottom]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await startChatConnection();
+      if (cancelled) return;
+      const prev = currentRoomRef.current;
+      const next = canonicalRoomId;
+      if (prev && (!next || !sameChatRoomId(prev, next))) {
+        await leaveRoom(prev);
       }
-    }, 120);
-  }, [scrollToBottom]);
+      if (cancelled) return;
+      currentRoomRef.current = next;
+      if (next) await joinRoom(next);
+    })();
+    return () => { cancelled = true; };
+  }, [canonicalRoomId]);
 
-  useEffect(() => () => {
-    if (autoScrollTimerRef.current) {
-      clearInterval(autoScrollTimerRef.current);
-      autoScrollTimerRef.current = null;
-    }
+  useEffect(() => {
+    const unsub = onChatReconnected(() => {
+      (async () => {
+        await startChatConnection();
+        const id = currentRoomRef.current;
+        if (id) await joinRoom(id);
+      })();
+    });
+    return unsub;
   }, []);
-
-  useEffect(() => {
-    if (shouldAutoScrollToBottomRef.current) {
-      forceScrollToLatest();
-    }
-  }, [messages, forceScrollToLatest]);
-
-  useEffect(() => {
-    if (!selectedRoomId || loadingMessages) return;
-    shouldAutoScrollToBottomRef.current = true;
-    forceScrollToLatest();
-  }, [selectedRoomId, loadingMessages, forceScrollToLatest]);
-
-  useEffect(() => {
-    if (!selectedRoomId || !mobileShowMessages) return;
-    shouldAutoScrollToBottomRef.current = true;
-    forceScrollToLatest();
-  }, [selectedRoomId, mobileShowMessages, forceScrollToLatest]);
-
-  useEffect(() => {
-    const prev = currentRoomRef.current;
-    if (prev && prev !== selectedRoomId) {
-      leaveRoom(prev);
-    }
-    currentRoomRef.current = selectedRoomId;
-    if (selectedRoomId) {
-      joinRoom(selectedRoomId);
-    }
-  }, [selectedRoomId]);
 
   useEffect(() => {
     const unsubMsg = onMessage((msg) => {
@@ -365,7 +353,7 @@ export default function Chat() {
         mediaSizeBytes: msg?.mediaSizeBytes ?? msg?.MediaSizeBytes ?? msg?.fileSizeBytes ?? msg?.FileSizeBytes ?? msg?.size ?? msg?.Size ?? null,
       };
 
-      if (normalized.chatRoomId === currentRoomRef.current) {
+      if (sameChatRoomId(normalized.chatRoomId, currentRoomRef.current)) {
         setMessages((prev) => {
           const nextKey = messageStableKey(normalized);
           if (prev.some((m) => messageStableKey(m) === nextKey)) return prev;
@@ -378,8 +366,8 @@ export default function Chat() {
 
       setRooms((prev) => {
         const updated = prev.map((r) => {
-          if (r.id !== normalized.chatRoomId) return r;
-          const isCurrentRoom = normalized.chatRoomId === currentRoomRef.current;
+          if (!sameChatRoomId(r.id, normalized.chatRoomId)) return r;
+          const isCurrentRoom = sameChatRoomId(normalized.chatRoomId, currentRoomRef.current);
           return {
             ...r,
             lastMessage: normalized.content,
@@ -391,8 +379,8 @@ export default function Chat() {
       });
     });
 
-    const unsubRead = onUserMessagesRead((chatRoomId, readByUserId) => {
-      if (chatRoomId !== currentRoomRef.current) return;
+    const unsubRead = onUserMessagesRead((chatRoomId) => {
+      if (!sameChatRoomId(chatRoomId, currentRoomRef.current)) return;
       const myType = isClient ? 'Client' : 'Vendor';
       setMessages((prev) =>
         prev.map((m) =>
@@ -408,12 +396,8 @@ export default function Chat() {
   }, [user?.token, isClient]);
 
   const handleSelectRoom = (roomId) => {
-    shouldAutoScrollToBottomRef.current = true;
     setSelectedRoomId(roomId);
     setMobileShowMessages(true);
-    requestAnimationFrame(() => {
-      forceScrollToLatest();
-    });
   };
 
   const handleBackToRooms = () => {
@@ -422,11 +406,18 @@ export default function Chat() {
 
   const handleSend = async () => {
     const text = messageText.trim();
-    if (!text || !selectedRoomId || !user?.token || sending) return;
+    if (!text || !canonicalRoomId || !user?.token || sending) return;
     setSending(true);
     setMessageText('');
     try {
-      await sendMessageApi({ chatRoomId: selectedRoomId, content: text, token: user.token });
+      const created = await sendMessageApi({ chatRoomId: canonicalRoomId, content: text, token: user.token });
+      if (created?.id) {
+        setMessages((prev) => {
+          const nextKey = messageStableKey(created);
+          if (prev.some((m) => messageStableKey(m) === nextKey)) return prev;
+          return sortMessagesByBackendOrder([...prev, created]);
+        });
+      }
     } catch (error) {
       toast.error(error.message || 'Failed to send message');
       setMessageText(text);
@@ -448,7 +439,6 @@ export default function Chat() {
 
   const openFilePicker = (mode = 'all') => {
     if (sending) return;
-
     if (mode === 'image') {
       setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml');
     } else if (mode === 'file') {
@@ -456,24 +446,28 @@ export default function Chat() {
     } else {
       setFilePickerAccept('image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar');
     }
-
-    requestAnimationFrame(() => {
-      fileInputRef.current?.click();
-    });
+    requestAnimationFrame(() => { fileInputRef.current?.click(); });
   };
 
   const handleSendAttachment = async () => {
-    if (!pendingFile || !selectedRoomId || !user?.token || sending) return;
+    if (!pendingFile || !canonicalRoomId || !user?.token || sending) return;
     setSending(true);
     const file = pendingFile;
     setPendingFile(null);
     try {
-      await sendAttachmentApi({
-        chatRoomId: selectedRoomId,
+      const created = await sendAttachmentApi({
+        chatRoomId: canonicalRoomId,
         file,
         content: messageText.trim() || undefined,
         token: user.token,
       });
+      if (created?.id) {
+        setMessages((prev) => {
+          const nextKey = messageStableKey(created);
+          if (prev.some((m) => messageStableKey(m) === nextKey)) return prev;
+          return sortMessagesByBackendOrder([...prev, created]);
+        });
+      }
       setMessageText('');
     } catch (error) {
       toast.error(error.message || 'Failed to send attachment');
@@ -484,12 +478,11 @@ export default function Chat() {
   };
 
   const mediaBaseUrl = getApiBaseUrl();
-
   const mySenderType = isClient ? 'Client' : 'Vendor';
 
   const roomsList = (
-    <Card className="h-full flex flex-col overflow-hidden border-indigo-200 bg-white/90 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
-      <CardContent className="p-0 flex-1 overflow-hidden">
+    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/90 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
+      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-0">
         <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-indigo-700 inline-flex items-center gap-1.5">
@@ -508,7 +501,7 @@ export default function Chat() {
             />
           </div>
         </div>
-        <div className="h-full overflow-y-auto bg-[linear-gradient(to_bottom,rgba(255,255,255,0.65),rgba(238,242,255,0.35))]">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(to_bottom,rgba(255,255,255,0.65),rgba(238,242,255,0.35))]">
           {loadingRooms && (
             <div className="p-6 text-center text-slate-500">Loading chats...</div>
           )}
@@ -534,13 +527,13 @@ export default function Chat() {
                 transition={{ duration: 0.22 }}
                 onClick={() => handleSelectRoom(room.id)}
                 className={`group mx-2 my-1.5 rounded-2xl border cursor-pointer transition-all duration-300 ${
-                  selectedRoomId === room.id
+                  sameChatRoomId(selectedRoomId, room.id)
                     ? 'border-indigo-300 bg-indigo-100/80 shadow-[0_10px_22px_rgba(79,70,229,0.16)]'
                     : 'border-transparent hover:border-indigo-200 hover:bg-indigo-50/80 hover:translate-x-0.5'
                 }`}
               >
                 <div className="flex items-start gap-3 p-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10px_18px_rgba(79,70,229,0.3)]">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10x_18px_rgba(79,70,229,0.3)]">
                     {getInitials(name)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -571,20 +564,16 @@ export default function Chat() {
   );
 
   const messagePanel = (
-    <Card className="h-full min-h-0 flex flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
-      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
+      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-0">
         {!selectedRoom ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
             <MessageSquare className="h-16 w-16 text-indigo-200" />
-            <p className="text-lg font-semibold text-slate-700">
-              Select a conversation
-            </p>
-            <p className="text-sm text-slate-500">
-              Choose a chat room from the list to start messaging.
-            </p>
+            <p className="text-lg font-semibold text-slate-700">Select a conversation</p>
+            <p className="text-sm text-slate-500">Choose a chat room from the list to start messaging.</p>
           </div>
         ) : (
-          <>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {/* Chat Header */}
             <div className="p-4 border-b border-indigo-100 bg-gradient-to-r from-white via-indigo-50/60 to-sky-50/60 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -607,8 +596,11 @@ export default function Chat() {
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 min-h-0 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4" ref={messagesViewportRef}>
+            {/* ✅ Messages — flex-[1_1_0%] فقط بدون flex-1 مكررة، وبدون overflowAnchor */}
+            <div
+              className="flex min-h-0 min-w-0 flex-[1_1_0%] flex-col overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4"
+              ref={messagesViewportRef}
+            >
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-12">
                   <p className="text-slate-500">Loading messages...</p>
@@ -616,115 +608,99 @@ export default function Chat() {
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
                   <p className="text-sm font-semibold text-slate-600">No messages yet</p>
-                  <p className="text-xs text-slate-400">
-                    Send the first message to start the conversation.
-                  </p>
+                  <p className="text-xs text-slate-400">Send the first message to start the conversation.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="flex min-h-0 w-full flex-col space-y-4">
                   <AnimatePresence initial={false}>
                     {messages.map((msg, index) => {
-                    const isMe = msg.sender === mySenderType;
-                    const prev = messages[index - 1];
-                    const showDayDivider = index === 0 || messageDayKey(prev?.sentAt) !== messageDayKey(msg.sentAt);
-                    return (
-                      <motion.div
-                        key={messageStableKey(msg)}
-                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={{ duration: 0.22 }}
-                        className="space-y-2"
-                      >
-                        {showDayDivider && (
-                          <div className="flex justify-center">
-                            <span className="rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 shadow-sm">
-                              {messageDayLabel(msg.sentAt)}
-                            </span>
-                          </div>
-                        )}
-                        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                          {(() => {
-                            const mediaHref = resolveMediaUrl(msg.mediaUrl, mediaBaseUrl);
-                            const imageMedia = isImageMedia(msg);
-                            return (
-                          <div
-                            className={`max-w-[78%] rounded-2xl p-3 shadow-sm ${
-                              isMe
-                                ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-md'
-                                : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100'
-                            }`}
-                          >
-                          {msg.mediaUrl && imageMedia && (
-                            <a
-                              href={mediaHref}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block mb-2"
-                            >
-                              <img
-                                src={mediaHref}
-                                alt={msg.content || 'Attachment'}
-                                className="max-w-full max-h-60 rounded-lg object-cover"
-                                onLoad={forceScrollToLatest}
-                              />
-                            </a>
-                          )}
-                          {msg.mediaUrl && !imageMedia && (
-                            <a
-                              href={mediaHref}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`flex items-center gap-2 mb-2 rounded-lg border px-3 py-2 text-sm ${
-                                isMe
-                                  ? 'border-indigo-300/40 bg-indigo-500/30 text-white hover:bg-indigo-500/50'
-                                  : 'border-indigo-200 bg-indigo-50 text-slate-700 hover:bg-indigo-100/60'
-                              }`}
-                            >
-                              <FileText className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{attachmentDisplayName(msg)}</span>
-                              {msg.mediaSizeBytes && (
-                                <span className="text-xs opacity-70 flex-shrink-0">
-                                  {(msg.mediaSizeBytes / 1024).toFixed(0)} KB
-                                </span>
-                              )}
-                            </a>
-                          )}
-                          {(!msg.mediaUrl || imageMedia) && (
-                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                          )}
-                          <div
-                            className={`flex items-center gap-1 mt-1 ${
-                              isMe ? 'justify-end' : ''
-                            }`}
-                          >
-                            <p
-                              className={`text-xs ${
-                                isMe ? 'text-indigo-200' : 'text-gray-500'
-                              }`}
-                            >
-                              {formatMessageTime(msg.sentAt)}
-                            </p>
-                            {isMe && (
-                              <span
-                                className={`text-xs font-medium ${
-                                  msg.isRead ? 'text-sky-300' : 'text-indigo-300/50'
-                                }`}
-                                title={msg.isRead ? 'Read' : 'Sent'}
-                              >
-                                {msg.isRead ? '✓✓' : '✓'}
+                      const isMe = msg.sender === mySenderType;
+                      const prev = messages[index - 1];
+                      const showDayDivider = index === 0 || messageDayKey(prev?.sentAt) !== messageDayKey(msg.sentAt);
+                      return (
+                        <motion.div
+                          key={messageStableKey(msg)}
+                          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                          transition={{ duration: 0.22 }}
+                          className="space-y-2"
+                        >
+                          {showDayDivider && (
+                            <div className="flex justify-center">
+                              <span className="rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 shadow-sm">
+                                {messageDayLabel(msg.sentAt)}
                               </span>
-                            )}
+                            </div>
+                          )}
+                          <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            {(() => {
+                              const mediaHref = resolveMediaUrl(msg.mediaUrl, mediaBaseUrl);
+                              const imageMedia = isImageMedia(msg);
+                              return (
+                                <div
+                                  className={`max-w-[78%] rounded-2xl p-3 shadow-sm ${
+                                    isMe
+                                      ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-md'
+                                      : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100'
+                                  }`}
+                                >
+                                  {msg.mediaUrl && imageMedia && (
+                                    <a href={mediaHref} target="_blank" rel="noopener noreferrer" className="block mb-2">
+                                      <img
+                                        src={mediaHref}
+                                        alt={msg.content || 'Attachment'}
+                                        className="max-w-full max-h-60 rounded-lg object-cover"
+                                        onLoad={scrollToBottom}
+                                      />
+                                    </a>
+                                  )}
+                                  {msg.mediaUrl && !imageMedia && (
+                                    <a
+                                      href={mediaHref}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`flex items-center gap-2 mb-2 rounded-lg border px-3 py-2 text-sm ${
+                                        isMe
+                                          ? 'border-indigo-300/40 bg-indigo-500/30 text-white hover:bg-indigo-500/50'
+                                          : 'border-indigo-200 bg-indigo-50 text-slate-700 hover:bg-indigo-100/60'
+                                      }`}
+                                    >
+                                      <FileText className="w-4 h-4 flex-shrink-0" />
+                                      <span className="truncate">{attachmentDisplayName(msg)}</span>
+                                      {msg.mediaSizeBytes && (
+                                        <span className="text-xs opacity-70 flex-shrink-0">
+                                          {(msg.mediaSizeBytes / 1024).toFixed(0)} KB
+                                        </span>
+                                      )}
+                                    </a>
+                                  )}
+                                  {(!msg.mediaUrl || imageMedia) && (
+                                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                  )}
+                                  <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
+                                    <p className={`text-xs ${isMe ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                      {formatMessageTime(msg.sentAt)}
+                                    </p>
+                                    {isMe && (
+                                      <span
+                                        className={`text-xs font-medium ${msg.isRead ? 'text-sky-300' : 'text-indigo-300/50'}`}
+                                        title={msg.isRead ? 'Read' : 'Sent'}
+                                      >
+                                        {msg.isRead ? '✓✓' : '✓'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
-                          </div>
-                            );
-                          })()}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
                   </AnimatePresence>
-                  <div ref={messagesEndRef} />
+                  {/* ✅ مرساة الـ scroll */}
+                  <div ref={messagesEndRef} className="h-px w-full shrink-0" aria-hidden />
                 </div>
               )}
             </div>
@@ -749,10 +725,7 @@ export default function Chat() {
                   <span className="text-xs text-slate-500 flex-shrink-0">
                     {(pendingFile.size / 1024).toFixed(0)} KB
                   </span>
-                  <button
-                    onClick={() => setPendingFile(null)}
-                    className="ml-auto text-slate-400 hover:text-red-500"
-                  >
+                  <button onClick={() => setPendingFile(null)} className="ml-auto text-slate-400 hover:text-red-500">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -793,7 +766,7 @@ export default function Chat() {
               </div>
               <p className="mt-2 text-[11px] font-medium text-indigo-500">Press Enter to send. Shift + Enter for new line.</p>
             </div>
-          </>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -801,12 +774,11 @@ export default function Chat() {
 
   return (
     <DashboardLayout menuItems={menuItems} userRole={role}>
-      <div className="-mt-4 flex h-[calc(100dvh-3.25rem)] flex-col overflow-hidden sm:-mt-6 sm:h-[calc(100dvh-3.75rem)] lg:-mt-8 lg:h-[calc(100dvh-4.25rem)]">
+      <div className="-mt-4 flex h-[calc(100dvh-3.25rem)] max-h-[calc(100dvh-3.25rem)] flex-col overflow-hidden sm:-mt-6 sm:h-[calc(100dvh-3.75rem)] sm:max-h-[calc(100dvh-3.75rem)] lg:-mt-8 lg:h-[calc(100dvh-4.25rem)] lg:max-h-[calc(100dvh-4.25rem)]">
         <div className={`${hideHeroOnMobile ? 'hidden lg:block' : ''} relative mb-3 flex-shrink-0 overflow-hidden rounded-3xl border border-violet-200/50 bg-gradient-to-br from-violet-800 via-indigo-700 to-blue-700 p-3 text-white shadow-[0_16px_36px_rgba(37,18,94,0.34)] sm:p-4`}>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-900/55 via-indigo-900/50 to-blue-900/55" />
           <div className="pointer-events-none absolute -left-20 top-6 h-56 w-56 rounded-full bg-violet-300/20 blur-3xl" />
           <div className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-blue-300/15 blur-3xl" />
-
           <div className="relative flex flex-col gap-3 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-violet-200/40 bg-violet-200/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-100">
@@ -842,13 +814,13 @@ export default function Chat() {
         </div>
 
         {/* Desktop: side-by-side */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-4 flex-1 min-h-0">
-          <div className="lg:col-span-1 min-h-0">{roomsList}</div>
-          <div className="lg:col-span-2 min-h-0">{messagePanel}</div>
+        <div className="hidden min-h-0 flex-1 lg:grid lg:grid-cols-3 lg:gap-4">
+          <div className="min-h-0 min-w-0 lg:col-span-1">{roomsList}</div>
+          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:col-span-2">{messagePanel}</div>
         </div>
 
         {/* Mobile: show one at a time */}
-        <div className="lg:hidden flex-1 min-h-0">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:hidden">
           {mobileShowMessages && selectedRoom ? messagePanel : roomsList}
         </div>
       </div>

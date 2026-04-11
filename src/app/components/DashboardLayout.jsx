@@ -113,7 +113,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
 
   const theme = {
-    appShellClass: 'min-h-screen bg-slate-50',
+    appShellClass: 'flex min-h-screen flex-col bg-slate-50',
     headerClass: 'h-16 fixed top-0 left-0 right-0 z-50 border-b border-indigo-200/90 bg-gradient-to-r from-[#f5f7ff]/95 via-[#eef0ff]/95 to-[#e7edff]/95 shadow-[0_10px_24px_rgba(79,70,229,0.14)] backdrop-blur supports-[backdrop-filter]:bg-white/70',
     brandTitleClass: 'text-black',
     mobileMenuButtonClass: 'md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
@@ -315,7 +315,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-4rem)] pt-16">
+      <div className="flex min-h-0 w-full flex-1 pt-16">
         {/* Sidebar */}
         <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} hidden md:block shrink-0 ${theme.sidebarClass} transition-all duration-300`}>
           <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-hidden">
@@ -371,7 +371,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
         </aside>
 
         {/* Main Content */}
-        <main className="min-w-0 flex-1 p-4 pt-6 sm:p-6 sm:pt-8 lg:p-8 lg:pt-10">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 pt-6 sm:p-6 sm:pt-8 lg:p-8 lg:pt-10">
           {children}
         </main>
       </div>

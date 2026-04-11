@@ -9,6 +9,7 @@ const messageSubscribers = new Set();
 const readSubscribers = new Set();
 const userMessageSubscribers = new Set();
 const userReadSubscribers = new Set();
+const reconnectSubscribers = new Set();
 let pendingStopAfterStart = false;
 let connectionReadyPromise = null;
 
@@ -49,6 +50,16 @@ function attachHandlers(conn) {
 
   conn.onreconnecting(async () => {
     try { await refreshAccessToken(); } catch { /* retry with existing token */ }
+  });
+
+  conn.onreconnected(() => {
+    for (const cb of reconnectSubscribers) {
+      try {
+        cb();
+      } catch {
+        /* subscriber error */
+      }
+    }
   });
 }
 
@@ -105,7 +116,13 @@ export async function stopChatConnection() {
 export async function joinRoom(chatRoomId) {
   if (connectionReadyPromise) await connectionReadyPromise;
   if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
-  try { await connection.invoke('JoinRoom', chatRoomId); } catch { /* ignore */ }
+  try {
+    await connection.invoke('JoinRoom', chatRoomId);
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.warn('[chatSignalr] JoinRoom failed', chatRoomId, e);
+    }
+  }
 }
 
 export async function leaveRoom(chatRoomId) {
@@ -135,4 +152,10 @@ export function onUserMessagesRead(callback) {
 
 export function getChatConnectionState() {
   return connection?.state ?? signalR.HubConnectionState.Disconnected;
+}
+
+/** Re-invoke after automatic reconnect (e.g. re-join current SignalR room). */
+export function onChatReconnected(callback) {
+  reconnectSubscribers.add(callback);
+  return () => reconnectSubscribers.delete(callback);
 }
