@@ -7,7 +7,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, ChevronRight, FileText, X, AlertTriangle } from 'lucide-react';
+import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, UserCircle2, ChevronRight, FileText, X, AlertTriangle } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getCategoriesApi } from '../../services/categoriesApi';
@@ -18,6 +18,7 @@ const menuItems = [
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack size={20}/> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity size={20}/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet size={20}/> },
+    { label: 'User Profile', path: '/client/user-profile', icon: <UserCircle2 size={20}/> },
 ];
 
 export default function CreateRequest() {

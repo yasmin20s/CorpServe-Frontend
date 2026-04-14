@@ -125,6 +125,7 @@ const menuItems = [
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
+  { label: 'User Profile', path: '/client/user-profile', icon: <User className="w-5 h-5"/> },
 ];
 export default function MyRequests() {
     const itemsPerPage = 3;
