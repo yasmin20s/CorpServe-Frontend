@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
-import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, Star, Search, Sparkles, RefreshCw, ArrowUpRight } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, UserCircle2, Star, Search, Sparkles, RefreshCw, ArrowUpRight } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getMyPaymentHistoryApi, getMyPendingPaymentsApi, startCheckoutApi, getPendingRatingsApi, submitRatingApi } from '../../services/paymentsApi';
@@ -24,6 +24,7 @@ const menuItems = [
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
+    { label: 'User Profile', path: '/client/user-profile', icon: <UserCircle2 className="w-5 h-5"/> },
 ];
 
 function formatMoney(value) {

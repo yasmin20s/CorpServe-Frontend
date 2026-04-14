@@ -9,6 +9,7 @@ const CreateRequest = lazy(() => import('../pages/client/CreateRequest'));
 const MyRequests = lazy(() => import('../pages/client/MyRequests'));
 const Payments = lazy(() => import('../pages/client/Payments'));
 const Proposals = lazy(() => import('../pages/client/Proposals'));
+const UserProfileClient = lazy(() => import('../pages/client/UserProfileClient'));
 
 const AdminAnalytics = lazy(() => import('../pages/admin/AdminAnalytics'));
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
@@ -232,7 +233,8 @@ export default function AppRoutes() {
               <Route path="payments" element={<Payments />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="chat" element={<Chat />} />
-              <Route path="profile" element={<UserProfile />} />
+              <Route path="user-profile" element={<UserProfileClient />} />
+              <Route path="profile" element={<UserProfileClient />} />
             </Route>
           </Route>
 

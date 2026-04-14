@@ -10,6 +10,7 @@ import {
   PlusCircle,
   TrendingUp,
   UserCheck,
+  UserCircle2,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ export const dashboardMenusByRole = {
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5" /> },
     { label: 'Chat', path: '/client/chat', icon: <MessageSquare className="w-5 h-5" /> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5" /> },
+    { label: 'User Profile', path: '/client/user-profile', icon: <UserCircle2 className="w-5 h-5" /> },
   ],
   vendor: [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
