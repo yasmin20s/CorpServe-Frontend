@@ -1,7 +1,7 @@
 import DashboardLayout from '../../components/DashboardLayout';
 import StatsCard from '../../components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { FileText, CheckCircle, Clock, DollarSign, TrendingUp, Package, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, UserCircle2, } from 'lucide-react';
+import { FileText, CheckCircle, Clock, DollarSign, TrendingUp, Package, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -9,7 +9,6 @@ const menuItems = [
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack className="w-5 h-5"/> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity className="w-5 h-5"/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet className="w-5 h-5"/> },
-    { label: 'User Profile', path: '/client/user-profile', icon: <UserCircle2 className="w-5 h-5"/> },
 ];
 const spendingData = [
     { month: 'Jan', amount: 4500 },

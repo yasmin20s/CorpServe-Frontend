@@ -220,7 +220,7 @@ export default function UserProfile() {
 
           <div className="mb-6 text-center md:mb-8 md:text-left">
             <div className="mb-2 flex items-center justify-center gap-2 md:justify-start">
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">User Profile</h1>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">Profile Setting</h1>
               <span className="text-2xl text-purple-500 sm:text-3xl">✨</span>
             </div>
             <p className="text-sm text-gray-600 sm:text-base">Manage your account settings and preferences.</p>

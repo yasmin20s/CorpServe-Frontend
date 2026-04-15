@@ -15,6 +15,16 @@ import {
   onUserMessage,
 } from '../lib/chatSignalr';
 
+const PROFILE_STORAGE_PREFIX_BY_ROLE = {
+  client: 'corpserve-client-profile',
+  vendor: 'corpserve-vendor-profile',
+};
+
+const PROFILE_AVATAR_UPDATED_EVENT_BY_ROLE = {
+  client: 'corpserve:client-profile-avatar-updated',
+  vendor: 'corpserve:vendor-profile-avatar-updated',
+};
+
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +33,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [headerAvatar, setHeaderAvatar] = useState('');
   const lastContentPathRef = useRef(`/${userRole}/dashboard`);
 
   const normalizeCount = useCallback((value) => {
@@ -111,8 +122,60 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   const sidebarMenuItems = effectiveMenuItems.filter((item) => !/\/chat\/?$/i.test(String(item?.path || '')));
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
-  const profilePath = normalizedRole === 'client' ? '/client/user-profile' : `/${normalizedRole || 'client'}/profile`;
+  const roleBasePath = normalizedRole || 'client';
+  const userProfilePath = normalizedRole === 'client'
+    ? '/client/user-profile'
+    : normalizedRole === 'vendor'
+      ? '/vendor/profile'
+      : null;
+  const profileSettingsPath = `/${roleBasePath}/profile-settings`;
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
+  const normalizedEmail = String(user?.email || '').trim().toLowerCase();
+
+  useEffect(() => {
+    const profileStoragePrefix = PROFILE_STORAGE_PREFIX_BY_ROLE[normalizedRole];
+    const avatarUpdatedEvent = PROFILE_AVATAR_UPDATED_EVENT_BY_ROLE[normalizedRole];
+
+    if (!profileStoragePrefix || !avatarUpdatedEvent || !normalizedEmail) {
+      setHeaderAvatar('');
+      return;
+    }
+
+    const profileStorageKey = `${profileStoragePrefix}:${normalizedEmail}`;
+    const loadAvatarFromStorage = () => {
+      try {
+        const raw = localStorage.getItem(profileStorageKey);
+        const parsed = raw ? JSON.parse(raw) : null;
+        const avatar = typeof parsed?.avatar === 'string' ? parsed.avatar : '';
+        setHeaderAvatar(avatar);
+      } catch {
+        setHeaderAvatar('');
+      }
+    };
+
+    const onAvatarUpdated = (event) => {
+      if (event?.detail?.email && event.detail.email !== normalizedEmail) return;
+      if (typeof event?.detail?.avatar === 'string' && event.detail.avatar) {
+        setHeaderAvatar(event.detail.avatar);
+        return;
+      }
+      loadAvatarFromStorage();
+    };
+
+    const onStorageUpdated = (event) => {
+      if (event.key && event.key !== profileStorageKey) return;
+      loadAvatarFromStorage();
+    };
+
+    loadAvatarFromStorage();
+    window.addEventListener(avatarUpdatedEvent, onAvatarUpdated);
+    window.addEventListener('storage', onStorageUpdated);
+
+    return () => {
+      window.removeEventListener(avatarUpdatedEvent, onAvatarUpdated);
+      window.removeEventListener('storage', onStorageUpdated);
+    };
+  }, [normalizedRole, normalizedEmail]);
 
   const theme = {
     appShellClass: 'flex min-h-screen flex-col bg-slate-50',
@@ -224,7 +287,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className={theme.profileTriggerClass}>
-                  <div className={theme.profileAvatarWrapClass}><User className={theme.profileAvatarIconClass}/></div>
+                  <div className={theme.profileAvatarWrapClass}>
+                    {headerAvatar ? (
+                      <img src={headerAvatar} alt={displayName || 'Profile'} className="h-full w-full rounded-2xl object-cover" />
+                    ) : (
+                      <User className={theme.profileAvatarIconClass} />
+                    )}
+                  </div>
                   <div className="text-left leading-tight hidden sm:block">
                     <div className={`flex items-center gap-1 text-[11px] font-semibold ${theme.profileRoleTextClass}`}>
                       <ShieldCheck className="h-3.5 w-3.5" /> <span>{roleLabel}</span>
@@ -238,7 +307,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   <div className="relative overflow-hidden px-3 py-2.5">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-100" />
                     <div className="relative flex items-center gap-2.5 text-slate-800">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-white/80 shadow-sm"><User className="h-4 w-4 text-indigo-600" /></div>
+                      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-indigo-200 bg-white/80 shadow-sm">
+                        {headerAvatar ? (
+                          <img src={headerAvatar} alt={displayName || 'Profile'} className="h-full w-full object-cover" />
+                        ) : (
+                          <User className="h-4 w-4 text-indigo-600" />
+                        )}
+                      </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600">My Account</p>
                         <p className="truncate text-sm font-semibold">{displayName || 'CorpServe User'}</p>
@@ -248,17 +323,30 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {/* === User Profile (New Independent Route) === */}
-                {!isAdmin && (
+                {userProfilePath && (
                   <DropdownMenuItem asChild>
                     <Link
-                      to={profilePath}
+                      to={userProfilePath}
                       className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50"
                     >
                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                         <User className="h-4 w-4" />
                       </span>
                       <span>User Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                {!isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to={profileSettingsPath}
+                      className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50"
+                    >
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                        <Settings className="h-4 w-4" />
+                      </span>
+                      <span>Profile Setting</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -315,7 +403,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
           </div>
         </aside>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 pt-6 sm:p-6 sm:pt-8 lg:p-8 lg:pt-10">
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4 pt-6 sm:p-6 sm:pt-8 lg:p-8 lg:pt-10">
           {children}
         </main>
       </div>

@@ -139,6 +139,19 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      const restoredUser = {
+        fullName: storedProfile.fullName || '',
+        email: storedProfile.email || '',
+        role: toClientRole(storedProfile.role) || 'client',
+        token: storedProfile.token,
+        isAuthenticated: true,
+      };
+
+      setAccessToken(restoredUser.token);
+      if (isMounted) {
+        setUser(restoredUser);
+      }
+
       try {
         const authResponse = await refreshTokenApi();
         const nextUser = buildAuthenticatedUser(
@@ -154,11 +167,13 @@ export function AuthProvider({ children }) {
             setUser(nextUser);
             persistAuthProfile(nextUser);
           }
-        } else {
-          clearAuthState();
+        } else if (isMounted) {
+          persistAuthProfile(restoredUser);
         }
       } catch {
-        clearAuthState();
+        if (isMounted) {
+          persistAuthProfile(restoredUser);
+        }
       } finally {
         if (isMounted) {
           setIsBootstrapping(false);
@@ -175,6 +190,20 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     function handleSessionExpired() {
+      const storedProfile = readStoredAuthProfile();
+      if (storedProfile?.token) {
+        const restoredUser = {
+          fullName: storedProfile.fullName || '',
+          email: storedProfile.email || '',
+          role: toClientRole(storedProfile.role) || 'client',
+          token: storedProfile.token,
+          isAuthenticated: true,
+        };
+        setAccessToken(restoredUser.token);
+        setUser(restoredUser);
+        return;
+      }
+
       clearAuthState();
     }
 

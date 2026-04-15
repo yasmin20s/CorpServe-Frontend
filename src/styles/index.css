@@ -43,12 +43,12 @@
 }
 
 .cs-glow-orb {
-	animation: csGlowFloat 7s ease-in-out infinite;
+	animation: csGlowFloat 4.8s ease-in-out infinite;
 }
 
 .cs-glow-orb-delayed {
-	animation: csGlowFloat 9s ease-in-out infinite;
-	animation-delay: 0.8s;
+	animation: csGlowFloat 6s ease-in-out infinite;
+	animation-delay: 0.35s;
 }
 
 .cs-glow-sweep {
@@ -62,12 +62,197 @@
 	inset: 0;
 	width: 36%;
 	background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.42) 48%, rgba(255, 255, 255, 0.1) 70%, transparent 100%);
-	animation: csShimmerSweep 6.5s ease-in-out infinite;
+	animation: csShimmerSweep 4.2s ease-in-out infinite;
 	pointer-events: none;
 }
 
 .cs-card-rise {
 	opacity: 0;
-	animation: csCardRise 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	animation: csCardRise 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes csProfileIntro {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 18px, 0) scale(0.99);
+	}
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+}
+
+@keyframes csProfileOrbDrift {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.32;
+	}
+	50% {
+		transform: translate3d(16px, -14px, 0) scale(1.08);
+		opacity: 0.68;
+	}
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.32;
+	}
+}
+
+@keyframes csProfileHeroSheen {
+	0% {
+		transform: translateX(-125%) skewX(-14deg);
+		opacity: 0;
+	}
+	28% {
+		opacity: 0.45;
+	}
+	100% {
+		transform: translateX(150%) skewX(-14deg);
+		opacity: 0;
+	}
+}
+
+@keyframes csProfileAvatarBob {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+}
+
+@keyframes csProfileCardPop {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 16px, 0) scale(0.98);
+	}
+	100% {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+}
+
+@keyframes csProfileImageDrift {
+	0%,
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(0, -3px, 0) scale(1.015);
+	}
+}
+
+@keyframes csProfileImageGlow {
+	0%,
+	100% {
+		box-shadow: 0 10px 22px rgba(79, 70, 229, 0.16);
+	}
+	50% {
+		box-shadow: 0 14px 28px rgba(14, 165, 233, 0.2);
+	}
+}
+
+.cs-profile-shell {
+	opacity: 0;
+	animation: csProfileIntro 380ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cs-profile-orb-a {
+	animation: csProfileOrbDrift 5.2s ease-in-out infinite;
+}
+
+.cs-profile-orb-b {
+	animation: csProfileOrbDrift 6.2s ease-in-out infinite;
+	animation-delay: 0.4s;
+}
+
+.cs-profile-orb-c {
+	animation: csProfileOrbDrift 7.2s ease-in-out infinite;
+	animation-delay: 0.8s;
+}
+
+.cs-profile-hero {
+	position: relative;
+	overflow: hidden;
+}
+
+.cs-profile-hero::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -35%;
+	width: 35%;
+	background: linear-gradient(120deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0));
+	pointer-events: none;
+	animation: csProfileHeroSheen 4.8s ease-in-out infinite;
+}
+
+.cs-profile-avatar-bob {
+	transition: transform 160ms ease;
+}
+
+.cs-profile-avatar-bob:hover {
+	animation: csProfileAvatarBob 900ms ease-in-out;
+}
+
+.cs-profile-section-reveal {
+	opacity: 0;
+	animation: csCardRise 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cs-profile-stat-card {
+	opacity: 0;
+	animation: csProfileCardPop 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cs-profile-image-card {
+	animation: csProfileCardPop 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	opacity: 0;
+}
+
+.cs-profile-image-thumb {
+	transition: transform 160ms ease, filter 160ms ease;
+	transform-origin: center;
+}
+
+.cs-profile-image-thumb:hover {
+	animation: csProfileImageDrift 900ms ease-in-out;
+}
+
+.cs-profile-image-card:hover .cs-profile-image-thumb {
+	transform: scale(1.045);
+	filter: saturate(1.06);
+	animation: csProfileImageDrift 900ms ease-in-out;
+}
+
+.cs-profile-image-glow {
+	transition: box-shadow 160ms ease;
+}
+
+.cs-profile-image-glow:hover {
+	animation: csProfileImageGlow 900ms ease-in-out;
+}
+
+.cs-profile-image-card:hover .cs-profile-image-glow {
+	animation: csProfileImageGlow 900ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cs-profile-shell,
+	.cs-profile-orb-a,
+	.cs-profile-orb-b,
+	.cs-profile-orb-c,
+	.cs-profile-hero::after,
+	.cs-profile-avatar-bob,
+	.cs-profile-section-reveal,
+	.cs-profile-stat-card,
+	.cs-profile-image-card,
+	.cs-profile-image-thumb,
+	.cs-profile-image-glow {
+		animation: none !important;
+		opacity: 1 !important;
+		transform: none !important;
+	}
 }
 

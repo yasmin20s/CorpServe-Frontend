@@ -7,7 +7,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, UserCircle2, ChevronRight, FileText, X, AlertTriangle } from 'lucide-react';
+import { Bot, Upload, Sparkles, LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, ChevronRight, FileText, X, AlertTriangle } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getCategoriesApi } from '../../services/categoriesApi';
@@ -18,7 +18,6 @@ const menuItems = [
     { label: 'My Requests', path: '/client/my-requests', icon: <FileStack size={20}/> },
     { label: 'Active Requests', path: '/client/active-requests', icon: <Activity size={20}/> },
     { label: 'Payments', path: '/client/payments', icon: <Wallet size={20}/> },
-    { label: 'User Profile', path: '/client/user-profile', icon: <UserCircle2 size={20}/> },
 ];
 
 export default function CreateRequest() {
@@ -306,7 +305,7 @@ export default function CreateRequest() {
                                 </div>
 
                                 <div className="space-y-3 pt-2">
-                                    <Label className="text-[#1e293b] font-semibold italic text-gray-400">Attachments (Optional)</Label>
+                                    <Label className="text-[#1e293b] font-semibold italic">Attachments (Optional)</Label>
                                     <div className="border-2 border-dashed border-gray-100 rounded-[20px] p-10 flex flex-col items-center justify-center bg-[#fafbfc] transition-all hover:border-[#6366f1]/30">
                                         <Upload className="w-10 h-10 text-gray-300 mb-4" strokeWidth={1.5}/>
                                         <p className="text-sm text-gray-400 mb-5 text-center">Upload supporting documents, images, or files</p>

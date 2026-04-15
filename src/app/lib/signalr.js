@@ -8,19 +8,45 @@ let connection = null;
 let accessTokenGetter = () => '';
 const subscribers = new Set();
 let pendingStopAfterStart = false;
+let connectionReadyPromise = null;
 
 export function setSignalRTokenGetter(getter) {
   accessTokenGetter = typeof getter === 'function' ? getter : () => '';
 }
 
-function buildConnection() {
+function buildConnection(transport) {
+  const transportOptions = transport ? { transport } : {};
+
   return new signalR.HubConnectionBuilder()
     .withUrl(HUB_URL, {
       accessTokenFactory: () => accessTokenGetter(),
+      ...transportOptions,
     })
     .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
     .configureLogging(signalR.LogLevel.Warning)
     .build();
+}
+
+function getSignalRErrorMessage(err) {
+  return String(err?.message || err || '').toLowerCase();
+}
+
+function isUnauthorizedSignalRError(err) {
+  const message = getSignalRErrorMessage(err);
+  return message.includes('401') || message.includes('unauthorized');
+}
+
+function isWebSocketStartError(err) {
+  const message = getSignalRErrorMessage(err);
+  return message.includes('websocket failed to connect')
+    || message.includes("failed to start the transport 'websockets'")
+    || message.includes('transport websockets');
+}
+
+async function startWithLongPollingFallback() {
+  connection = buildConnection(signalR.HttpTransportType.LongPolling);
+  attachHubHandlers(connection);
+  await connection.start();
 }
 
 function attachHubHandlers(conn) {
@@ -53,42 +79,15 @@ function attachHubHandlers(conn) {
 }
 
 export async function startConnection() {
-  if (connection && connection.state === signalR.HubConnectionState.Connected) {
-    return;
-  }
+  if (connection && connection.state === signalR.HubConnectionState.Connected) return;
+  if (connectionReadyPromise) return connectionReadyPromise;
 
-  if (connection) {
-    try {
-      await connection.stop();
-    } catch {
-      /* ignore */
+  connectionReadyPromise = (async () => {
+    if (!connection) {
+      connection = buildConnection();
+      attachHubHandlers(connection);
     }
-  }
 
-  connection = buildConnection();
-  attachHubHandlers(connection);
-
-  try {
-    await connection.start();
-    if (pendingStopAfterStart) {
-      pendingStopAfterStart = false;
-      try {
-        await connection.stop();
-      } catch {
-        /* ignore */
-      }
-      connection = null;
-      return;
-    }
-    console.info('[SignalR] Connected.');
-  } catch (err) {
-    const refreshed = await refreshAccessToken();
-    if (!refreshed) {
-      console.error('[SignalR] Connection failed:', err);
-      return;
-    }
-    connection = buildConnection();
-    attachHubHandlers(connection);
     try {
       await connection.start();
       if (pendingStopAfterStart) {
@@ -102,9 +101,71 @@ export async function startConnection() {
         return;
       }
       console.info('[SignalR] Connected.');
-    } catch (retryErr) {
-      console.error('[SignalR] Connection failed:', retryErr);
+      return;
+    } catch (err) {
+      if (isWebSocketStartError(err)) {
+        try {
+          await startWithLongPollingFallback();
+          if (pendingStopAfterStart) {
+            pendingStopAfterStart = false;
+            try {
+              await connection.stop();
+            } catch {
+              /* ignore */
+            }
+            connection = null;
+            return;
+          }
+          console.info('[SignalR] Connected (LongPolling fallback).');
+          return;
+        } catch (fallbackErr) {
+          err = fallbackErr;
+        }
+      }
+
+      if (!isUnauthorizedSignalRError(err)) {
+        if (!pendingStopAfterStart) {
+          console.error('[SignalR] Connection failed:', err);
+        }
+        return;
+      }
+
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) {
+        if (!pendingStopAfterStart) {
+          console.error('[SignalR] Connection failed:', err);
+        }
+        return;
+      }
+
+      connection = buildConnection();
+      attachHubHandlers(connection);
+
+      try {
+        await connection.start();
+        if (pendingStopAfterStart) {
+          pendingStopAfterStart = false;
+          try {
+            await connection.stop();
+          } catch {
+            /* ignore */
+          }
+          connection = null;
+          return;
+        }
+        console.info('[SignalR] Connected.');
+      } catch (retryErr) {
+        if (!pendingStopAfterStart) {
+          console.error('[SignalR] Connection failed:', retryErr);
+        }
+      }
     }
+  })();
+
+  try {
+    await connectionReadyPromise;
+  } finally {
+    connectionReadyPromise = null;
   }
 }
 
