@@ -38,6 +38,7 @@ const VendorAnalytics = lazy(() => import('../pages/vendor/VendorAnalytics'));
 const VendorDashboard = lazy(() => import('../pages/vendor/VendorDashboard'));
 const VendorMyProposals = lazy(() => import('../pages/vendor/VendorMyProposals'));
 const VendorPayments = lazy(() => import('../pages/vendor/VendorPayments'));
+const UserProfileVendor = lazy(() => import('../pages/vendor/UserProfileVendor'));
 
 function getDashboardPathForRole(role) {
   switch ((role || '').toLowerCase()) {
@@ -234,7 +235,8 @@ export default function AppRoutes() {
               <Route path="notifications" element={<Notifications />} />
               <Route path="chat" element={<Chat />} />
               <Route path="user-profile" element={<UserProfileClient />} />
-              <Route path="profile" element={<UserProfileClient />} />
+              <Route path="profile" element={<UserProfile />} />
+              <Route path="profile-settings" element={<UserProfile />} />
             </Route>
           </Route>
 
@@ -250,7 +252,8 @@ export default function AppRoutes() {
                 <Route path="analytics" element={<VendorAnalytics />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="chat" element={<Chat />} />
-                <Route path="profile" element={<UserProfile />} />
+                <Route path="profile" element={<UserProfileVendor />} />
+                <Route path="profile-settings" element={<UserProfile />} />
               </Route>
             </Route>
           </Route>
