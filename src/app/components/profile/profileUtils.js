@@ -50,6 +50,19 @@ export function formatStatusPill(statusRaw) {
   return s;
 }
 
+export function getAccountStatusLabel(accountStatusRaw) {
+  const raw = String(accountStatusRaw ?? '').trim().toLowerCase();
+  if (raw === 'suspended' || raw === '2') return 'Suspended';
+  if (raw === 'active' || raw === '1') return 'Active';
+  return 'Active';
+}
+
+export function getAccountStatusClasses(accountStatusRaw) {
+  const status = getAccountStatusLabel(accountStatusRaw).toLowerCase();
+  if (status === 'suspended') return 'border border-rose-200 bg-rose-50 text-rose-700';
+  return 'border border-emerald-200 bg-emerald-50 text-emerald-700';
+}
+
 /** Category pill palette (index-based) */
 const CATEGORY_PALETTE = [
   { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-800' },

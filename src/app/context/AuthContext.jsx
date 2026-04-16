@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   forgotPasswordApi,
   loginApi,
@@ -9,6 +9,7 @@ import {
 } from '../services/authApi';
 import { ApiError, clearAccessToken, setAccessToken } from '../services/apiClient';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
+import { toast } from '../lib/toast';
 
 const AUTH_STORAGE_KEY = 'corpserve-auth-profile';
 
@@ -120,6 +121,7 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(initialUserState);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const suspendedHandledRef = useRef(false);
 
   const clearAuthState = useCallback(() => {
     clearAccessToken();
@@ -189,6 +191,12 @@ export function AuthProvider({ children }) {
   }, [clearAuthState]);
 
   useEffect(() => {
+    if (user?.token) {
+      suspendedHandledRef.current = false;
+    }
+  }, [user?.token]);
+
+  useEffect(() => {
     function handleSessionExpired() {
       const storedProfile = readStoredAuthProfile();
       if (storedProfile?.token) {
@@ -210,6 +218,23 @@ export function AuthProvider({ children }) {
     window.addEventListener('corpserve:session-expired', handleSessionExpired);
     return () => {
       window.removeEventListener('corpserve:session-expired', handleSessionExpired);
+    };
+  }, [clearAuthState]);
+
+  useEffect(() => {
+    function handleAccountSuspended() {
+      if (suspendedHandledRef.current) return;
+      suspendedHandledRef.current = true;
+
+      clearAuthState();
+      toast.error('Your Account Has Been Suspended, Please Contact Support', {
+        title: 'Account Suspended',
+      });
+    }
+
+    window.addEventListener('corpserve:account-suspended', handleAccountSuspended);
+    return () => {
+      window.removeEventListener('corpserve:account-suspended', handleAccountSuspended);
     };
   }, [clearAuthState]);
 
