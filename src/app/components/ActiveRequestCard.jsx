@@ -3,8 +3,8 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { formatRemainingDisplayForUi } from '../lib/activeRequestBadges';
+import UserAvatar from './UserAvatar';
 import {
-  UserRound,
   CalendarClock,
   Wallet,
   Clock3,
@@ -57,6 +57,8 @@ export default function ActiveRequestCard({
   const counterpartyName = isVendor
     ? (request.clientName || 'Client')
     : (request.vendorName || 'Assigned Vendor');
+  const counterpartyId = isVendor ? request.clientId : request.vendorId;
+  const counterpartyPic = isVendor ? request.clientProfilePictureUrl : request.vendorProfilePictureUrl;
 
   const taskState = (request.taskState && String(request.taskState).trim()) || 'In Progress';
   const slaLabel = (request.slaLabel && String(request.slaLabel).trim()) || 'On Track';
@@ -72,12 +74,16 @@ export default function ActiveRequestCard({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-2">
             <h2 className="text-xl font-bold tracking-tight text-slate-900">{request.title}</h2>
-            <p className="inline-flex items-center gap-2 text-sm text-slate-600">
-              <UserRound className="h-4 w-4 shrink-0 text-violet-600" />
-              <span>
-                {counterpartyLabel}: <span className="font-medium text-slate-800">{counterpartyName}</span>
-              </span>
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              <span className="shrink-0 text-slate-500">{counterpartyLabel}:</span>
+              <UserAvatar
+                userId={counterpartyId}
+                name={counterpartyName}
+                profilePictureUrl={counterpartyPic}
+                size="sm"
+                linkClassName="max-w-[min(100%,280px)]"
+              />
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 sm:justify-end">
             <Badge

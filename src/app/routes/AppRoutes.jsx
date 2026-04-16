@@ -30,6 +30,7 @@ const UserProfile = lazy(() => import('../pages/profile/UserProfile'));
 const LandingPage = lazy(() => import('../pages/public/LandingPage'));
 const Chat = lazy(() => import('../pages/shared/Chat'));
 const Notifications = lazy(() => import('../pages/shared/Notifications'));
+const PublicUserProfile = lazy(() => import('../pages/shared/PublicUserProfile'));
 
 const AvailableRequests = lazy(() => import('../pages/vendor/AvailableRequests'));
 const Completed = lazy(() => import('../pages/vendor/Completed'));
@@ -234,6 +235,7 @@ export default function AppRoutes() {
               <Route path="payments" element={<Payments />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="chat" element={<Chat />} />
+              <Route path="user/:userId" element={<PublicUserProfile />} />
               <Route path="user-profile" element={<UserProfileClient />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="profile-settings" element={<UserProfile />} />
@@ -252,6 +254,7 @@ export default function AppRoutes() {
                 <Route path="analytics" element={<VendorAnalytics />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="chat" element={<Chat />} />
+                <Route path="user/:userId" element={<PublicUserProfile />} />
                 <Route path="profile" element={<UserProfileVendor />} />
                 <Route path="profile-settings" element={<UserProfile />} />
               </Route>
@@ -263,6 +266,7 @@ export default function AppRoutes() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="vendor-approvals" element={<VendorApprovals />} />
               <Route path="users" element={<UsersManagement />} />
+              <Route path="user/:userId" element={<PublicUserProfile />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="categories" element={<Categories />} />
               <Route path="requests-monitor" element={<RequestsMonitor />} />

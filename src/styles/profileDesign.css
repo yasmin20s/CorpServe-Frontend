@@ -1,0 +1,63 @@
+/* Animated profile hero/footer gradients — disabled when user prefers reduced motion */
+
+@keyframes csProfileGradientShift {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.cs-profile-hero-animate-vendor {
+	background: linear-gradient(
+		90deg,
+		#0284c7,
+		#2563eb,
+		#4f46e5,
+		#7c3aed,
+		#a855f7,
+		#0284c7
+	);
+	background-size: 200% 100%;
+	animation: csProfileGradientShift 12s ease infinite;
+}
+
+.cs-profile-hero-animate-client {
+	background: linear-gradient(
+		90deg,
+		#7c3aed,
+		#6366f1,
+		#3b82f6,
+		#0ea5e9,
+		#7c3aed
+	);
+	background-size: 200% 100%;
+	animation: csProfileGradientShift 12s ease infinite;
+}
+
+.cs-profile-footer-animate {
+	background: linear-gradient(
+		90deg,
+		#4f46e5,
+		#6366f1,
+		#3b82f6,
+		#0ea5e9,
+		#4f46e5
+	);
+	background-size: 200% 100%;
+	animation: csProfileGradientShift 14s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cs-profile-hero-animate-vendor,
+	.cs-profile-hero-animate-client,
+	.cs-profile-footer-animate {
+		animation: none;
+		background-size: 100% 100%;
+		background-position: 50% 50%;
+	}
+}

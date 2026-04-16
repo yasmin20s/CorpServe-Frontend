@@ -18,10 +18,10 @@ import {
   Search,
   Sparkles,
   TrendingUp,
-  UserRound,
   Wallet,
 } from 'lucide-react';
 import { toast } from '../../lib/toast';
+import UserAvatar from '../../components/UserAvatar';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorSubmittedProposalsApi } from '../../services/proposalsApi';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
@@ -173,7 +173,9 @@ export default function VendorMyProposals() {
         return {
           id: String(pick(item, 'id', 'Id', 'proposalId', 'ProposalId') ?? `fallback-${index}`),
           requestTitle: String(pick(item, 'requestTitle', 'RequestTitle', 'title', 'Title') ?? '-'),
+          clientId: String(pick(item, 'clientId', 'ClientId') ?? pick(item?.request, 'clientId', 'ClientId') ?? ''),
           clientName: pickClientName(item),
+          clientProfilePictureUrl: pick(item, 'clientProfilePictureUrl', 'ClientProfilePictureUrl') ?? '',
           proposalStatus,
           proposalType,
           proposedPrice: Number(pick(item, 'proposedPrice', 'ProposedPrice', 'price', 'Price') ?? 0),
@@ -456,12 +458,16 @@ export default function VendorMyProposals() {
                         Proposal Opportunity
                       </p>
                       <h3 className="mt-1 text-lg font-black text-slate-900">{proposal.requestTitle}</h3>
-                      <p className="mt-1 inline-flex items-center gap-1 text-sm text-slate-600">
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 ring-1 ring-blue-200">
-                          <UserRound className="h-3.5 w-3.5 text-blue-700 [stroke-width:2.4]" />
-                        </span>
-                        Client: {proposal.clientName}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                        <span className="text-slate-500">Client:</span>
+                        <UserAvatar
+                          userId={proposal.clientId}
+                          name={proposal.clientName}
+                          profilePictureUrl={proposal.clientProfilePictureUrl}
+                          size="sm"
+                          linkClassName="max-w-[min(100%,260px)]"
+                        />
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">

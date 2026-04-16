@@ -43,6 +43,7 @@ import {
   FileStack,
 } from 'lucide-react';
 import { toast } from '../../lib/toast';
+import UserAvatar from '../../components/UserAvatar';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorRequestsApi } from '../../services/vendorRequestsApi';
 import { vendorAcceptProposalApi, vendorNegotiateProposalApi, vendorRejectProposalApi } from '../../services/proposalsApi';
@@ -353,10 +354,14 @@ export default function AvailableRequests() {
                       <div>
                         <CardTitle className="text-xl font-semibold text-slate-900">{request.title}</CardTitle>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
-                          <span className="inline-flex items-center gap-1">
-                            <Building2 className="h-4 w-4 text-cyan-600" />
-                            {request.clientName}
-                          </span>
+                          <Building2 className="h-4 w-4 shrink-0 text-cyan-600" />
+                          <UserAvatar
+                            userId={request.clientId}
+                            name={request.clientName}
+                            profilePictureUrl={request.clientProfilePictureUrl}
+                            size="sm"
+                            linkClassName="max-w-[min(100%,260px)]"
+                          />
                           <span className="text-slate-300">-</span>
                           <Badge variant="outline" className="border-violet-200 bg-violet-50 text-violet-700">
                             {request.requestCategory}

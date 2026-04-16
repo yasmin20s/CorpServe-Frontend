@@ -19,6 +19,7 @@ import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { useSignalREvent } from '../../context/SignalRContext';
 import { pickProposalCreatedAt, priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import UserAvatar from '../../components/UserAvatar';
 
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -315,7 +316,14 @@ export default function Proposals() {
                   <CardHeader className="pb-3">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">{proposal.vendorName}</CardTitle>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <UserAvatar
+                            userId={proposal.vendorId ?? proposal.VendorId}
+                            name={proposal.vendorName}
+                            profilePictureUrl={proposal.vendorProfilePictureUrl ?? proposal.VendorProfilePictureUrl}
+                            size="md"
+                          />
+                        </div>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                           <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
                             {proposal.alignsWithRequest ? 'Accept' : (proposal.proposalType || proposal.ProposalType || 'Proposal')}

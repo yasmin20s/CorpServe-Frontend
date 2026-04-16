@@ -1,11 +1,45 @@
 /**
+ * Parse API datetimes. ASP.NET often serializes UTC `DateTime` without `Z`; browsers then
+ * treat ISO strings as *local* wall time, skewing relative labels by the timezone offset (e.g. +2h in Egypt).
+ * If the string looks like ISO with `T` but has no zone, interpret as UTC.
+ * @param {string | number | Date | null | undefined} value
+ * @returns {Date | null}
+ */
+export function parseApiDateTime(value) {
+  if (value == null || value === '') return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'number') {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const s = String(value).trim();
+  if (!s) return null;
+
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(s)) {
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) {
+    const trimmed = s.replace(/(\.\d{3})\d+/, '$1');
+    const withUtc = trimmed.endsWith('Z') ? trimmed : `${trimmed}Z`;
+    const d = new Date(withUtc);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
  * @param {string | number | Date} isoOrDate
  * @param {number} [nowMs]
  * @returns {string}
  */
 export function formatRelativeTime(isoOrDate, nowMs = Date.now()) {
-  const d =
-    isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
+  const d = isoOrDate instanceof Date ? isoOrDate : parseApiDateTime(isoOrDate);
   if (!d || Number.isNaN(d.getTime())) return '';
 
   const diffSec = Math.floor((nowMs - d.getTime()) / 1000);
@@ -34,8 +68,7 @@ export function formatRelativeTime(isoOrDate, nowMs = Date.now()) {
  * @returns {'Today' | 'Yesterday' | 'Older'}
  */
 export function getNotificationPeriodBucket(isoOrDate) {
-  const d =
-    isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
+  const d = isoOrDate instanceof Date ? isoOrDate : parseApiDateTime(isoOrDate);
   if (!d || Number.isNaN(d.getTime())) return 'Older';
 
   const today = new Date();

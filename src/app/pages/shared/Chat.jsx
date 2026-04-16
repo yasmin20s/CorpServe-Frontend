@@ -27,6 +27,7 @@ import {
   onChatReconnected,
   startChatConnection,
 } from '../../lib/chatSignalr';
+import { UserAvatarIconOnly } from '../../components/UserAvatar';
 
 function formatTime(value) {
   if (!value) return '';
@@ -70,15 +71,6 @@ function messageDayLabel(value) {
   if (startMsgDay === startToday - oneDay) return 'Yesterday';
 
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function getInitials(name) {
-  return (name || '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join('') || '??';
 }
 
 function toEpochMs(value) {
@@ -197,6 +189,14 @@ export default function Chat() {
   const counterpartyName = useMemo(() => {
     if (!selectedRoom) return '';
     return isClient ? selectedRoom.vendorName : selectedRoom.clientName;
+  }, [selectedRoom, isClient]);
+  const counterpartyId = useMemo(() => {
+    if (!selectedRoom) return '';
+    return isClient ? selectedRoom.vendorId : selectedRoom.clientId;
+  }, [selectedRoom, isClient]);
+  const counterpartyProfilePictureUrl = useMemo(() => {
+    if (!selectedRoom) return null;
+    return isClient ? selectedRoom.vendorProfilePictureUrl : selectedRoom.clientProfilePictureUrl;
   }, [selectedRoom, isClient]);
 
   const visibleRooms = useMemo(() => {
@@ -519,6 +519,8 @@ export default function Chat() {
           )}
           {visibleRooms.map((room) => {
             const name = role === 'client' ? room.vendorName : room.clientName;
+            const peerId = role === 'client' ? room.vendorId : room.clientId;
+            const peerPic = role === 'client' ? room.vendorProfilePictureUrl : room.clientProfilePictureUrl;
             return (
               <motion.div
                 key={room.id}
@@ -533,8 +535,15 @@ export default function Chat() {
                 }`}
               >
                 <div className="flex items-start gap-3 p-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10x_18px_rgba(79,70,229,0.3)]">
-                    {getInitials(name)}
+                  <div className="h-12 w-12 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <UserAvatarIconOnly
+                      userId={peerId}
+                      name={name}
+                      profilePictureUrl={peerPic}
+                      size="lg"
+                      className="h-12 w-12 min-h-12 min-w-12 rounded-2xl shadow-md"
+                      stopPropagation
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
@@ -583,8 +592,15 @@ export default function Chat() {
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-[0_10px_18px_rgba(79,70,229,0.3)]">
-                  {getInitials(counterpartyName)}
+                <div className="h-10 w-10 shrink-0">
+                  <UserAvatarIconOnly
+                    userId={counterpartyId}
+                    name={counterpartyName}
+                    profilePictureUrl={counterpartyProfilePictureUrl}
+                    size="md"
+                    className="h-10 w-10 min-h-10 min-w-10 rounded-xl shadow-[0_10px_18px_rgba(79,70,229,0.3)]"
+                    stopPropagation
+                  />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-gray-900 truncate">{counterpartyName}</h3>
@@ -764,7 +780,6 @@ export default function Chat() {
                   <span className="hidden sm:inline">Send</span>
                 </Button>
               </div>
-              <p className="mt-2 text-[11px] font-medium text-indigo-500">Press Enter to send. Shift + Enter for new line.</p>
             </div>
           </div>
         )}

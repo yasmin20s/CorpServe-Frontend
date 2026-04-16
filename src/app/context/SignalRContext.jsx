@@ -6,12 +6,17 @@ import { normalizeNotificationDto } from '../lib/notificationDto';
 import { toast } from '../lib/toast';
 
 const SignalRContext = createContext(null);
+export const PROFILE_UPDATED_REALTIME_EVENT = 'corpserve:profile-updated-realtime';
 
 /** In-app SLA risk titles — prefer warning toast even if payload type is loose */
 const SLA_WARN_TOAST_TITLES = new Set([
   'SLA deadline warning',
   'SLA delayed',
   'SLA blocked',
+]);
+const SILENT_TOAST_TITLES = new Set([
+  // Profile pages already show an immediate local success toast after save.
+  'Profile updated',
 ]);
 
 function showNotificationToast(notification) {
@@ -21,6 +26,7 @@ function showNotificationToast(notification) {
   const opts = { title };
 
   if (!normalized?.title && !body) return;
+  if (SILENT_TOAST_TITLES.has(title)) return;
 
   const rawType = normalized?.type;
   let variant = 'info';
@@ -69,6 +75,18 @@ function showNotificationToast(notification) {
   }
 }
 
+function emitProfileRealtimeEvent(notification) {
+  if (typeof window === 'undefined') return;
+  const normalized = normalizeNotificationDto(notification);
+  const title = String(normalized?.title || '').trim().toLowerCase();
+  if (title !== 'profile updated') return;
+  window.dispatchEvent(
+    new CustomEvent(PROFILE_UPDATED_REALTIME_EVENT, {
+      detail: normalized,
+    }),
+  );
+}
+
 export function SignalRProvider({ children }) {
   const { user } = useAuth();
   const listenersRef = useRef(new Set());
@@ -94,6 +112,7 @@ export function SignalRProvider({ children }) {
         } catch { /* subscriber error */ }
       }
 
+      emitProfileRealtimeEvent(normalized);
       showNotificationToast(normalized);
     };
 

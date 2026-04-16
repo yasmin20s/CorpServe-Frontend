@@ -1,9 +1,14 @@
+import { parseApiDateTime } from './formatRelativeTime';
+
 /**
  * Relative label from a Date or ISO string (fallback when API sends raw datetime).
  */
 export function formatRelativeTimeAgo(value) {
   if (value == null || value === '') return '-';
-  const then = value instanceof Date ? value : new Date(value);
+  let then = value instanceof Date ? value : parseApiDateTime(value);
+  if (!then || Number.isNaN(then.getTime())) {
+    then = new Date(value);
+  }
   if (Number.isNaN(then.getTime())) return String(value);
 
   let seconds = Math.floor((Date.now() - then.getTime()) / 1000);
@@ -39,13 +44,14 @@ export function formatRequestCreatedAtLabel(value) {
   const str = (value ?? '').toString().trim();
   if (!str) return '-';
 
-  const parsed = new Date(str);
-  const looksIso =
-    !Number.isNaN(parsed.getTime())
-    && (str.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(str));
-
-  if (looksIso) {
+  const parsed = parseApiDateTime(str);
+  if (parsed && !Number.isNaN(parsed.getTime())) {
     return formatRelativeTimeAgo(parsed);
+  }
+
+  const fuzzy = new Date(str);
+  if (!Number.isNaN(fuzzy.getTime()) && (str.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(str))) {
+    return formatRelativeTimeAgo(fuzzy);
   }
 
   return str;
