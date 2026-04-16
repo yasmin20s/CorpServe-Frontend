@@ -33,6 +33,41 @@ function notifySessionExpired() {
   }
 }
 
+function notifyAccountSuspended() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('corpserve:account-suspended'));
+  }
+}
+
+function isSuspendedText(value) {
+  const text = String(value ?? '').trim().toLowerCase();
+  if (!text) return false;
+  return text.includes('user.suspended') || text.includes('suspend') || text.includes('banned') || text.includes('ban');
+}
+
+function isAccountSuspendedPayload(payload) {
+  if (!payload || typeof payload !== 'object') return false;
+
+  if (isSuspendedText(payload.code) || isSuspendedText(payload.detail) || isSuspendedText(payload.title)) {
+    return true;
+  }
+
+  const errors = payload.errors;
+  if (Array.isArray(errors)) {
+    for (const entry of errors) {
+      if (!entry || typeof entry !== 'object') continue;
+      if (isSuspendedText(entry.code) || isSuspendedText(entry.message) || isSuspendedText(entry.key)) {
+        return true;
+      }
+      if (Array.isArray(entry.value) && entry.value.some((v) => isSuspendedText(v))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 function shouldTryTokenRefresh(path) {
   const normalizedPath = String(path || '').toLowerCase();
   return !(
@@ -64,6 +99,12 @@ export async function refreshAccessToken() {
     });
 
     if (!response.ok) {
+      const contentType = response.headers.get('content-type') || '';
+      const isJson = contentType.toLowerCase().includes('json');
+      const payload = isJson ? await response.json() : null;
+      if (response.status === 401 && isAccountSuspendedPayload(payload)) {
+        notifyAccountSuspended();
+      }
       clearAccessToken();
       return false;
     }
@@ -190,6 +231,9 @@ export async function request(path, options = {}) {
 
   if (!response.ok) {
     const message = normalizeProblemDetails(payload) || `Request failed with status ${response.status}`;
+    if (response.status === 401 && (isAccountSuspendedPayload(payload) || isSuspendedText(message))) {
+      notifyAccountSuspended();
+    }
     throw new ApiError(message, response.status, payload);
   }
 

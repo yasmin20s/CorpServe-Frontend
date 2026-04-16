@@ -22,7 +22,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { getMyDetailedProfileApi, upsertUserProfileApi } from '../../services/userProfileApi';
 import { resolveMediaUrl } from '../../lib/mediaUrl';
 import { toast } from '../../lib/toast';
-import { ProfilePhotoLightbox, getDisplayCompanyName } from '../../components/profile';
+import {
+  ProfilePhotoLightbox,
+  getAccountStatusClasses,
+  getAccountStatusLabel,
+  getDisplayCompanyName,
+} from '../../components/profile';
 import { PROFILE_UPDATED_REALTIME_EVENT } from '../../context/SignalRContext';
 
 const PROFILE_PIC_EVENT = 'corpserve:client-profile-picture-from-api';
@@ -166,6 +171,9 @@ export default function UserProfileClient() {
   const fullName = String(pick(details, 'fullName', 'FullName') || user?.fullName || 'Client User').trim();
   const email = String(pick(details, 'email', 'Email') || user?.email || '');
   const pic = resolveMediaUrl(pick(details, 'profilePictureUrl', 'ProfilePictureUrl'));
+  const accountStatusRaw = pick(details, 'accountStatus', 'AccountStatus');
+  const accountStatusLabel = getAccountStatusLabel(accountStatusRaw);
+  const accountStatusClasses = getAccountStatusClasses(accountStatusRaw);
 
   const syncHeaderAvatar = useCallback((url) => {
     const resolved = resolveMediaUrl(url);
@@ -326,6 +334,9 @@ export default function UserProfileClient() {
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
                   <CircleDot className="h-3 w-3" /> Verified
+                </span>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${accountStatusClasses}`}>
+                  <CircleDot className="h-3 w-3" /> Account: {accountStatusLabel}
                 </span>
                 {!isEditingProfile && (
                   <button

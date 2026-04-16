@@ -36,7 +36,13 @@ import { useAuth } from '../../hooks/useAuth';
 import { getMyDetailedProfileApi, upsertUserProfileApi } from '../../services/userProfileApi';
 import { resolveMediaUrl } from '../../lib/mediaUrl';
 import { toast } from '../../lib/toast';
-import { ImagePreviewDialog, ProfilePhotoLightbox, getDisplayCompanyName } from '../../components/profile';
+import {
+  ImagePreviewDialog,
+  ProfilePhotoLightbox,
+  getAccountStatusClasses,
+  getAccountStatusLabel,
+  getDisplayCompanyName,
+} from '../../components/profile';
 import { PROFILE_UPDATED_REALTIME_EVENT } from '../../context/SignalRContext';
 
 const PROFILE_PIC_EVENT = 'corpserve:vendor-profile-picture-from-api';
@@ -215,6 +221,9 @@ export default function UserProfileVendor() {
   const fullName = String(pick(details, 'fullName', 'FullName') || user?.fullName || 'Vendor').trim();
   const vendorEmail = String(pick(details, 'email', 'Email') || user?.email || '');
   const pic = resolveMediaUrl(pick(details, 'profilePictureUrl', 'ProfilePictureUrl'));
+  const accountStatusRaw = pick(details, 'accountStatus', 'AccountStatus');
+  const accountStatusLabel = getAccountStatusLabel(accountStatusRaw);
+  const accountStatusClasses = getAccountStatusClasses(accountStatusRaw);
   const isVendorVerified = Boolean(pick(details, 'isVendorVerified', 'IsVendorVerified'));
   const servedCategories = useMemo(() => {
     const raw = pick(details, 'servedCategories', 'ServedCategories');
@@ -595,6 +604,9 @@ export default function UserProfileVendor() {
                     <CircleDot className="h-3 w-3" /> Unverified
                   </span>
                 )}
+                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${accountStatusClasses}`}>
+                  <CircleDot className="h-3 w-3" /> Account: {accountStatusLabel}
+                </span>
                 {isVendorVerified && servedCategories.length > 0
                   ? servedCategories.map((name, i) => (
                       <span

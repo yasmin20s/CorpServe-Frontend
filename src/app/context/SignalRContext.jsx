@@ -19,6 +19,16 @@ const SILENT_TOAST_TITLES = new Set([
   'Profile updated',
 ]);
 
+function isAccountSuspensionNotification(notification) {
+  const title = String(notification?.title || '').trim().toLowerCase();
+  const message = String(notification?.message || '').trim().toLowerCase();
+
+  return (
+    title === 'account suspended'
+    || (message.includes('account') && (message.includes('suspend') || message.includes('ban')))
+  );
+}
+
 function showNotificationToast(notification) {
   const normalized = normalizeNotificationDto(notification);
   const title = normalized?.title?.trim() || 'Notification';
@@ -102,6 +112,13 @@ export function SignalRProvider({ children }) {
 
     const handler = (notification) => {
       const normalized = normalizeNotificationDto(notification);
+
+      if (isAccountSuspensionNotification(normalized)) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('corpserve:account-suspended'));
+        }
+        return;
+      }
 
       for (const entry of listenersRef.current) {
         try {

@@ -26,6 +26,8 @@ import {
   ImagePreviewDialog,
   ProfilePhotoLightbox,
   formatMoneyFull,
+  getAccountStatusClasses,
+  getAccountStatusLabel,
   getDisplayCompanyName,
 } from '../../components/profile';
 
@@ -195,6 +197,7 @@ export default function PublicUserProfile() {
       fullName: fullNameRaw,
       email: pick(data, 'email', 'Email') || '',
       role: String(pick(data, 'role', 'Role') || '').toLowerCase(),
+      accountStatus: pick(data, 'accountStatus', 'AccountStatus') || '',
       isOwner: Boolean(pick(data, 'isOwner', 'IsOwner')),
       companyName: getDisplayCompanyName(pick(data, 'companyName', 'CompanyName'), fullNameRaw),
       companyLocation: pick(data, 'companyLocation', 'CompanyLocation') || '',
@@ -283,6 +286,8 @@ export default function PublicUserProfile() {
 
   const resolvedProfilePhoto = resolveMediaUrl(p.profilePictureUrl);
   const servedCategoryNames = (p.servedCategories || []).filter(Boolean);
+  const accountStatusLabel = getAccountStatusLabel(p.accountStatus);
+  const accountStatusClasses = getAccountStatusClasses(p.accountStatus);
 
   const companyText = p.companyName || '';
   const locationText = String(p.companyLocation || '').trim();
@@ -327,6 +332,9 @@ export default function PublicUserProfile() {
                         <CircleDot className="h-3 w-3" /> Unverified
                       </span>
                     )}
+                    <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${accountStatusClasses}`}>
+                      <CircleDot className="h-3 w-3" /> Account: {accountStatusLabel}
+                    </span>
                     {p.isVendorVerified && servedCategoryNames.length > 0
                       ? servedCategoryNames.map((name, i) => (
                           <span
@@ -340,9 +348,14 @@ export default function PublicUserProfile() {
                       : null}
                   </>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-                    <CircleDot className="h-3 w-3" /> Verified
-                  </span>
+                  <>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                      <CircleDot className="h-3 w-3" /> Verified
+                    </span>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${accountStatusClasses}`}>
+                      <CircleDot className="h-3 w-3" /> Account: {accountStatusLabel}
+                    </span>
+                  </>
                 )}
               </div>
             </div>
