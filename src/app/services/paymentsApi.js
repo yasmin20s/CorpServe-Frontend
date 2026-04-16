@@ -26,6 +26,8 @@ function normalizePaymentItem(raw) {
     payoutReference: pick(raw, 'payoutReference', 'PayoutReference'),
     payoutCompletedAt: pick(raw, 'payoutCompletedAt', 'PayoutCompletedAt'),
     checkoutUrl: pick(raw, 'checkoutUrl', 'CheckoutUrl') ?? '',
+    clientId: String(pick(raw, 'clientId', 'ClientId') ?? ''),
+    vendorId: String(pick(raw, 'vendorId', 'VendorId') ?? ''),
     clientName: pick(raw, 'clientName', 'ClientName') ?? '',
     vendorName: pick(raw, 'vendorName', 'VendorName') ?? '',
   };

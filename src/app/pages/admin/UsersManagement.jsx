@@ -37,6 +37,7 @@ import {
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { activateAdminUserApi, getAdminUsersApi, suspendAdminUserApi } from '../../services/adminMonitorApi';
+import { UserAvatarIconOnly } from '../../components/UserAvatar';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -142,6 +143,7 @@ export default function UsersManagement() {
           status: u.status,
           joinedDate: u.joined,
           requests: u.role === 'client' ? u.requestsCreatedCount : u.requestsHandledCount,
+          profilePictureUrl: u.profilePictureUrl,
         })),
       );
     } catch (error) {
@@ -374,7 +376,6 @@ export default function UsersManagement() {
           {usersPage.map((user) => {
             const role = ROLE_META[user.role];
             const status = STATUS_META[user.status];
-            const RoleIcon = role.icon;
 
             return (
               <Card key={user.id} className="group relative overflow-hidden border-indigo-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
@@ -382,9 +383,13 @@ export default function UsersManagement() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-6 ${role.iconWrapClass}`}>
-                        <RoleIcon className="h-4 w-4" />
-                      </span>
+                      <UserAvatarIconOnly
+                        userId={user.id}
+                        name={user.name}
+                        profilePictureUrl={user.profilePictureUrl}
+                        size="md"
+                        className="shrink-0 ring-2 ring-white"
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
                         <p className="truncate text-xs text-slate-600">{user.email}</p>
@@ -445,15 +450,18 @@ export default function UsersManagement() {
                   {usersPage.map((user) => {
                     const role = ROLE_META[user.role];
                     const status = STATUS_META[user.status];
-                    const RoleIcon = role.icon;
 
                     return (
                       <tr key={user.id} className="group border-b border-indigo-100/70 transition-colors hover:bg-indigo-50/50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <span className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-6 ${role.iconWrapClass}`}>
-                              <RoleIcon className="h-4 w-4" />
-                            </span>
+                            <UserAvatarIconOnly
+                              userId={user.id}
+                              name={user.name}
+                              profilePictureUrl={user.profilePictureUrl}
+                              size="md"
+                              className="shrink-0"
+                            />
                             <div className="min-w-0">
                               <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
                               <p className="truncate text-xs text-slate-600">{user.email}</p>

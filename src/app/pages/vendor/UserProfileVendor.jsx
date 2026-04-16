@@ -1,5 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Building2, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, CircleDot, Eye, FileText, Mail, MapPin, Pencil, Star, Upload, Users, Wallet, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Building2,
+  Camera,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  CircleDot,
+  Eye,
+  FileText,
+  Mail,
+  MapPin,
+  Pencil,
+  Star,
+  Upload,
+  Users,
+  Wallet,
+  X,
+} from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   AlertDialog,
@@ -11,36 +29,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { useAuth } from '../../hooks/useAuth';
-import { getVendorCompletedRequestsApi, getVendorActiveRequestsApi } from '../../services/proposalsApi';
-import { getVendorVerificationStatusApi } from '../../services/vendorVerifyApi';
+import { getMyDetailedProfileApi, upsertUserProfileApi } from '../../services/userProfileApi';
+import { resolveMediaUrl } from '../../lib/mediaUrl';
 import { toast } from '../../lib/toast';
+import { ImagePreviewDialog, ProfilePhotoLightbox, getDisplayCompanyName } from '../../components/profile';
+import { PROFILE_UPDATED_REALTIME_EVENT } from '../../context/SignalRContext';
 
-const VENDOR_PROFILE_STORAGE_PREFIX = 'corpserve-vendor-profile';
-const PROFILE_AVATAR_UPDATED_EVENT = 'corpserve:vendor-profile-avatar-updated';
+const PROFILE_PIC_EVENT = 'corpserve:vendor-profile-picture-from-api';
 
-function formatFileSize(bytes) {
-  const n = Number(bytes || 0);
-  if (!Number.isFinite(n) || n <= 0) return '0 B';
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+function pick(obj, ...keys) {
+  if (!obj || typeof obj !== 'object') return undefined;
+  for (let i = 0; i < keys.length; i += 1) {
+    const v = obj[keys[i]];
+    if (v !== undefined && v !== null) return v;
+  }
+  return undefined;
+}
+
+/** Stable comparison for document URLs from API (trim; used for staged deletes). */
+function normDocKey(v) {
+  return String(v ?? '').trim();
 }
 
 function isAllowedSampleFile(file) {
   const mime = String(file?.type || '').toLowerCase();
   const name = String(file?.name || '').toLowerCase();
-
   if (mime.startsWith('image/')) return true;
   if (mime === 'application/pdf') return true;
   if (mime === 'application/msword') return true;
@@ -68,6 +85,10 @@ function getDocumentKindLabel(file) {
   return 'Document';
 }
 
+function isImageDocType(documentType) {
+  return String(documentType || '').toLowerCase().startsWith('image/');
+}
+
 function sampleFrameTone(index) {
   const tones = [
     'border-violet-300 bg-violet-50/35',
@@ -80,8 +101,8 @@ function sampleFrameTone(index) {
 
 function formatMoney(value) {
   const n = Number(value ?? 0);
-  if (!Number.isFinite(n) || n <= 0) return '$0';
-  return `$${n.toLocaleString()}`;
+  if (!Number.isFinite(n) || n <= 0) return 'EGP 0';
+  return `EGP ${n.toLocaleString()}`;
 }
 
 function statTone(label) {
@@ -109,224 +130,240 @@ function statTextTone(index) {
   return tones[index % tones.length];
 }
 
+function normalizeStatusLabel(rawStatus) {
+  const raw = String(rawStatus ?? '').trim().toLowerCase();
+  if (raw === '1' || raw === 'pending' || raw === 'open') return 'Open';
+  if (raw === '2' || raw === 'active' || raw === 'in progress' || raw === 'inprogress') return 'In Progress';
+  if (raw === '3' || raw === 'completed' || raw === 'done' || raw === 'closed') return 'Completed';
+  return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Open';
+}
+
+/**
+ * Rebuild File[] for profile document upload, preserving existing server files.
+ * @param {Array<Record<string, unknown>>} documents
+ * @param {Set<string>} [excludeUrls]
+ */
+async function buildDocumentFilesFromDetails(documents) {
+  const files = [];
+  for (const d of documents) {
+    const rawUrl = pick(d, 'documentUrl', 'DocumentUrl');
+    const url = resolveMediaUrl(rawUrl);
+    const name = pick(d, 'name', 'Name') || 'file';
+    if (!url) continue;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const ct = pick(d, 'documentType', 'DocumentType') || blob.type || 'application/octet-stream';
+      files.push(new File([blob], String(name), { type: ct }));
+    } catch {
+      /* skip unreadable */
+    }
+  }
+  return files;
+}
+
 export default function UserProfileVendor() {
   const menuItems = useDashboardMenu('vendor');
   const { user } = useAuth();
-  const [organizationName, setOrganizationName] = useState('');
-  const [vendorEmail, setVendorEmail] = useState('');
-  const [vendorLocation, setVendorLocation] = useState('');
-  const [vendorDescription, setVendorDescription] = useState('');
-  const [vendorAvatar, setVendorAvatar] = useState('');
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isProfileHydrated, setIsProfileHydrated] = useState(false);
+  const [details, setDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [draftValues, setDraftValues] = useState({ companyName: '', location: '', description: '' });
-  const [sampleFiles, setSampleFiles] = useState([]);
-  const [sampleFilesSnapshot, setSampleFilesSnapshot] = useState([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  /** Staged work-sample edits (applied only on Save; Cancel revokes). */
+  const [pendingRemovedServerKeys, setPendingRemovedServerKeys] = useState(() => new Set());
+  const [pendingNewSamples, setPendingNewSamples] = useState([]);
   const [imagePage, setImagePage] = useState(0);
   const [viewerSampleId, setViewerSampleId] = useState('');
   const [pendingDeleteSampleId, setPendingDeleteSampleId] = useState('');
-  const [completedRequests, setCompletedRequests] = useState([]);
-  const [activeRequestsForRecent, setActiveRequestsForRecent] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const photoInputRef = useRef(null);
   const samplesInputRef = useRef(null);
-  const sampleFilesRef = useRef([]);
 
-  const profileStorageKey = useMemo(() => {
-    const normalizedEmail = String(user?.email || 'guest').trim().toLowerCase();
-    return `${VENDOR_PROFILE_STORAGE_PREFIX}:${normalizedEmail}`;
-  }, [user?.email]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadVendorProfile = async () => {
-      if (!user?.token) {
-        if (mounted) {
-          setIsProfileHydrated(false);
-          setIsEditingProfile(false);
-          setOrganizationName('');
-          setVendorEmail('');
-          setVendorLocation('');
-          setVendorDescription('');
-          setVendorAvatar('');
-          setCompletedRequests([]);
-          setActiveRequestsForRecent([]);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      let persistedProfile = {};
-      try {
-        const raw = localStorage.getItem(profileStorageKey);
-        persistedProfile = raw ? (JSON.parse(raw) || {}) : {};
-      } catch {
-        persistedProfile = {};
-      }
-
-      const localLocation = String(persistedProfile?.location || '').trim();
-      const localDescription = String(persistedProfile?.description || '').trim();
-      const localAvatar = String(persistedProfile?.avatar || '').trim();
-      const localCompanyName = String(persistedProfile?.companyName || '').trim();
-
-      setIsProfileHydrated(false);
-      setIsLoading(true);
-      try {
-        const [verificationStatus, completed, activeRequests] = await Promise.all([
-          getVendorVerificationStatusApi(user.token),
-          getVendorCompletedRequestsApi({ token: user.token }),
-          getVendorActiveRequestsApi({ token: user.token, pageIndex: 1, pageSize: 20 }),
-        ]);
-
-        const normalizedOrgName = String(verificationStatus?.organizationName || '').trim();
-        const normalizedLocation = String(
-          verificationStatus?.location
-            ?? verificationStatus?.address
-            ?? verificationStatus?.city
-            ?? verificationStatus?.organizationLocation
-            ?? '',
-        ).trim();
-        const normalizedDescription = String(
-          verificationStatus?.description
-            ?? verificationStatus?.about
-            ?? verificationStatus?.organizationDescription
-            ?? '',
-        ).trim();
-        const completedList = Array.isArray(completed) ? [...completed] : [];
-        const activeList = Array.isArray(activeRequests?.data) ? [...activeRequests.data] : [];
-        completedList.sort((a, b) => {
-          const dateA = new Date(a?.completedDate || 0).getTime();
-          const dateB = new Date(b?.completedDate || 0).getTime();
-          return dateB - dateA;
-        });
-
-        if (!mounted) return;
-        setOrganizationName(localCompanyName || normalizedOrgName);
-        setVendorEmail(String(user?.email || '').trim());
-        setVendorLocation(localLocation || normalizedLocation);
-        setVendorDescription(localDescription || normalizedDescription);
-        setVendorAvatar(localAvatar);
-        setCompletedRequests(completedList);
-        setActiveRequestsForRecent(activeList);
-        setIsProfileHydrated(true);
-      } catch (error) {
-        if (!mounted) return;
-        setOrganizationName('');
-        setVendorEmail(String(user?.email || '').trim());
-        setVendorLocation(localLocation);
-        setVendorDescription(localDescription);
-        setVendorAvatar(localAvatar);
-        setCompletedRequests([]);
-        setActiveRequestsForRecent([]);
-        setIsProfileHydrated(true);
-        toast.error(error?.message || 'Failed to load vendor profile data');
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    loadVendorProfile();
-
-    return () => {
-      mounted = false;
-    };
-  }, [user?.token, user?.email, profileStorageKey]);
-
-  useEffect(() => {
-    sampleFilesRef.current = sampleFiles;
-  }, [sampleFiles]);
-
-  useEffect(() => {
-    return () => {
-      sampleFilesRef.current.forEach((item) => {
-        if (item?.url) {
-          URL.revokeObjectURL(item.url);
-        }
+  const load = useCallback(async () => {
+    if (!user?.token) return;
+    setLoading(true);
+    try {
+      const raw = await getMyDetailedProfileApi(user.token);
+      setDetails(raw && typeof raw === 'object' ? raw : null);
+      setDraftValues({
+        companyName: String(pick(raw, 'companyName', 'CompanyName') ?? ''),
+        location: String(pick(raw, 'companyLocation', 'CompanyLocation') ?? ''),
+        description: String(pick(raw, 'description', 'Description') ?? ''),
       });
+    } catch (e) {
+      toast.error(e?.message || 'Failed to load vendor profile');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.token]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    const onProfileUpdated = () => {
+      if (isEditingProfile) return;
+      load();
     };
+    window.addEventListener(PROFILE_UPDATED_REALTIME_EVENT, onProfileUpdated);
+    return () => window.removeEventListener(PROFILE_UPDATED_REALTIME_EVENT, onProfileUpdated);
+  }, [load, isEditingProfile]);
+
+  const fullName = String(pick(details, 'fullName', 'FullName') || user?.fullName || 'Vendor').trim();
+  const vendorEmail = String(pick(details, 'email', 'Email') || user?.email || '');
+  const pic = resolveMediaUrl(pick(details, 'profilePictureUrl', 'ProfilePictureUrl'));
+  const isVendorVerified = Boolean(pick(details, 'isVendorVerified', 'IsVendorVerified'));
+  const servedCategories = useMemo(() => {
+    const raw = pick(details, 'servedCategories', 'ServedCategories');
+    return Array.isArray(raw) ? raw.map((x) => String(x || '').trim()).filter(Boolean) : [];
+  }, [details]);
+  const vendorStars = pick(details, 'vendorStars', 'VendorStars');
+  const ratingCount = pick(details, 'ratingCount', 'RatingCount');
+  const workedWithClients = Number(pick(details, 'workingWithCount', 'WorkingWithCount') ?? 0);
+  const completedCount = Number(pick(details, 'completedRequestsCount', 'CompletedRequestsCount') ?? 0);
+  const totalEarnings = pick(details, 'totalEarnings', 'TotalEarnings');
+
+  /** Company name from user profile only (editable here); never from vendor verification. */
+  const companyDisplay = getDisplayCompanyName(pick(details, 'companyName', 'CompanyName'), fullName);
+  const vendorLocation = String(pick(details, 'companyLocation', 'CompanyLocation') ?? '').trim();
+  const vendorDescription = String(pick(details, 'description', 'Description') ?? '').trim();
+
+  const syncHeader = (url) => {
+    const r = resolveMediaUrl(url);
+    if (r) window.dispatchEvent(new CustomEvent(PROFILE_PIC_EVENT, { detail: { url: r } }));
+  };
+
+  const documents = useMemo(
+    () => (Array.isArray(pick(details, 'documents', 'Documents')) ? pick(details, 'documents', 'Documents') : []),
+    [details],
+  );
+
+  const resetSampleDraftState = useCallback(() => {
+    setPendingRemovedServerKeys(new Set());
+    setPendingNewSamples((prev) => {
+      for (const p of prev) {
+        if (p.url) URL.revokeObjectURL(p.url);
+      }
+      return [];
+    });
   }, []);
 
-  useEffect(() => {
-    if (!user?.token || !isProfileHydrated) return;
+  const startEditingProfile = () => {
+    resetSampleDraftState();
+    setDraftValues({
+      companyName: String(pick(details, 'companyName', 'CompanyName') ?? ''),
+      location: String(pick(details, 'companyLocation', 'CompanyLocation') ?? ''),
+      description: String(pick(details, 'description', 'Description') ?? ''),
+    });
+    setIsEditingProfile(true);
+  };
 
-    const payload = {
-      companyName: organizationName,
-      location: vendorLocation,
-      description: vendorDescription,
-      avatar: vendorAvatar,
-    };
-    localStorage.setItem(profileStorageKey, JSON.stringify(payload));
-  }, [user?.token, isProfileHydrated, organizationName, vendorEmail, vendorLocation, vendorDescription, vendorAvatar, profileStorageKey]);
+  const cancelEditingProfile = () => {
+    resetSampleDraftState();
+    setDraftValues({
+      companyName: String(pick(details, 'companyName', 'CompanyName') ?? ''),
+      location: String(pick(details, 'companyLocation', 'CompanyLocation') ?? ''),
+      description: String(pick(details, 'description', 'Description') ?? ''),
+    });
+    setIsEditingProfile(false);
+  };
 
-  const recentRequests = useMemo(() => {
-    const completed = completedRequests.map((item) => ({
-      id: String(item?.id || item?.requestId || item?.title || ''),
-      title: item?.title || 'Request',
-      client: item?.client || 'Client',
-      amount: Number(item?.amount || 0),
-      rating: Number(item?.rating || 0),
-      taskState: 'Completed',
-      status: 'Completed',
-      date: item?.completedDate || '',
+  const saveEditingProfile = async () => {
+    if (!user?.token) return;
+    setIsSavingProfile(true);
+    try {
+      const remainingDocs = documents.filter((d) => {
+        const key = normDocKey(pick(d, 'documentUrl', 'DocumentUrl'));
+        return !pendingRemovedServerKeys.has(key);
+      });
+      const existingFiles = await buildDocumentFilesFromDetails(remainingDocs);
+      const stagedNewFiles = pendingNewSamples.map((p) => p.file);
+      await upsertUserProfileApi({
+        companyName: draftValues.companyName,
+        companyLocation: draftValues.location,
+        description: draftValues.description,
+        documentFiles: [...existingFiles, ...stagedNewFiles],
+        token: user.token,
+      });
+      toast.success('Profile updated successfully.');
+      resetSampleDraftState();
+      setIsEditingProfile(false);
+      await load();
+    } catch (e) {
+      toast.error(e?.message || 'Save failed');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const sampleItems = useMemo(() => {
+    return documents.map((d, index) => {
+      const rawUrl = pick(d, 'documentUrl', 'DocumentUrl');
+      const url = resolveMediaUrl(rawUrl);
+      const name = String(pick(d, 'name', 'Name') || 'File');
+      const documentType = pick(d, 'documentType', 'DocumentType');
+      const kind = isImageDocType(documentType) ? 'image' : 'document';
+      const id = `${String(rawUrl || '')}-${index}`;
+      return {
+        id,
+        url,
+        name,
+        kind,
+        documentType: String(documentType || ''),
+        serverKey: String(rawUrl ?? ''),
+      };
+    });
+  }, [documents]);
+
+  const effectiveSampleItems = useMemo(() => {
+    if (!isEditingProfile) {
+      return sampleItems;
+    }
+    const serverItems = documents
+      .filter((d) => {
+        const key = normDocKey(pick(d, 'documentUrl', 'DocumentUrl'));
+        return !pendingRemovedServerKeys.has(key);
+      })
+      .map((d, index) => {
+        const rawUrl = pick(d, 'documentUrl', 'DocumentUrl');
+        const url = resolveMediaUrl(rawUrl);
+        const name = String(pick(d, 'name', 'Name') || 'File');
+        const documentType = pick(d, 'documentType', 'DocumentType');
+        const kind = isImageDocType(documentType) ? 'image' : 'document';
+        const id = `${String(rawUrl || '')}-${index}`;
+        return {
+          id,
+          url,
+          name,
+          kind,
+          documentType: String(documentType || ''),
+          serverKey: normDocKey(rawUrl),
+        };
+      })
+      .filter((item) => item.url);
+
+    const localItems = pendingNewSamples.map((p) => ({
+      id: p.id,
+      url: p.url,
+      name: p.file.name,
+      kind: getSampleFileKind(p.file),
+      documentType: String(p.file.type || ''),
+      serverKey: '',
     }));
 
-    const inProgress = activeRequestsForRecent.map((item) => ({
-      id: String(item?.requestId || item?.title || ''),
-      title: item?.title || 'Request',
-      client: item?.clientName || 'Client',
-      amount: Number(item?.price || 0),
-      rating: null,
-      taskState: item?.taskState || 'In Progress',
-      status: 'In Progress',
-      date: item?.deadline || '',
-    }));
-
-    const timestamp = (value) => {
-      const parsed = new Date(value || 0).getTime();
-      return Number.isFinite(parsed) ? parsed : 0;
-    };
-
-    return [...completed, ...inProgress]
-      .sort((a, b) => timestamp(b.date) - timestamp(a.date))
-      .slice(0, 4);
-  }, [activeRequestsForRecent, completedRequests]);
-
-  const totalRating = useMemo(
-    () => completedRequests.reduce((sum, item) => sum + Number(item?.rating || 0), 0),
-    [completedRequests],
-  );
-
-  const workedWithClients = useMemo(
-    () => new Set(completedRequests.map((item) => String(item?.client || '').trim()).filter(Boolean)).size,
-    [completedRequests],
-  );
-
-  const stats = useMemo(() => {
-    const totalCompleted = completedRequests.length;
-    const totalEarnings = completedRequests.reduce((sum, item) => sum + Number(item?.amount || 0), 0);
-
-    return [
-      { label: 'Worked With Clients', value: workedWithClients, icon: Users },
-      { label: 'Completed Requests', value: totalCompleted, icon: CheckCircle2 },
-      { label: 'Total Earnings', value: formatMoney(totalEarnings), icon: Wallet },
-    ];
-  }, [completedRequests, workedWithClients]);
-
-  const averageRating = useMemo(() => {
-    if (completedRequests.length === 0) return '0.0';
-    return (totalRating / completedRequests.length).toFixed(1);
-  }, [completedRequests.length, totalRating]);
+    return [...serverItems, ...localItems];
+  }, [isEditingProfile, documents, sampleItems, pendingRemovedServerKeys, pendingNewSamples]);
 
   const imageSamples = useMemo(
-    () => sampleFiles.filter((item) => item.kind === 'image'),
-    [sampleFiles],
+    () => effectiveSampleItems.filter((s) => s.kind === 'image' && s.url),
+    [effectiveSampleItems],
   );
-
   const documentSamples = useMemo(
-    () => sampleFiles.filter((item) => item.kind === 'document'),
-    [sampleFiles],
+    () => effectiveSampleItems.filter((s) => s.kind === 'document' && s.url),
+    [effectiveSampleItems],
   );
 
   const imagePageSize = 4;
@@ -337,54 +374,21 @@ export default function UserProfileVendor() {
     return imageSamples.slice(start, start + imagePageSize);
   }, [imagePage, imageSamples]);
 
-  const selectedImageSample = useMemo(
-    () => sampleFiles.find((item) => item.id === viewerSampleId && item.kind === 'image') || null,
-    [sampleFiles, viewerSampleId],
-  );
-
-  const pendingDeleteSample = useMemo(
-    () => sampleFiles.find((item) => item.id === pendingDeleteSampleId) || null,
-    [sampleFiles, pendingDeleteSampleId],
-  );
-
   useEffect(() => {
     if (imagePage > imagePageCount - 1) {
       setImagePage(Math.max(0, imagePageCount - 1));
     }
   }, [imagePage, imagePageCount]);
 
-  const startEditingProfile = () => {
-    setDraftValues({
-      companyName: organizationName,
-      location: vendorLocation,
-      description: vendorDescription,
-    });
-    setSampleFilesSnapshot(sampleFiles.map((item) => ({ ...item })));
-    setIsEditingProfile(true);
-  };
+  const selectedImageSample = useMemo(
+    () => imageSamples.find((item) => item.id === viewerSampleId) || null,
+    [imageSamples, viewerSampleId],
+  );
 
-  const cancelEditingProfile = () => {
-    const snapshotIds = new Set(sampleFilesSnapshot.map((item) => item.id));
-    sampleFiles.forEach((item) => {
-      if (!snapshotIds.has(item.id) && item?.url) {
-        URL.revokeObjectURL(item.url);
-      }
-    });
-
-    setSampleFiles(sampleFilesSnapshot.map((item) => ({ ...item })));
-    setSampleFilesSnapshot([]);
-    setPendingDeleteSampleId('');
-    setIsEditingProfile(false);
-  };
-
-  const saveEditingProfile = () => {
-    setOrganizationName(String(draftValues.companyName || '').trim());
-    setVendorLocation(String(draftValues.location || '').trim());
-    setVendorDescription(String(draftValues.description || '').trim());
-    setSampleFilesSnapshot([]);
-    setIsEditingProfile(false);
-    toast.success('Profile updated successfully.');
-  };
+  const pendingDeleteSample = useMemo(
+    () => effectiveSampleItems.find((item) => item.id === pendingDeleteSampleId) || null,
+    [effectiveSampleItems, pendingDeleteSampleId],
+  );
 
   const openPhotoPicker = () => {
     photoInputRef.current?.click();
@@ -394,135 +398,154 @@ export default function UserProfileVendor() {
     samplesInputRef.current?.click();
   };
 
-  const handleSamplesSelected = (event) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
-
-    const validFiles = files.filter((file) => isAllowedSampleFile(file));
-    if (validFiles.length !== files.length) {
-      toast.error('Only images, PDF, DOC, and DOCX files are allowed.');
-    }
-
-    const maxSizeInBytes = 10 * 1024 * 1024;
-    const sizeAccepted = validFiles.filter((file) => file.size <= maxSizeInBytes);
-    if (sizeAccepted.length !== validFiles.length) {
-      toast.error('Each file must be 10MB or less.');
-    }
-
-    setSampleFiles((prev) => {
-      const known = new Set(prev.map((item) => item.id));
-      const next = [...prev];
-
-      sizeAccepted.forEach((file) => {
-        const id = `${file.name}-${file.size}-${file.lastModified}`;
-        if (!known.has(id)) {
-          next.push({
-            id,
-            file,
-            kind: getSampleFileKind(file),
-            url: URL.createObjectURL(file),
-          });
-          known.add(id);
-        }
-      });
-
-      return next;
-    });
-
-    event.target.value = '';
-  };
-
-  const removeSampleFile = (id) => {
-    setSampleFiles((prev) => {
-      let removedUrl = '';
-      const next = prev.filter((item) => {
-        if (item.id === id) {
-          removedUrl = item.url || '';
-          return false;
-        }
-        return true;
-      });
-      if (removedUrl) {
-        URL.revokeObjectURL(removedUrl);
-      }
-      return next;
-    });
-
-    if (viewerSampleId === id) {
-      setViewerSampleId('');
-    }
-  };
-
-  const requestDeleteSample = (id) => {
-    setPendingDeleteSampleId(id);
-  };
-
-  const confirmDeleteSample = () => {
-    if (!pendingDeleteSampleId) return;
-    removeSampleFile(pendingDeleteSampleId);
-    setPendingDeleteSampleId('');
-    toast.success('Sample removed.');
-  };
-
-  const viewDocumentSample = (id) => {
-    const sample = sampleFiles.find((item) => item.id === id);
-    if (!sample?.url) {
-      toast.error('Unable to preview this file right now.');
-      return;
-    }
-    window.open(sample.url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handlePhotoSelected = (event) => {
+  const handlePhotoSelected = async (event) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
+    if (!file || !user?.token) return;
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file only.');
       event.target.value = '';
       return;
     }
-
     const maxSizeInBytes = 3 * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
       toast.error('Image size must be 3MB or less.');
       event.target.value = '';
       return;
     }
-
     setIsUploadingPhoto(true);
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const imageData = typeof reader.result === 'string' ? reader.result : '';
-      if (!imageData) {
-        toast.error('Failed to upload image. Please try again.');
-        setIsUploadingPhoto(false);
-        return;
-      }
-
-      setVendorAvatar(imageData);
-      window.dispatchEvent(new CustomEvent(PROFILE_AVATAR_UPDATED_EVENT, {
-        detail: {
-          email: String(user?.email || '').trim().toLowerCase(),
-          avatar: imageData,
-        },
-      }));
+    try {
+      await upsertUserProfileApi({ profilePicture: file, token: user.token });
       toast.success('Profile photo updated successfully.');
+      await load();
+      const next = await getMyDetailedProfileApi(user.token);
+      syncHeader(pick(next, 'profilePictureUrl', 'ProfilePictureUrl'));
+    } catch (err) {
+      toast.error(err?.message || 'Upload failed');
+    } finally {
       setIsUploadingPhoto(false);
-    };
-
-    reader.onerror = () => {
-      toast.error('Failed to read image file.');
-      setIsUploadingPhoto(false);
-    };
-
-    reader.readAsDataURL(file);
-    event.target.value = '';
+      event.target.value = '';
+    }
   };
 
-  const vendorDisplayName = organizationName || 'Add your organization name in Vendor Verification';
-  const hasVendorAvatar = Boolean(String(vendorAvatar || '').trim());
+  const handleSamplesSelected = (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length || !isEditingProfile) return;
+
+    const validFiles = files.filter((file) => isAllowedSampleFile(file));
+    if (validFiles.length !== files.length) {
+      toast.error('Only images, PDF, DOC, and DOCX files are allowed.');
+    }
+    const maxSizeInBytes = 10 * 1024 * 1024;
+    const sizeAccepted = validFiles.filter((file) => file.size <= maxSizeInBytes);
+    if (sizeAccepted.length !== validFiles.length) {
+      toast.error('Each file must be 10MB or less.');
+    }
+    if (!sizeAccepted.length) return;
+
+    const newId = () =>
+      typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `local-${Date.now()}-${Math.random()}`;
+
+    setPendingNewSamples((prev) => {
+      const next = [...prev];
+      for (const file of sizeAccepted) {
+        next.push({
+          id: `local-${newId()}`,
+          file,
+          url: URL.createObjectURL(file),
+        });
+      }
+      return next;
+    });
+  };
+
+  const confirmDeleteSample = () => {
+    const id = pendingDeleteSampleId;
+    if (!id) return;
+    const target = effectiveSampleItems.find((item) => item.id === id);
+    if (!target) {
+      setPendingDeleteSampleId('');
+      return;
+    }
+    setPendingDeleteSampleId('');
+    if (viewerSampleId === id) {
+      setViewerSampleId('');
+    }
+
+    const isStagedOnly = id.startsWith('local-');
+    if (isStagedOnly) {
+      setPendingNewSamples((prev) => {
+        const victim = prev.find((p) => p.id === id);
+        if (victim?.url) URL.revokeObjectURL(victim.url);
+        return prev.filter((p) => p.id !== id);
+      });
+      return;
+    }
+
+    const k = normDocKey(target.serverKey);
+    if (k) {
+      setPendingRemovedServerKeys((prev) => new Set([...prev, k]));
+    }
+  };
+
+  const viewDocumentSample = (item) => {
+    if (!item?.url) {
+      toast.error('Unable to preview this file right now.');
+      return;
+    }
+    window.open(item.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const recentFromApi = useMemo(() => {
+    const rows = Array.isArray(pick(details, 'recentRequests', 'RecentRequests'))
+      ? pick(details, 'recentRequests', 'RecentRequests')
+      : [];
+    return rows.map((row) => {
+      const statusLabel = normalizeStatusLabel(pick(row, 'status', 'Status'));
+      const price = pick(row, 'price', 'Price', 'budgetMax', 'BudgetMax', 'budgetMin', 'BudgetMin');
+      return {
+        id: pick(row, 'requestId', 'RequestId') || pick(row, 'id', 'Id'),
+        title: pick(row, 'requestTitle', 'RequestTitle') || 'Request',
+        client: pick(row, 'clientName', 'ClientName') || 'Client',
+        amount: Number(price ?? 0),
+        rating: pick(row, 'rating', 'Rating') != null ? Number(pick(row, 'rating', 'Rating')) : null,
+        taskState: String(pick(row, 'status', 'Status') || 'In Progress'),
+        status: statusLabel,
+        date: pick(row, 'createdAt', 'CreatedAt'),
+      };
+    });
+  }, [details]);
+
+  const stats = useMemo(
+    () => [
+      { label: 'Worked With Clients', value: workedWithClients, icon: Users },
+      { label: 'Completed Requests', value: completedCount, icon: CheckCircle2 },
+      { label: 'Total Earnings', value: formatMoney(totalEarnings), icon: Wallet },
+    ],
+    [workedWithClients, completedCount, totalEarnings],
+  );
+
+  const averageRating = useMemo(() => {
+    const n = Number(vendorStars);
+    if (vendorStars != null && vendorStars !== '' && Number.isFinite(n)) return n.toFixed(1);
+    return '0.0';
+  }, [vendorStars]);
+
+  const ratingCountDisplay =
+    ratingCount != null && ratingCount !== '' && Number.isFinite(Number(ratingCount)) ? Number(ratingCount) : null;
+
+  const hasVendorAvatar = Boolean(String(pic || '').trim());
+  const totalSamples = imageSamples.length + documentSamples.length;
+
+  if (loading && !details) {
+    return (
+      <DashboardLayout menuItems={menuItems} userRole="vendor">
+        <div className="cs-profile-shell relative mx-auto flex min-h-[40vh] w-full max-w-6xl items-center justify-center overflow-x-hidden pb-8">
+          <p className="text-center text-slate-600">Loading profile...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout menuItems={menuItems} userRole="vendor">
@@ -531,22 +554,26 @@ export default function UserProfileVendor() {
         <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl" />
         <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl" />
 
-        <section className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)]" style={{ animationDelay: '30ms' }}>
+        <section
+          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)]"
+          style={{ animationDelay: '30ms' }}
+        >
           <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6]" />
           <div className="px-4 pb-5 pt-0 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="-mt-10 flex flex-col items-start gap-2">
-                {hasVendorAvatar ? (
-                  <img
-                    src={vendorAvatar}
-                    alt={vendorDisplayName}
-                    className="cs-profile-avatar-bob cs-profile-image-thumb cs-profile-image-glow h-20 w-20 rounded-2xl border-4 border-white object-cover shadow-lg shadow-indigo-200"
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-lg shadow-indigo-200">
+                  <ProfilePhotoLightbox
+                    src={pic}
+                    wrapperClassName="cs-profile-avatar-bob h-full w-full"
+                    imgClassName="cs-profile-image-thumb cs-profile-image-glow h-full w-full object-cover"
+                    fallback={
+                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg shadow-indigo-200">
+                        <Building2 className="h-9 w-9 text-indigo-700" />
+                      </div>
+                    }
                   />
-                ) : (
-                  <div className="cs-profile-avatar-bob flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg shadow-indigo-200">
-                    <Building2 className="h-9 w-9 text-indigo-700" />
-                  </div>
-                )}
+                </div>
                 <button
                   type="button"
                   onClick={openPhotoPicker}
@@ -554,25 +581,36 @@ export default function UserProfileVendor() {
                   className="inline-flex min-h-8 items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <Camera className="h-3.5 w-3.5" />
-                  <span>{isUploadingPhoto ? 'Uploading...' : (hasVendorAvatar ? 'Change Photo' : 'Upload Photo')}</span>
+                  <span>{isUploadingPhoto ? 'Uploading...' : hasVendorAvatar ? 'Change Photo' : 'Upload Photo'}</span>
                 </button>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoSelected}
-                />
+                <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoSelected} />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-                  <CircleDot className="h-3 w-3" /> Verified
-                </span>
+              <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
+                {isVendorVerified ? (
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                    <CircleDot className="h-3 w-3" /> Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600">
+                    <CircleDot className="h-3 w-3" /> Unverified
+                  </span>
+                )}
+                {isVendorVerified && servedCategories.length > 0
+                  ? servedCategories.map((name, i) => (
+                      <span
+                        key={`${name}-${i}`}
+                        className="max-w-[min(100%,14rem)] truncate rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                        title={name}
+                      >
+                        {name}
+                      </span>
+                    ))
+                  : null}
                 {!isEditingProfile && (
                   <button
                     type="button"
                     onClick={startEditingProfile}
-                    className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
                   >
                     <Pencil className="h-3 w-3" /> Edit Profile
                   </button>
@@ -582,16 +620,20 @@ export default function UserProfileVendor() {
 
             <div className="mt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className={`break-words text-2xl font-black tracking-tight sm:text-3xl ${organizationName ? 'text-slate-900' : 'italic text-slate-500'}`}>
-                  {vendorDisplayName}
+                <h1
+                  className={`break-words text-2xl font-black tracking-tight sm:text-3xl ${fullName ? 'text-slate-900' : 'italic text-slate-500'}`}
+                >
+                  {fullName || 'Add your name in profile settings'}
                 </h1>
                 <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
                   <Star className="h-3 w-3 fill-current" /> {averageRating} Rating
+                  {ratingCountDisplay != null && ratingCountDisplay > 0 ? (
+                    <span className="font-normal text-amber-800/90">({ratingCountDisplay})</span>
+                  ) : null}
                 </span>
               </div>
 
               <div className="mt-3 space-y-3 text-sm text-slate-500">
-
                 {isEditingProfile ? (
                   <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3">
                     <div>
@@ -600,31 +642,29 @@ export default function UserProfileVendor() {
                       </label>
                       <Input
                         value={draftValues.companyName}
-                        onChange={(event) => setDraftValues((prev) => ({ ...prev, companyName: event.target.value }))}
+                        onChange={(e) => setDraftValues((prev) => ({ ...prev, companyName: e.target.value }))}
                         placeholder="Add your company name"
                         className="h-9 bg-white"
                       />
                     </div>
-
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
                         <MapPin className="h-3.5 w-3.5" /> Location
                       </label>
                       <Input
                         value={draftValues.location}
-                        onChange={(event) => setDraftValues((prev) => ({ ...prev, location: event.target.value }))}
+                        onChange={(e) => setDraftValues((prev) => ({ ...prev, location: e.target.value }))}
                         placeholder="Add your location"
                         className="h-9 bg-white"
                       />
                     </div>
-
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
                         <FileText className="h-3.5 w-3.5" /> Description
                       </label>
                       <Textarea
                         value={draftValues.description}
-                        onChange={(event) => setDraftValues((prev) => ({ ...prev, description: event.target.value }))}
+                        onChange={(e) => setDraftValues((prev) => ({ ...prev, description: e.target.value }))}
                         rows={4}
                         placeholder="Add your company description"
                         className="bg-white"
@@ -638,14 +678,12 @@ export default function UserProfileVendor() {
                         <Mail className="h-4 w-4 text-violet-500" />
                         {vendorEmail || <span className="italic text-slate-400">Add your email from settings</span>}
                       </span>
-
                       <span className="inline-flex items-center gap-1.5">
                         <Building2 className="h-4 w-4 text-indigo-500" />
-                        <span className={organizationName ? 'text-slate-600' : 'italic text-slate-400'}>
-                          {organizationName || 'Add your company name'}
+                        <span className={companyDisplay ? 'text-slate-600' : 'italic text-slate-400'}>
+                          {companyDisplay || 'Add your company name'}
                         </span>
                       </span>
-
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="h-4 w-4 text-sky-500" />
                         <span className={vendorLocation ? 'text-slate-600' : 'italic text-slate-400'}>
@@ -671,7 +709,11 @@ export default function UserProfileVendor() {
             const Icon = item.icon;
             const textTone = statTextTone(index);
             return (
-              <article key={item.label} className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${statCardWrapTone(index)}`} style={{ animationDelay: `${100 + (index * 55)}ms` }}>
+              <article
+                key={item.label}
+                className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${statCardWrapTone(index)}`}
+                style={{ animationDelay: `${100 + index * 55}ms` }}
+              >
                 <div className="pointer-events-none absolute -right-4 -top-4 h-14 w-14 rounded-full bg-white/35 blur-xl" />
                 <span className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-md ring-2 ring-white/75 ${statTone(item.label)}`}>
                   <Icon className="h-4 w-4" />
@@ -683,15 +725,43 @@ export default function UserProfileVendor() {
           })}
         </section>
 
-        <section className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5" style={{ animationDelay: '110ms' }}>
-          <h2 className="text-base font-semibold text-indigo-900">Upload Work Samples (Optional)</h2>
-          <p className="mt-1 text-sm text-indigo-700/80">
-            {isEditingProfile
-              ? 'Upload documents or images to showcase your previous work quality.'
-              : 'Uploaded work samples are shown below.'}
-          </p>
+        <section
+          className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5"
+          style={{ animationDelay: '110ms' }}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="text-base font-semibold text-indigo-900">Upload Work Samples (Optional)</h2>
+              <p className="mt-1 text-sm text-indigo-700/80">
+                {isEditingProfile
+                  ? 'Add or remove files below; nothing is saved until you tap Save. Cancel discards all changes.'
+                  : 'Uploaded work samples are shown below.'}
+              </p>
+            </div>
+            {isEditingProfile && totalSamples > 0 ? (
+              <button
+                type="button"
+                onClick={openSamplesPicker}
+                disabled={isSavingProfile}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60"
+              >
+                <Upload className="h-3.5 w-3.5" /> Add files
+              </button>
+            ) : null}
+          </div>
 
-          {isEditingProfile && sampleFiles.length === 0 && (
+          {isEditingProfile ? (
+            <input
+              ref={samplesInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={handleSamplesSelected}
+            />
+          ) : null}
+
+          {isEditingProfile && totalSamples === 0 && (
             <div className="mt-4 rounded-xl border-2 border-dashed border-indigo-300/70 bg-white/80 p-4 text-center">
               <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700">
                 <Upload className="h-5 w-5" />
@@ -701,18 +771,11 @@ export default function UserProfileVendor() {
               <button
                 type="button"
                 onClick={openSamplesPicker}
-                className="mt-3 inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                disabled={isSavingProfile}
+                className="mt-3 inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60"
               >
                 <Upload className="h-4 w-4" /> Upload Files
               </button>
-              <input
-                ref={samplesInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                accept="image/*,.pdf,.doc,.docx"
-                onChange={handleSamplesSelected}
-              />
             </div>
           )}
 
@@ -731,7 +794,9 @@ export default function UserProfileVendor() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="text-xs font-medium text-slate-600">{imagePage + 1} / {imagePageCount}</span>
+                    <span className="text-xs font-medium text-slate-600">
+                      {imagePage + 1} / {imagePageCount}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setImagePage((prev) => Math.min(imagePageCount - 1, prev + 1))}
@@ -749,32 +814,24 @@ export default function UserProfileVendor() {
                 {pagedImageSamples.map((item, index) => (
                   <article
                     key={item.id}
-                    className={`cs-profile-image-card overflow-hidden rounded-xl border-2 shadow-sm ${sampleFrameTone((imagePage * imagePageSize) + index)}`}
-                    style={{ animationDelay: `${40 + (index * 55)}ms` }}
+                    className={`cs-profile-image-card overflow-hidden rounded-xl border-2 shadow-sm ${sampleFrameTone(imagePage * imagePageSize + index)}`}
+                    style={{ animationDelay: `${40 + index * 55}ms` }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setViewerSampleId(item.id)}
-                      className="group relative block w-full"
-                    >
-                      <img
-                        src={item.url}
-                        alt={item.file.name}
-                        className="cs-profile-image-thumb h-36 w-full object-cover"
-                      />
+                    <button type="button" onClick={() => setViewerSampleId(item.id)} className="group relative block w-full">
+                      <img src={item.url} alt={item.name} className="cs-profile-image-thumb h-36 w-full object-cover" />
                       <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
                         <Eye className="h-3.5 w-3.5" /> View
                       </span>
                     </button>
                     <div className="flex items-center justify-between gap-2 border-t border-white/70 bg-white/85 px-2.5 py-2">
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-medium text-slate-800">{item.file.name}</p>
-                        <p className="text-[11px] text-slate-500">{formatFileSize(item.file.size)}</p>
+                        <p className="truncate text-xs font-medium text-slate-800">{item.name}</p>
+                        <p className="text-[11px] text-slate-500">Portfolio file</p>
                       </div>
                       {isEditingProfile && (
                         <button
                           type="button"
-                          onClick={() => requestDeleteSample(item.id)}
+                          onClick={() => setPendingDeleteSampleId(item.id)}
                           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700 transition hover:bg-rose-200"
                           title="Delete sample"
                         >
@@ -795,13 +852,19 @@ export default function UserProfileVendor() {
                 {documentSamples.map((item) => (
                   <div key={item.id} className="flex items-center justify-between rounded-lg border border-indigo-100 bg-white px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-800">{item.file.name}</p>
-                      <p className="text-xs text-slate-500">{getDocumentKindLabel(item.file)} • {formatFileSize(item.file.size)}</p>
+                      <p className="truncate text-sm font-medium text-slate-800">{item.name}</p>
+                      <p className="text-xs text-slate-500">
+                        {item.documentType && !isImageDocType(item.documentType)
+                          ? String(item.documentType).split('/').pop()
+                          : getDocumentKindLabel({ name: item.name })}
+                        {' • '}
+                        Portfolio file
+                      </p>
                     </div>
                     <div className="ml-2 flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => viewDocumentSample(item.id)}
+                        onClick={() => viewDocumentSample(item)}
                         className="inline-flex h-7 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
                       >
                         <Eye className="h-3.5 w-3.5" /> View
@@ -809,7 +872,7 @@ export default function UserProfileVendor() {
                       {isEditingProfile && (
                         <button
                           type="button"
-                          onClick={() => requestDeleteSample(item.id)}
+                          onClick={() => setPendingDeleteSampleId(item.id)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-rose-700 transition hover:bg-rose-200"
                           title="Delete sample"
                         >
@@ -823,9 +886,8 @@ export default function UserProfileVendor() {
             </div>
           )}
 
-          {!isEditingProfile && sampleFiles.length === 0 && (
-            <p className="mt-4 text-sm text-slate-500">No work samples uploaded yet.</p>
-          )}
+          {!isEditingProfile && totalSamples === 0 && <p className="mt-4 text-sm text-slate-500">No work samples uploaded yet.</p>}
+          {isSavingProfile ? <p className="mt-2 text-xs text-indigo-600">Saving profile…</p> : null}
         </section>
 
         {isEditingProfile && (
@@ -833,16 +895,18 @@ export default function UserProfileVendor() {
             <button
               type="button"
               onClick={cancelEditingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              disabled={isSavingProfile}
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <X className="h-4 w-4" /> Cancel
             </button>
             <button
               type="button"
               onClick={saveEditingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200"
+              disabled={isSavingProfile}
+              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Check className="h-4 w-4" /> Save
+              <Check className="h-4 w-4" /> {isSavingProfile ? 'Saving…' : 'Save'}
             </button>
           </section>
         )}
@@ -852,24 +916,35 @@ export default function UserProfileVendor() {
             <h2 className="text-sm font-semibold text-slate-700">Recent Requests</h2>
           </div>
 
-          {isLoading && (
+          {loading && (
             <div className="px-4 py-3 text-sm text-slate-500 sm:px-5">Loading recent requests...</div>
           )}
 
-          {!isLoading && recentRequests.length === 0 && (
+          {!loading && recentFromApi.length === 0 && (
             <div className="px-4 py-3 text-sm text-slate-500 sm:px-5">No recent requests yet.</div>
           )}
 
-          {!isLoading && recentRequests.length > 0 && (
+          {!loading && recentFromApi.length > 0 && (
             <div className="divide-y divide-slate-100">
-              {recentRequests.map((request) => (
-                <article key={String(request?.id || request?.title)} className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 sm:grid-cols-12 sm:items-center sm:px-5">
+              {recentFromApi.map((request) => (
+                <article
+                  key={String(request?.id || request?.title)}
+                  className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 sm:grid-cols-12 sm:items-center sm:px-5"
+                >
                   <div className="sm:col-span-7">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${request?.status === 'Completed' ? 'border border-violet-200 bg-violet-50 text-violet-700' : 'border border-sky-200 bg-sky-50 text-sky-700'}`}>
-                      {request?.status || 'In Progress'}
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        request?.status === 'Completed'
+                          ? 'border border-violet-200 bg-violet-50 text-violet-700'
+                          : 'border border-sky-200 bg-sky-50 text-sky-700'
+                      }`}
+                    >
+                      {request?.status === 'Completed' ? 'Completed' : 'In Progress'}
                     </span>
                     <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 sm:text-lg">{request?.title || 'Request'}</h3>
-                    <p className="text-xs text-slate-500 sm:text-sm">{request?.client || 'Client'} • {formatDate(request?.date)}</p>
+                    <p className="text-xs text-slate-500 sm:text-sm">
+                      {request?.client || 'Client'} • {formatDate(request?.date)}
+                    </p>
                   </div>
 
                   <div className="text-left sm:col-span-2 sm:text-right">
@@ -880,7 +955,7 @@ export default function UserProfileVendor() {
                     {request?.status === 'Completed' ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-sm text-amber-700">
                         <Star className="h-3.5 w-3.5 fill-current" />
-                        {Number(request?.rating || 0).toFixed(1)}
+                        {request?.rating != null && Number.isFinite(Number(request.rating)) ? Number(request.rating).toFixed(1) : '—'}
                       </span>
                     ) : (
                       <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-sm text-sky-700">
@@ -894,14 +969,17 @@ export default function UserProfileVendor() {
           )}
         </section>
 
-        <section className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4" style={{ animationDelay: '220ms' }}>
+        <section
+          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4"
+          style={{ animationDelay: '220ms' }}
+        >
           <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />
-          <div className="pointer-events-none absolute -left-8 -bottom-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs opacity-90">You have worked with</p>
               <p className="text-2xl font-black leading-none sm:text-3xl">
-                {workedWithClients} Clients
+                {workedWithClients} Client{workedWithClients === 1 ? '' : 's'}
               </p>
             </div>
             <span className="inline-flex w-full items-center justify-center rounded-xl bg-white/25 px-3.5 py-1.5 text-sm font-semibold backdrop-blur sm:w-auto">
@@ -910,26 +988,14 @@ export default function UserProfileVendor() {
           </div>
         </section>
 
-        <Dialog
+        <ImagePreviewDialog
           open={Boolean(selectedImageSample)}
-          onOpenChange={(open) => {
-            if (!open) setViewerSampleId('');
+          onOpenChange={(next) => {
+            if (!next) setViewerSampleId('');
           }}
-        >
-          <DialogContent className="max-w-3xl p-3 sm:p-4">
-            <DialogHeader>
-              <DialogTitle className="pr-8 text-base sm:text-lg">Image Preview</DialogTitle>
-              <DialogDescription className="truncate pr-8">{selectedImageSample?.file?.name || ''}</DialogDescription>
-            </DialogHeader>
-            {selectedImageSample?.url && (
-              <img
-                src={selectedImageSample.url}
-                alt={selectedImageSample.file.name}
-                className="max-h-[72vh] w-full rounded-xl border border-slate-200 bg-slate-50 object-contain"
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+          imageSrc={selectedImageSample?.url || ''}
+          imageAlt={selectedImageSample?.name || ''}
+        />
 
         <AlertDialog
           open={Boolean(pendingDeleteSampleId)}
@@ -941,17 +1007,14 @@ export default function UserProfileVendor() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this sample?</AlertDialogTitle>
               <AlertDialogDescription>
-                {pendingDeleteSample?.file?.name
-                  ? `This will remove \"${pendingDeleteSample.file.name}\" from your uploaded work samples.`
-                  : 'This will remove the selected file from your uploaded work samples.'}
+                {pendingDeleteSample?.name
+                  ? `Remove “${pendingDeleteSample.name}” from the list? Nothing is saved to the server until you tap Save.`
+                  : 'Remove this file from the list? Nothing is saved to the server until you tap Save.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDeleteSample}
-                className="bg-rose-600 text-white hover:bg-rose-700"
-              >
+              <AlertDialogAction onClick={confirmDeleteSample} className="bg-rose-600 text-white hover:bg-rose-700">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

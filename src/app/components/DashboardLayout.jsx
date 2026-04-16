@@ -7,6 +7,8 @@ import { Badge } from './ui/badge';
 import { useAuth } from '../hooks/useAuth';
 import { getUnreadNotificationCountApi } from '../services/notificationsApi';
 import { getUnreadChatCountApi } from '../services/chatApi';
+import { getMyDetailedProfileApi } from '../services/userProfileApi';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 import { useSignalREvent } from '../context/SignalRContext';
 import { dashboardMenusByRole } from '../config/dashboardMenus';
 import {
@@ -176,6 +178,43 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       window.removeEventListener('storage', onStorageUpdated);
     };
   }, [normalizedRole, normalizedEmail]);
+
+  useEffect(() => {
+    if (!user?.token || isAdmin || (normalizedRole !== 'client' && normalizedRole !== 'vendor')) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const raw = await getMyDetailedProfileApi(user.token);
+        const url = raw && typeof raw === 'object'
+          ? (raw.profilePictureUrl ?? raw.ProfilePictureUrl)
+          : null;
+        const resolved = resolveMediaUrl(url);
+        if (!cancelled && resolved) setHeaderAvatar(resolved);
+      } catch {
+        /* keep storage / previous */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.token, normalizedRole, isAdmin]);
+
+  useEffect(() => {
+    const onClientPic = (e) => {
+      if (normalizedRole !== 'client') return;
+      const url = e?.detail?.url;
+      if (typeof url === 'string' && url) setHeaderAvatar(url);
+    };
+    const onVendorPic = (e) => {
+      if (normalizedRole !== 'vendor') return;
+      const url = e?.detail?.url;
+      if (typeof url === 'string' && url) setHeaderAvatar(url);
+    };
+    window.addEventListener('corpserve:client-profile-picture-from-api', onClientPic);
+    window.addEventListener('corpserve:vendor-profile-picture-from-api', onVendorPic);
+    return () => {
+      window.removeEventListener('corpserve:client-profile-picture-from-api', onClientPic);
+      window.removeEventListener('corpserve:vendor-profile-picture-from-api', onVendorPic);
+    };
+  }, [normalizedRole]);
 
   const theme = {
     appShellClass: 'flex min-h-screen flex-col bg-slate-50',

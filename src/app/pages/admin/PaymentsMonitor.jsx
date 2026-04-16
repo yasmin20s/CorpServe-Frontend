@@ -22,6 +22,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { getAdminPaymentsApi, markPayoutPaidApi } from '../../services/paymentsApi';
+import UserAvatar from '../../components/UserAvatar';
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
 
@@ -198,6 +199,8 @@ export default function PaymentsMonitor() {
           payment.requestTitle,
           payment.clientName,
           payment.vendorName,
+          payment.clientId,
+          payment.vendorId,
           payment.merchantOrderId,
           payment.paymentId,
         ]
@@ -387,11 +390,25 @@ export default function PaymentsMonitor() {
                     <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
                         <p className="text-xs text-slate-500">Client</p>
-                        <p className="font-semibold text-slate-800">{payment.clientName || 'N/A'}</p>
+                        <div className="mt-1">
+                          <UserAvatar
+                            userId={payment.clientId}
+                            name={payment.clientName || 'N/A'}
+                            profilePictureUrl={undefined}
+                            size="xs"
+                          />
+                        </div>
                       </div>
                       <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
                         <p className="text-xs text-slate-500">Vendor</p>
-                        <p className="font-semibold text-slate-800">{payment.vendorName || 'N/A'}</p>
+                        <div className="mt-1">
+                          <UserAvatar
+                            userId={payment.vendorId}
+                            name={payment.vendorName || 'N/A'}
+                            profilePictureUrl={undefined}
+                            size="xs"
+                          />
+                        </div>
                       </div>
                       <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
                         <p className="text-xs text-slate-500">Total Amount</p>

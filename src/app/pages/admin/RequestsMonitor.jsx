@@ -24,6 +24,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
 import { getCategoriesApi } from '../../services/categoriesApi';
 import { getAdminRequestsApi } from '../../services/adminMonitorApi';
+import UserAvatar from '../../components/UserAvatar';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -210,7 +211,11 @@ export default function RequestsMonitor() {
           title: r.title,
           description: r.description,
           client: r.clientName,
+          clientId: r.clientId,
+          clientProfilePictureUrl: r.clientProfilePictureUrl,
           vendor: r.vendorName,
+          vendorId: r.vendorId,
+          vendorProfilePictureUrl: r.vendorProfilePictureUrl,
           category: r.categoryName,
           status: mapRequestStatusUi(r.requestStatus),
           hasSla: Boolean(slaRaw && String(slaRaw).trim()),
@@ -221,6 +226,7 @@ export default function RequestsMonitor() {
           deadline: formatDateShort(r.deadline),
           proposals: r.proposals.map((p) => ({
             id: p.proposalId,
+            vendorId: p.vendorId,
             vendorName: p.vendorName,
             price: formatMoneyEGP(p.proposedPrice),
             eta: proposalEta(p.proposedDeadline),
@@ -405,7 +411,15 @@ export default function RequestsMonitor() {
                     <div>
                       <h3 className="text-[15px] font-semibold text-slate-900 sm:text-2xl lg:text-[1.7rem]">{request.title}</h3>
                       <p className="mt-1 max-w-3xl text-xs text-slate-600 sm:text-base">{request.description}</p>
-                      <p className="mt-1 text-xs text-slate-600 sm:text-base">Client: {request.client}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 sm:text-base">
+                        <span className="font-medium text-slate-500">Client:</span>
+                        <UserAvatar
+                          userId={request.clientId}
+                          name={request.client}
+                          profilePictureUrl={request.clientProfilePictureUrl}
+                          size="xs"
+                        />
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-1 sm:gap-2.5">
                       <Badge variant="outline" className="border-violet-400 bg-violet-200 px-2 py-0.5 text-[11px] text-violet-950 sm:px-3 sm:py-1 sm:text-sm">{request.category || '—'}</Badge>
@@ -421,7 +435,14 @@ export default function RequestsMonitor() {
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4">
                       <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Vendor</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg">{request.vendor || 'Unassigned vendor'}</p>
+                      <div className="mt-1 sm:mt-2">
+                        <UserAvatar
+                          userId={request.vendorId}
+                          name={request.vendor || 'Unassigned vendor'}
+                          profilePictureUrl={request.vendorProfilePictureUrl}
+                          size="xs"
+                        />
+                      </div>
                     </div>
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4">
                       <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Client budget</p>
@@ -467,7 +488,12 @@ export default function RequestsMonitor() {
                     <div className="grid gap-2 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {request.proposals.map((proposal) => (
                         <div key={proposal.id} className="rounded-md border border-slate-400 bg-white p-2 sm:rounded-xl sm:p-3">
-                          <p className="text-xs font-semibold text-slate-900 sm:text-sm">{proposal.vendorName}</p>
+                          <UserAvatar
+                            userId={proposal.vendorId}
+                            name={proposal.vendorName}
+                            profilePictureUrl={undefined}
+                            size="xs"
+                          />
                           <p className="mt-1 text-xs text-slate-600 sm:text-sm">Proposed price: {proposal.price}</p>
                           <p className="text-xs text-slate-600 sm:text-sm">ETA: {proposal.eta}</p>
                           <Badge variant="outline" className="mt-1.5 border-slate-400 bg-slate-200 text-[11px] text-slate-900 sm:mt-2 sm:text-xs">{proposal.status}</Badge>

@@ -24,6 +24,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
 import { getCategoriesApi } from '../../services/categoriesApi';
 import { getAdminSlasApi } from '../../services/adminMonitorApi';
+import UserAvatar from '../../components/UserAvatar';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -177,7 +178,11 @@ export default function SLAMonitor() {
         request: c.requestTitle,
         description: c.description,
         client: c.clientName,
+        clientId: c.clientId,
+        clientProfilePictureUrl: c.clientProfilePictureUrl,
         vendor: c.vendorName,
+        vendorId: c.vendorId,
+        vendorProfilePictureUrl: c.vendorProfilePictureUrl,
         category: c.categoryName,
         price: formatMoneyEGP(c.price),
         createdAt: formatDateShort(c.createdAt),
@@ -331,7 +336,15 @@ export default function SLAMonitor() {
                     <div>
                       <h3 className="text-base font-semibold text-slate-900 sm:text-xl">{sla.request}</h3>
                       <p className="mt-1 text-xs text-slate-600 sm:text-sm">{sla.description}</p>
-                      <p className="mt-1 text-xs text-slate-600 sm:text-sm">Client: {sla.client}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 sm:text-sm">
+                        <span className="font-medium text-slate-500">Client:</span>
+                        <UserAvatar
+                          userId={sla.clientId}
+                          name={sla.client}
+                          profilePictureUrl={sla.clientProfilePictureUrl}
+                          size="xs"
+                        />
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       <Badge variant="outline" className="border-indigo-300 bg-indigo-100 px-2 py-0.5 text-[11px] text-indigo-900 sm:px-2.5 sm:py-1 sm:text-xs">{sla.category || '—'}</Badge>
@@ -350,7 +363,14 @@ export default function SLAMonitor() {
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                     <div className="rounded-lg border border-violet-200 bg-violet-50 p-2.5 sm:p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Vendor</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:text-sm">{sla.vendor}</p>
+                      <div className="mt-1">
+                        <UserAvatar
+                          userId={sla.vendorId}
+                          name={sla.vendor}
+                          profilePictureUrl={sla.vendorProfilePictureUrl}
+                          size="xs"
+                        />
+                      </div>
                     </div>
                     <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 sm:p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Price</p>
@@ -411,11 +431,11 @@ export default function SLAMonitor() {
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Client</p>
-                            <p className="font-medium">{sla.client}</p>
+                            <UserAvatar userId={sla.clientId} name={sla.client} profilePictureUrl={sla.clientProfilePictureUrl} size="xs" />
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Vendor</p>
-                            <p className="font-medium">{sla.vendor}</p>
+                            <UserAvatar userId={sla.vendorId} name={sla.vendor} profilePictureUrl={sla.vendorProfilePictureUrl} size="xs" />
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Budget</p>

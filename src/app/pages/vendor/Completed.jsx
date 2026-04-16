@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, Star, CalendarClock, UserRound, Wallet, Quote, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, TrendingUp, Star, CalendarClock, Wallet, Quote, BarChart3 } from 'lucide-react';
 import { getVendorRequestsUiStore } from '../../lib/vendorRequestsUiStore';
 import { getVendorCompletedRequestsApi } from '../../services/proposalsApi';
+import UserAvatar from '../../components/UserAvatar';
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from '../../lib/toast';
 import { useSignalREvent } from '../../context/SignalRContext';
@@ -149,10 +150,16 @@ export default function Completed() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <CardTitle className="text-xl font-bold text-slate-900">{project.title}</CardTitle>
-                        <p className="mt-1 inline-flex items-center gap-1 text-sm text-slate-600">
-                          <UserRound className="h-4 w-4 text-violet-600" />
-                          Client: {project.client}
-                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                          <span className="text-slate-500">Client:</span>
+                          <UserAvatar
+                            userId={project.clientId}
+                            name={project.client}
+                            profilePictureUrl={project.clientProfilePictureUrl}
+                            size="sm"
+                            linkClassName="max-w-[min(100%,260px)]"
+                          />
+                        </div>
                       </div>
                       <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 shadow-sm">
                         <CheckCircle className="h-8 w-8 text-emerald-500" />

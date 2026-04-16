@@ -27,6 +27,7 @@ import { getProposalCountApi } from '../../services/proposalsApi';
 import { useSignalREvent } from '../../context/SignalRContext';
 import { normalizeRequestDocuments, toAbsoluteFileUrl } from '../../lib/requestDocuments';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import UserAvatar from '../../components/UserAvatar';
 
 function formatCurrency(value) {
   if (value == null || value === '') return '-';
@@ -290,7 +291,12 @@ export default function MyRequests() {
             category: request.categoryName,
             categoryId: request.categoryId,
             status: normalizeRequestStatus(request.requestStatus ?? request.RequestStatus),
-            vendor: pickSelectedVendorName(request),
+            vendor:
+              request.assignedVendorName
+              ?? request.AssignedVendorName
+              ?? pickSelectedVendorName(request),
+            vendorId: request.assignedVendorId ?? request.AssignedVendorId ?? '',
+            vendorProfilePictureUrl: request.vendorProfilePictureUrl ?? request.VendorProfilePictureUrl ?? '',
             budgetMin: formatCurrency(request.budgetMin),
             budgetMax: formatCurrency(request.budgetMax),
             rawBudgetMin: Number(request.budgetMin || 0),
@@ -772,7 +778,18 @@ export default function MyRequests() {
                   </div>
                   <div className="rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm sm:col-span-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Selected Vendor</p>
-                    <p className="mt-1 text-base font-bold text-slate-900">{selectedRequest.vendor || 'Not selected yet'}</p>
+                    <div className="mt-2">
+                      {selectedRequest.vendorId || selectedRequest.vendor ? (
+                        <UserAvatar
+                          userId={selectedRequest.vendorId}
+                          name={selectedRequest.vendor || 'Vendor'}
+                          profilePictureUrl={selectedRequest.vendorProfilePictureUrl}
+                          size="md"
+                        />
+                      ) : (
+                        <p className="text-base font-bold text-slate-900">Not selected yet</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1056,6 +1073,18 @@ export default function MyRequests() {
                       Posted {request.createdAt}
                     </p>
                     <p className="text-sm leading-relaxed text-slate-600 line-clamp-2">{request.description}</p>
+                    {(request.vendorId || request.vendor) && request.vendor !== 'Not selected yet' ? (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                        <span className="font-medium text-slate-500">Vendor:</span>
+                        <UserAvatar
+                          userId={request.vendorId}
+                          name={request.vendor}
+                          profilePictureUrl={request.vendorProfilePictureUrl}
+                          size="sm"
+                          linkClassName="max-w-[min(100%,280px)]"
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
