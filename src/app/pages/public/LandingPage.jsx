@@ -301,7 +301,7 @@ useEffect(() => {
             <a
               href="/"
               aria-label="Go to home"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+              className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105"
             >
               <span className="text-sm font-bold text-white">CS</span>
             </a>
@@ -658,7 +658,7 @@ useEffect(() => {
                 <a
                   href="/"
                   aria-label="Go to home"
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105"
+                  className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105"
                 >
                   <span className="text-white text-xl font-bold">CS</span>
                 </a>

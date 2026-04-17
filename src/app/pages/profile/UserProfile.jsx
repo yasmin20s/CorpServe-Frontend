@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Lock, Save, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, Save, SlidersHorizontal, User } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -226,7 +226,7 @@ export default function UserProfile() {
             <p className="text-sm text-gray-600 dark:text-slate-300 sm:text-base">Manage your account settings and preferences.</p>
           </div>
 
-          <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900/78 dark:shadow-[0_20px_40px_rgba(2,6,23,0.56)] sm:space-y-8 sm:rounded-2xl sm:p-6 lg:p-8">
+          <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900/78 dark:shadow-[0_14px_28px_rgba(2,6,23,0.46)] sm:space-y-8 sm:rounded-2xl sm:p-6 lg:p-8">
             {isProfileLoading && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-400/35 dark:bg-blue-500/16 dark:text-blue-200">
                 Loading profile data...
@@ -235,7 +235,7 @@ export default function UserProfile() {
 
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
-                <User className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+                <User className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />
                 Personal Information
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -297,7 +297,7 @@ export default function UserProfile() {
 
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
-                <Lock className="h-5 w-5 text-purple-500 dark:text-purple-300" />
+                <Lock className="h-5 w-5 text-amber-500 dark:text-amber-300" />
                 Change Password
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -380,7 +380,7 @@ export default function UserProfile() {
 
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
-                <span className="text-purple-600 dark:text-purple-300">⚙️</span>
+                <SlidersHorizontal className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                 User Preferences
               </h2>
               <div className="space-y-3">
@@ -423,7 +423,7 @@ export default function UserProfile() {
 
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-slate-300 sm:text-base">
             Need help?{' '}
-            <a href="#" className="font-medium text-purple-600 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200">
+            <a href="#" className="font-medium text-cyan-600 hover:text-cyan-700 dark:text-cyan-300 dark:hover:text-cyan-200">
               Contact Support
             </a>
           </p>

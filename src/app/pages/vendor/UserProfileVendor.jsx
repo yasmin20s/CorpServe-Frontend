@@ -98,9 +98,9 @@ function isImageDocType(documentType) {
 function sampleFrameTone(index) {
   const tones = [
     'border-violet-300 bg-violet-50/35 dark:border-violet-400/35 dark:bg-violet-500/10',
-    'border-cyan-300 bg-cyan-50/35 dark:border-cyan-400/35 dark:bg-cyan-500/10',
-    'border-emerald-300 bg-emerald-50/35 dark:border-emerald-400/35 dark:bg-emerald-500/10',
-    'border-amber-300 bg-amber-50/35 dark:border-amber-400/35 dark:bg-amber-500/10',
+    'border-fuchsia-300 bg-fuchsia-50/35 dark:border-fuchsia-400/35 dark:bg-fuchsia-500/10',
+    'border-pink-300 bg-pink-50/35 dark:border-pink-400/35 dark:bg-pink-500/10',
+    'border-indigo-300 bg-indigo-50/35 dark:border-indigo-400/35 dark:bg-indigo-500/10',
   ];
   return tones[index % tones.length];
 }
@@ -113,16 +113,16 @@ function formatMoney(value) {
 
 function statTone(label) {
   const key = String(label).toLowerCase();
-  if (key.includes('clients')) return 'text-blue-900 bg-blue-200 dark:text-blue-200 dark:bg-blue-500/22';
-  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200 dark:text-emerald-200 dark:bg-emerald-500/22';
-  return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-200 dark:bg-fuchsia-500/22';
+  if (key.includes('clients')) return 'text-blue-900 bg-blue-200 dark:text-blue-100 dark:bg-blue-500/30';
+  if (key.includes('completed')) return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-100 dark:bg-fuchsia-500/30';
+  return 'text-pink-900 bg-pink-200 dark:text-pink-100 dark:bg-pink-500/30';
 }
 
 function statCardWrapTone(index) {
   const tones = [
-    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 shadow-sky-200/80 dark:from-sky-500/18 dark:via-blue-500/14 dark:to-indigo-500/20 dark:border-sky-400/35 dark:shadow-none',
-    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 shadow-emerald-200/80 dark:from-emerald-500/18 dark:via-teal-500/14 dark:to-cyan-500/20 dark:border-emerald-400/35 dark:shadow-none',
-    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 shadow-fuchsia-200/80 dark:from-fuchsia-500/18 dark:via-pink-500/14 dark:to-rose-500/20 dark:border-fuchsia-400/35 dark:shadow-none',
+    'from-violet-200 via-fuchsia-100 to-indigo-200 border-violet-300 shadow-violet-200/80 dark:from-blue-500/24 dark:via-violet-500/18 dark:to-pink-500/18 dark:border-blue-400/35 dark:shadow-none',
+    'from-pink-200 via-fuchsia-100 to-violet-200 border-pink-300 shadow-pink-200/80 dark:from-indigo-500/24 dark:via-fuchsia-500/18 dark:to-pink-500/20 dark:border-indigo-400/35 dark:shadow-none',
+    'from-indigo-200 via-violet-100 to-fuchsia-200 border-indigo-300 shadow-indigo-200/80 dark:from-blue-500/26 dark:via-indigo-500/18 dark:to-violet-500/18 dark:border-blue-400/35 dark:shadow-none',
   ];
   return tones[index % tones.length];
 }
@@ -130,8 +130,8 @@ function statCardWrapTone(index) {
 function statTextTone(index) {
   const tones = [
     { value: 'text-slate-900 dark:text-slate-100', label: 'text-blue-700 dark:text-blue-200' },
-    { value: 'text-slate-900 dark:text-slate-100', label: 'text-emerald-700 dark:text-emerald-200' },
     { value: 'text-slate-900 dark:text-slate-100', label: 'text-fuchsia-700 dark:text-fuchsia-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-pink-700 dark:text-pink-200' },
   ];
   return tones[index % tones.length];
 }
@@ -560,24 +560,24 @@ export default function UserProfileVendor() {
     <DashboardLayout menuItems={menuItems} userRole="vendor">
       <div className="cs-profile-shell relative mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-8">
         <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl dark:bg-violet-500/12" />
-        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-cyan-500/10" />
+        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-blue-500/12" />
         <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl dark:bg-indigo-500/10" />
 
         <section
-          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)] dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-[0_20px_44px_rgba(2,6,23,0.58)]"
+          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_12px_24px_rgba(99,102,241,0.1)] dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#0f1b3d] dark:via-[#2b1f61] dark:to-[#5a2b6f] dark:shadow-[0_14px_30px_rgba(2,6,23,0.46)]"
           style={{ animationDelay: '30ms' }}
         >
-          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6]" />
+          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6] dark:from-[#1e3a8a] dark:via-[#6d28d9] dark:to-[#ec4899]" />
           <div className="px-4 pb-5 pt-0 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="-mt-10 flex flex-col items-start gap-2">
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-lg shadow-indigo-200 dark:border-slate-900 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-[0_8px_18px_rgba(79,70,229,0.16)] dark:border-slate-900 dark:shadow-[0_10px_20px_rgba(2,6,23,0.44)]">
                   <ProfilePhotoLightbox
                     src={pic}
                     wrapperClassName="cs-profile-avatar-bob h-full w-full"
                     imgClassName="cs-profile-image-thumb cs-profile-image-glow h-full w-full object-cover"
                     fallback={
-                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg shadow-indigo-200 dark:from-indigo-500/24 dark:to-blue-500/20 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
+                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 shadow-[0_8px_18px_rgba(79,70,229,0.16)] dark:from-indigo-500/24 dark:to-blue-500/20 dark:shadow-[0_10px_20px_rgba(2,6,23,0.44)]">
                         <Building2 className="h-9 w-9 text-indigo-700 dark:text-indigo-200" />
                       </div>
                     }
@@ -650,7 +650,7 @@ export default function UserProfileVendor() {
                   <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/12">
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <Building2 className="h-3.5 w-3.5" /> Company Name
+                        <Building2 className="h-3.5 w-3.5 text-violet-500 dark:text-violet-300" /> Company Name
                       </label>
                       <Input
                         value={draftValues.companyName}
@@ -661,7 +661,7 @@ export default function UserProfileVendor() {
                     </div>
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <MapPin className="h-3.5 w-3.5" /> Location
+                        <MapPin className="h-3.5 w-3.5 text-fuchsia-500 dark:text-fuchsia-300" /> Location
                       </label>
                       <Input
                         value={draftValues.location}
@@ -672,7 +672,7 @@ export default function UserProfileVendor() {
                     </div>
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <FileText className="h-3.5 w-3.5" /> Description
+                        <FileText className="h-3.5 w-3.5 text-pink-500 dark:text-pink-300" /> Description
                       </label>
                       <Textarea
                         value={draftValues.description}
@@ -687,24 +687,24 @@ export default function UserProfileVendor() {
                   <>
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                       <span className="inline-flex items-center gap-1.5">
-                        <Mail className="h-4 w-4 text-violet-500" />
+                        <Mail className="h-4 w-4 text-pink-500 dark:text-pink-300" />
                         {vendorEmail || <span className="italic text-slate-400 dark:text-slate-500">Add your email from settings</span>}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
-                        <Building2 className="h-4 w-4 text-indigo-500" />
+                        <Building2 className="h-4 w-4 text-violet-500 dark:text-violet-300" />
                         <span className={companyDisplay ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                           {companyDisplay || 'Add your company name'}
                         </span>
                       </span>
                       <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4 text-sky-500" />
+                        <MapPin className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-300" />
                         <span className={vendorLocation ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                           {vendorLocation || 'Add your location'}
                         </span>
                       </span>
                     </div>
                     <div className="flex items-start gap-1.5">
-                      <FileText className="mt-0.5 h-4 w-4 text-fuchsia-500" />
+                      <FileText className="mt-0.5 h-4 w-4 text-pink-500 dark:text-pink-300" />
                       <p className={vendorDescription ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                         {vendorDescription || 'Add your company description'}
                       </p>
@@ -723,11 +723,11 @@ export default function UserProfileVendor() {
             return (
               <article
                 key={item.label}
-                className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${statCardWrapTone(index)}`}
+                className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${statCardWrapTone(index)}`}
                 style={{ animationDelay: `${100 + index * 55}ms` }}
               >
-                <div className="pointer-events-none absolute -right-4 -top-4 h-14 w-14 rounded-full bg-white/35 blur-xl" />
-                <span className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-md ring-2 ring-white/75 ${statTone(item.label)}`}>
+                <div className="pointer-events-none absolute -right-4 -top-4 h-14 w-14 rounded-full bg-white/24 blur-xl dark:bg-slate-100/8" />
+                <span className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-md ring-2 ring-white/55 dark:ring-slate-200/15 ${statTone(item.label)}`}>
                   <Icon className="h-4 w-4" />
                 </span>
                 <p className={`text-[28px] font-black leading-none ${textTone.value}`}>{item.value}</p>
@@ -738,7 +738,7 @@ export default function UserProfileVendor() {
         </section>
 
         <section
-          className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5 dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900/92 dark:to-indigo-950/35 dark:shadow-none"
+          className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5 dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-[#0f1b3d] dark:via-[#2b1f61] dark:to-[#5a2b6f] dark:shadow-none"
           style={{ animationDelay: '110ms' }}
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -941,7 +941,7 @@ export default function UserProfileVendor() {
               {recentFromApi.map((request) => (
                 <article
                   key={String(request?.id || request?.title)}
-                  className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 dark:hover:from-violet-500/12 dark:hover:to-cyan-500/10 sm:grid-cols-12 sm:items-center sm:px-5"
+                  className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-fuchsia-50/40 dark:hover:from-blue-500/12 dark:hover:to-fuchsia-500/12 sm:grid-cols-12 sm:items-center sm:px-5"
                 >
                   <div className="sm:col-span-7">
                     <span
@@ -982,7 +982,7 @@ export default function UserProfileVendor() {
         </section>
 
         <section
-          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4 dark:from-[#4c1d95] dark:via-[#3730a3] dark:to-[#1d4ed8] dark:shadow-[0_16px_32px_rgba(2,6,23,0.58)]"
+          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_10px_20px_rgba(79,70,229,0.2)] sm:px-5 sm:py-4 dark:from-[#1e3a8a] dark:via-[#6d28d9] dark:to-[#ec4899] dark:shadow-[0_12px_24px_rgba(2,6,23,0.45)]"
           style={{ animationDelay: '220ms' }}
         >
           <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />

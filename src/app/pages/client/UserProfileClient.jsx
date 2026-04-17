@@ -53,27 +53,27 @@ const tagTone = {
 
 function statTone(label) {
   const key = String(label).toLowerCase();
-  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200 dark:text-emerald-200 dark:bg-emerald-500/28';
-  if (key.includes('progress')) return 'text-blue-900 bg-blue-200 dark:text-blue-200 dark:bg-blue-500/28';
-  if (key.includes('budget')) return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-200 dark:bg-fuchsia-500/28';
-  return 'text-violet-900 bg-violet-200 dark:text-violet-200 dark:bg-violet-500/28';
+  if (key.includes('completed')) return 'text-violet-900 bg-violet-200 dark:text-violet-100 dark:bg-violet-500/30';
+  if (key.includes('progress')) return 'text-blue-900 bg-blue-200 dark:text-blue-100 dark:bg-blue-500/30';
+  if (key.includes('budget')) return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-100 dark:bg-fuchsia-500/30';
+  return 'text-indigo-900 bg-indigo-200 dark:text-indigo-100 dark:bg-indigo-500/30';
 }
 
 function statCardWrapTone(index) {
   const tones = [
-    'from-violet-200 via-fuchsia-100 to-indigo-200 border-violet-300 dark:from-violet-500/22 dark:via-fuchsia-500/14 dark:to-indigo-500/22 dark:border-violet-400/35',
-    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 dark:from-emerald-500/20 dark:via-teal-500/14 dark:to-cyan-500/20 dark:border-emerald-400/35',
-    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 dark:from-sky-500/20 dark:via-blue-500/14 dark:to-indigo-500/20 dark:border-sky-400/35',
-    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 dark:from-fuchsia-500/20 dark:via-pink-500/14 dark:to-rose-500/20 dark:border-fuchsia-400/35',
+    'from-violet-200 via-fuchsia-100 to-indigo-200 border-violet-300 dark:from-blue-500/24 dark:via-violet-500/18 dark:to-pink-500/18 dark:border-blue-400/35',
+    'from-pink-200 via-fuchsia-100 to-violet-200 border-pink-300 dark:from-indigo-500/24 dark:via-fuchsia-500/18 dark:to-pink-500/20 dark:border-indigo-400/35',
+    'from-indigo-200 via-violet-100 to-fuchsia-200 border-indigo-300 dark:from-blue-500/26 dark:via-indigo-500/18 dark:to-violet-500/18 dark:border-blue-400/35',
+    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 dark:from-indigo-500/22 dark:via-violet-500/18 dark:to-pink-500/20 dark:border-violet-400/35',
   ];
   return tones[index % tones.length];
 }
 
 function statTextTone(index) {
   const tones = [
-    { value: 'text-slate-900 dark:text-slate-100', label: 'text-violet-700 dark:text-violet-200' },
-    { value: 'text-slate-900 dark:text-slate-100', label: 'text-emerald-700 dark:text-emerald-200' },
     { value: 'text-slate-900 dark:text-slate-100', label: 'text-blue-700 dark:text-blue-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-pink-700 dark:text-pink-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-indigo-700 dark:text-indigo-200' },
     { value: 'text-slate-900 dark:text-slate-100', label: 'text-fuchsia-700 dark:text-fuchsia-200' },
   ];
   return tones[index % tones.length];
@@ -299,18 +299,18 @@ export default function UserProfileClient() {
     <DashboardLayout menuItems={menuItems} userRole="client">
       <div className="cs-profile-shell relative mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-8">
         <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl dark:bg-violet-500/15" />
-        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-cyan-500/12" />
+        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-blue-500/12" />
         <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl dark:bg-indigo-500/12" />
 
         <section
-          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-none dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-none"
+          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-none dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#0f1b3d] dark:via-[#2b1f61] dark:to-[#5a2b6f] dark:shadow-none"
           style={{ animationDelay: '30ms' }}
         >
-          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6] dark:from-[#4c1d95] dark:via-[#4338ca] dark:to-[#1d4ed8]" />
+          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6] dark:from-[#1e3a8a] dark:via-[#6d28d9] dark:to-[#ec4899]" />
           <div className="px-4 pb-5 pt-0 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="flex flex-col items-start gap-2">
-                <div className="relative -mt-10 h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-none dark:border-slate-900 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
+                <div className="relative -mt-10 h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-none dark:border-slate-900 dark:shadow-[0_10px_20px_rgba(2,6,23,0.44)]">
                   <ProfilePhotoLightbox
                     src={pic}
                     wrapperClassName="h-full w-full"
@@ -363,7 +363,7 @@ export default function UserProfileClient() {
                   <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/12">
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <Building2 className="h-3.5 w-3.5" /> Company Name
+                        <Building2 className="h-3.5 w-3.5 text-violet-500 dark:text-violet-300" /> Company Name
                       </label>
                       <Input
                         value={draftValues.company}
@@ -375,7 +375,7 @@ export default function UserProfileClient() {
 
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <MapPin className="h-3.5 w-3.5" /> Location
+                        <MapPin className="h-3.5 w-3.5 text-fuchsia-500 dark:text-fuchsia-300" /> Location
                       </label>
                       <Input
                         value={draftValues.location}
@@ -387,7 +387,7 @@ export default function UserProfileClient() {
 
                     <div>
                       <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <Briefcase className="h-3.5 w-3.5" /> Description
+                        <Briefcase className="h-3.5 w-3.5 text-pink-500 dark:text-pink-300" /> Description
                       </label>
                       <Textarea
                         value={draftValues.bio}
@@ -402,17 +402,17 @@ export default function UserProfileClient() {
                   <>
                     <div className="flex flex-wrap gap-x-6 gap-y-2">
                       <span className="inline-flex items-center gap-1.5">
-                        <Building2 className="h-4 w-4 text-indigo-500" />
+                        <Building2 className="h-4 w-4 text-violet-500 dark:text-violet-300" />
                         {companyText ? companyText : <span className="italic text-slate-400">Add your company name</span>}
                       </span>
 
                       <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4 text-sky-500" />
+                        <MapPin className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-300" />
                         {locationText ? locationText : <span className="italic text-slate-400">Add your location</span>}
                       </span>
 
                       <span className="inline-flex items-center gap-1.5">
-                        <Mail className="h-4 w-4 text-violet-500" />
+                        <Mail className="h-4 w-4 text-pink-500 dark:text-pink-300" />
                         {email}
                       </span>
                     </div>
@@ -425,7 +425,7 @@ export default function UserProfileClient() {
 
                 {isEditingProfile && (
                   <span className="inline-flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-violet-500" />
+                    <Mail className="h-4 w-4 text-pink-500 dark:text-pink-300" />
                     {email}
                   </span>
                 )}
@@ -504,7 +504,7 @@ export default function UserProfileClient() {
                 return (
                   <article
                     key={String(requestId ?? title)}
-                    className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 dark:hover:from-violet-500/12 dark:hover:to-cyan-500/10 sm:grid-cols-12 sm:items-center sm:px-5"
+                    className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-fuchsia-50/40 dark:hover:from-blue-500/12 dark:hover:to-fuchsia-500/12 sm:grid-cols-12 sm:items-center sm:px-5"
                   >
                     <div className="sm:col-span-7">
                       <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${tone} shadow-none`}>{shortTag}</span>
@@ -529,7 +529,7 @@ export default function UserProfileClient() {
           )}
         </section>
 
-        <section className="cs-profile-section-reveal rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/70 to-indigo-50/30 px-4 py-5 shadow-none dark:border-slate-700 dark:from-slate-900 dark:via-slate-900/90 dark:to-indigo-500/10 sm:px-6" style={{ animationDelay: '170ms' }}>
+        <section className="cs-profile-section-reveal rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/70 to-indigo-50/30 px-4 py-5 shadow-none dark:border-slate-700 dark:from-slate-900 dark:via-indigo-500/10 dark:to-pink-500/10 sm:px-6" style={{ animationDelay: '170ms' }}>
           <h2 className="mb-3 text-lg font-semibold text-slate-700 dark:text-slate-200">Preferred Categories</h2>
           {preferredCategories.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">No preferred categories yet.</p>
@@ -550,7 +550,7 @@ export default function UserProfileClient() {
         </section>
 
         <section
-          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-none dark:from-[#4c1d95] dark:via-[#3730a3] dark:to-[#1d4ed8] dark:shadow-none sm:px-5 sm:py-4"
+          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-none dark:from-[#1e3a8a] dark:via-[#6d28d9] dark:to-[#ec4899] dark:shadow-none sm:px-5 sm:py-4"
           style={{ animationDelay: '220ms' }}
         >
           <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />

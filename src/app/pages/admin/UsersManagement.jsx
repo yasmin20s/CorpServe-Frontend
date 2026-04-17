@@ -258,11 +258,11 @@ export default function UsersManagement() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-600">Total</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-600 dark:text-indigo-200">Total</p>
                   <p className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">{summary.total}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-indigo-500">Directory visibility</p>
                 </div>
-                <span className="rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <span className="rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200">
                   <Users className="h-4 w-4" />
                 </span>
               </div>
@@ -365,10 +365,10 @@ export default function UsersManagement() {
         </Card>
 
         {isLoading ? (
-          <p className="text-sm font-medium text-indigo-700">Loading users…</p>
+          <p className="text-sm font-medium text-indigo-700 dark:text-indigo-200">Loading users…</p>
         ) : null}
 
-        <div className="space-y-2 text-xs font-semibold uppercase tracking-[0.1em] text-indigo-600 md:hidden">
+        <div className="space-y-2 text-xs font-semibold uppercase tracking-[0.1em] text-indigo-600 dark:text-indigo-200 md:hidden">
           <span>Page {currentPage} of {totalPages} · {USERS_PER_PAGE} users per page</span>
         </div>
 
@@ -412,7 +412,7 @@ export default function UsersManagement() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-rose-200 text-rose-700 hover:bg-rose-50'}`}
+                      className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-400/35 dark:text-emerald-200 dark:hover:bg-emerald-500/18' : 'border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-400/35 dark:text-rose-200 dark:hover:bg-rose-500/18'}`}
                       onClick={() => handleStatusToggleClick(user)}
                     >
                       {user.status === 'suspended' ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
@@ -424,9 +424,9 @@ export default function UsersManagement() {
             );
           })}
           {!isLoading && usersPage.length === 0 && (
-            <Card className="border-dashed border-indigo-300 bg-indigo-50/50">
+            <Card className="border-dashed border-indigo-300 bg-indigo-50/50 dark:border-indigo-400/25 dark:bg-slate-800/78">
               <CardContent className="p-6 text-center">
-                <p className="text-sm font-medium text-indigo-700">No users match your search/filter.</p>
+                <p className="text-sm font-medium text-indigo-700 dark:text-indigo-200">No users match your search/filter.</p>
               </CardContent>
             </Card>
           )}
@@ -438,12 +438,12 @@ export default function UsersManagement() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-indigo-100 bg-indigo-50/60 dark:border-slate-700 dark:bg-slate-800/90">
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">User</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Role</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Joined</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Requests</th>
-                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Actions</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">User</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">Role</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">Joined</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">Requests</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -479,7 +479,7 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">{formatDate(user.joinedDate)}</td>
                         <td className="px-6 py-4 text-right">
-                          <span className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-700">
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-700 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200">
                             <Activity className="h-3 w-3" />
                             {user.requests}
                           </span>
@@ -488,7 +488,7 @@ export default function UsersManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-rose-200 text-rose-700 hover:bg-rose-50'}`}
+                            className={`h-8 gap-1.5 ${user.status === 'suspended' ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-400/35 dark:text-emerald-200 dark:hover:bg-emerald-500/18' : 'border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-400/35 dark:text-rose-200 dark:hover:bg-rose-500/18'}`}
                             onClick={() => handleStatusToggleClick(user)}
                           >
                             {user.status === 'suspended' ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
@@ -500,7 +500,7 @@ export default function UsersManagement() {
                   })}
                   {!isLoading && usersPage.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-indigo-700">
+                      <td colSpan={6} className="px-6 py-8 text-center text-sm font-medium text-indigo-700 dark:text-indigo-200">
                         No users match your search/filter.
                       </td>
                     </tr>
@@ -514,7 +514,7 @@ export default function UsersManagement() {
         {!isLoading && totalCount > 0 && (
           <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">
                 Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(currentPage * USERS_PER_PAGE, totalCount)} of {totalCount}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
