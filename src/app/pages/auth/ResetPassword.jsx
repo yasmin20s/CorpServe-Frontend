@@ -83,7 +83,7 @@ export default function ResetPassword() {
 
         <div className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5 text-white">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] text-base font-bold text-white shadow-[0_8px_20px_rgba(111,116,234,0.35)]">
+            <div className="cs-brand-badge flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold text-white">
               CS
             </div>
             <h1 className="text-lg font-black tracking-tight text-black sm:text-xl">CorpServe</h1>

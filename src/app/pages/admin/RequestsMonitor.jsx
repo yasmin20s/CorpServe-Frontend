@@ -37,7 +37,7 @@ const menuItems = [
   { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5" /> },
 ];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const statusStyles = {
   active: {
@@ -298,14 +298,14 @@ export default function RequestsMonitor() {
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:max-w-lg">
               <div className="grid w-full gap-2.5 sm:grid-cols-2 sm:gap-4">
                 <div className="rounded-lg border border-violet-300 bg-violet-50/90 p-3 shadow-sm sm:rounded-2xl sm:p-5 dark:border-violet-400/30 dark:bg-violet-500/22 dark:shadow-none">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600">Total Budget</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">Total Budget</p>
                   <p className="mt-1 text-lg font-bold text-slate-900 sm:mt-2 sm:text-3xl dark:text-slate-100">{formatBudgetRange(metrics.totalBudgetMin, metrics.totalBudgetMax)}</p>
-                  <p className="mt-1 text-[10px] text-slate-500">Whole platform data</p>
+                  <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-300/80">Whole platform data</p>
                 </div>
                 <div className="rounded-lg border border-violet-300 bg-violet-50/90 p-3 shadow-sm sm:rounded-2xl sm:p-5 dark:border-violet-400/30 dark:bg-violet-500/22 dark:shadow-none">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600">Avg Progress</p>
-                  <p className="mt-1 text-lg font-bold text-violet-950 sm:mt-2 sm:text-3xl">{metrics.avgProgress}%</p>
-                  <p className="mt-1 text-[10px] text-slate-500">Whole platform data</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">Avg Progress</p>
+                  <p className="mt-1 text-lg font-bold text-violet-950 sm:mt-2 sm:text-3xl dark:text-violet-100">{metrics.avgProgress}%</p>
+                  <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-300/80">Whole platform data</p>
                 </div>
               </div>
               <Button
@@ -326,30 +326,30 @@ export default function RequestsMonitor() {
         <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           <Card className="border-violet-400 bg-gradient-to-br from-violet-200 to-white shadow-sm dark:border-violet-400/30 dark:bg-gradient-to-br dark:from-violet-500/24 dark:to-slate-800 dark:shadow-none">
             <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-violet-900 sm:text-sm">Active Requests</p>
+              <p className="text-xs font-semibold text-violet-900 sm:text-sm dark:text-violet-100">Active Requests</p>
               <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.activeRequests}</p>
-              <p className="mt-1 text-[10px] text-violet-800/80">Whole platform data</p>
+              <p className="mt-1 text-[10px] text-violet-800/80 dark:text-violet-200/80">Whole platform data</p>
             </CardContent>
           </Card>
           <Card className="border-indigo-400 bg-gradient-to-br from-indigo-200 to-white shadow-sm dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-indigo-500/24 dark:to-slate-800 dark:shadow-none">
             <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-indigo-900 sm:text-sm">Pending Requests</p>
+              <p className="text-xs font-semibold text-indigo-900 sm:text-sm dark:text-indigo-100">Pending Requests</p>
               <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.pendingRequests}</p>
-              <p className="mt-1 text-[10px] text-indigo-800/80">Whole platform data</p>
+              <p className="mt-1 text-[10px] text-indigo-800/80 dark:text-indigo-200/80">Whole platform data</p>
             </CardContent>
           </Card>
           <Card className="border-fuchsia-400 bg-gradient-to-br from-fuchsia-200 to-white shadow-sm dark:border-fuchsia-400/30 dark:bg-gradient-to-br dark:from-fuchsia-500/24 dark:to-slate-800 dark:shadow-none">
             <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-fuchsia-900 sm:text-sm">SLA Delayed</p>
+              <p className="text-xs font-semibold text-fuchsia-900 sm:text-sm dark:text-fuchsia-100">SLA Delayed</p>
               <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.delayedSla}</p>
-              <p className="mt-1 text-[10px] text-fuchsia-800/80">Whole platform data</p>
+              <p className="mt-1 text-[10px] text-fuchsia-800/80 dark:text-fuchsia-200/80">Whole platform data</p>
             </CardContent>
           </Card>
           <Card className="border-slate-500 bg-gradient-to-br from-slate-300 to-white shadow-sm dark:border-slate-600 dark:bg-gradient-to-br dark:from-slate-600 dark:to-slate-800 dark:shadow-none">
             <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-slate-800 sm:text-sm">All Requests</p>
+              <p className="text-xs font-semibold text-slate-800 sm:text-sm dark:text-slate-100">All Requests</p>
               <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.allTracked}</p>
-              <p className="mt-1 text-[10px] text-slate-600">Whole platform data</p>
+              <p className="mt-1 text-[10px] text-slate-600 dark:text-slate-300/80">Whole platform data</p>
             </CardContent>
           </Card>
         </div>
@@ -392,7 +392,7 @@ export default function RequestsMonitor() {
         </Card>
 
         {isLoading ? (
-          <p className="text-sm font-medium text-violet-800">Loading requests…</p>
+          <p className="text-sm font-medium text-violet-800 dark:text-violet-200">Loading requests…</p>
         ) : null}
 
         <div className="space-y-2.5 sm:space-y-5">
@@ -413,7 +413,7 @@ export default function RequestsMonitor() {
                       <h3 className="text-[15px] font-semibold text-slate-900 sm:text-2xl lg:text-[1.7rem] dark:text-slate-100">{request.title}</h3>
                       <p className="mt-1 max-w-3xl text-xs text-slate-600 sm:text-base dark:text-slate-300">{request.description}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 sm:text-base dark:text-slate-400">
-                        <span className="font-medium text-slate-500">Client:</span>
+                        <span className="font-medium text-slate-500 dark:text-slate-200">Client:</span>
                         <UserAvatar
                           userId={request.clientId}
                           name={request.client}
@@ -423,10 +423,10 @@ export default function RequestsMonitor() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1 sm:gap-2.5">
-                      <Badge variant="outline" className="border-violet-400 bg-violet-200 px-2 py-0.5 text-[11px] text-violet-950 sm:px-3 sm:py-1 sm:text-sm">{request.category || '—'}</Badge>
+                      <Badge variant="outline" className="border-violet-400 bg-violet-200 px-2 py-0.5 text-[11px] text-violet-950 sm:px-3 sm:py-1 sm:text-sm dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100">{request.category || '—'}</Badge>
                       <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${statusConfig.badge}`}>{request.status}</Badge>
                       {request.hasSla ? (
-                        <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${slaClass || 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+                        <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${slaClass || 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200'}`}>
                           SLA: {request.slaLabel}
                         </Badge>
                       ) : null}
@@ -435,7 +435,7 @@ export default function RequestsMonitor() {
 
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-700/78">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Vendor</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-200">Vendor</p>
                       <div className="mt-1 sm:mt-2">
                         <UserAvatar
                           userId={request.vendorId}
@@ -446,16 +446,16 @@ export default function RequestsMonitor() {
                       </div>
                     </div>
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-700/78">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Client budget</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg">{request.budget}</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-200">Client budget</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg dark:text-slate-100">{request.budget}</p>
                     </div>
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-700/78">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Deadline</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg">{request.deadline}</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-200">Deadline</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg dark:text-slate-100">{request.deadline}</p>
                     </div>
                     <div className="rounded-lg border border-slate-400 bg-slate-200 p-2.5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-700/78">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Status Snapshot</p>
-                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 sm:mt-2 sm:gap-2 sm:text-base">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-200">Status Snapshot</p>
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 sm:mt-2 sm:gap-2 sm:text-base dark:text-slate-100">
                         {request.status === 'active' ? <CheckCircle2 className="h-4 w-4 text-emerald-600 sm:h-5 sm:w-5" /> : <Clock3 className="h-4 w-4 text-amber-600 sm:h-5 sm:w-5" />}
                         {request.status === 'active' ? 'In Progress' : request.status === 'completed' ? 'Completed' : 'Waiting Assignment'}
                       </p>
@@ -464,7 +464,7 @@ export default function RequestsMonitor() {
 
                   <div className="mt-2.5 rounded-lg border border-slate-400 bg-white p-2.5 sm:mt-5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-800/74">
                     <div className="mb-1.5 flex items-center justify-between sm:mb-2">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Execution Progress</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-200">Execution Progress</p>
                       <span className="inline-flex items-center gap-1 rounded-full border border-slate-400 bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-900 sm:px-3 sm:py-1 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                         {request.progress}%
                         <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -481,8 +481,8 @@ export default function RequestsMonitor() {
 
                   <div className="mt-2.5 rounded-lg border border-slate-400 bg-slate-200/80 p-2.5 sm:mt-5 sm:rounded-2xl sm:p-4 dark:border-slate-600 dark:bg-slate-700/74">
                     <div className="mb-2 flex items-center justify-between sm:mb-3">
-                      <h4 className="text-sm font-semibold uppercase tracking-widest text-slate-700">Proposals</h4>
-                      <Badge variant="outline" className="border-violet-400 bg-violet-200 text-xs text-violet-950 sm:text-sm">
+                      <h4 className="text-sm font-semibold uppercase tracking-widest text-slate-700 dark:text-slate-100">Proposals</h4>
+                      <Badge variant="outline" className="border-violet-400 bg-violet-200 text-xs text-violet-950 sm:text-sm dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100">
                         {request.proposals.length} proposal(s)
                       </Badge>
                     </div>
@@ -510,7 +510,7 @@ export default function RequestsMonitor() {
           {!isLoading && requests.length === 0 && (
             <Card className="border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800/78">
               <CardContent className="p-10 text-center text-slate-500">
-                No requests match the selected filters.
+                <p className="dark:text-slate-300">No requests match the selected filters.</p>
               </CardContent>
             </Card>
           )}
@@ -519,7 +519,7 @@ export default function RequestsMonitor() {
         {!isLoading && totalCount > 0 ? (
           <Card className="border-violet-200 bg-white/90 shadow-sm dark:border-violet-400/25 dark:bg-slate-800/78 dark:shadow-none">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-800">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-800 dark:text-violet-200">
                 Page {currentPage} of {totalPages} · {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">

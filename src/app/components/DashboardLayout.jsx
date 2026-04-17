@@ -230,7 +230,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
     profileTriggerClass: 'h-auto gap-2 rounded-2xl border border-transparent bg-transparent py-1.5 px-1 sm:px-2 transition-colors hover:border-indigo-200 hover:bg-white/60 dark:hover:border-slate-600 dark:hover:bg-slate-800/70',
     profileAvatarWrapClass: 'flex h-9 w-9 items-center justify-center rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-100 via-blue-100 to-cyan-100 shadow-[0_6px_14px_rgba(99,102,241,0.16)] dark:border-slate-600 dark:bg-gradient-to-br dark:from-slate-700 dark:via-slate-700 dark:to-slate-600 dark:shadow-[0_8px_16px_rgba(15,23,42,0.5)]',
     profileAvatarIconClass: 'w-4 h-4 text-indigo-700 dark:text-slate-100',
-    profileRoleTextClass: 'text-indigo-600 dark:text-indigo-200',
+    profileRoleTextClass: 'text-emerald-600 dark:text-emerald-300',
     sidebarClass: 'border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff] dark:border-slate-700 dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-900 dark:to-slate-800',
     workspaceCardClass: 'group flex items-center rounded-2xl border border-indigo-200 bg-gradient-to-r from-white to-indigo-50/70 p-3 shadow-[0_8px_18px_rgba(79,70,229,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-[0_14px_28px_rgba(79,70,229,0.2)] dark:border-slate-600 dark:bg-gradient-to-r dark:from-slate-800 dark:to-slate-700 dark:hover:border-slate-500 dark:hover:shadow-[0_14px_28px_rgba(15,23,42,0.45)]',
     workspaceIconWrapClass: 'flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 transition-colors duration-300 group-hover:bg-indigo-100 dark:border-slate-500 dark:bg-slate-700 dark:text-indigo-200 dark:group-hover:bg-slate-600',
@@ -277,7 +277,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       <header className={theme.headerClass}>
         <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <a href="/" className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6f74ea] shadow-[0_8px_20px_rgba(111,116,234,0.35)] transition-transform hover:scale-105">
+            <a href="/" className="cs-brand-badge flex h-9 w-9 items-center justify-center rounded-lg transition-transform hover:scale-105">
               <span className="text-sm font-bold text-white">CS</span>
             </a>
             <h1 className={`text-base sm:text-lg lg:text-xl font-semibold ${theme.brandTitleClass}`}>CorpServe</h1>
