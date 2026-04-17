@@ -54,13 +54,13 @@ const ROLE_META = {
   client: {
     label: 'Client',
     icon: UserRound,
-    badgeClass: 'border border-sky-200 bg-sky-50 text-sky-700',
+    badgeClass: 'border border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/30 dark:bg-sky-500/18 dark:text-sky-200',
     iconWrapClass: 'border-sky-200 bg-sky-100 text-sky-700',
   },
   vendor: {
     label: 'Vendor',
     icon: Building2,
-    badgeClass: 'border border-indigo-200 bg-indigo-50 text-indigo-700',
+    badgeClass: 'border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:text-indigo-200',
     iconWrapClass: 'border-indigo-200 bg-indigo-100 text-indigo-700',
   },
 };
@@ -68,12 +68,12 @@ const ROLE_META = {
 const STATUS_META = {
   active: {
     label: 'Active',
-    badgeClass: 'border border-emerald-200 bg-emerald-50 text-emerald-700',
+    badgeClass: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/18 dark:text-emerald-200',
     dotClass: 'bg-emerald-500',
   },
   suspended: {
     label: 'Suspended',
-    badgeClass: 'border border-rose-200 bg-rose-50 text-rose-700',
+    badgeClass: 'border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/18 dark:text-rose-200',
     dotClass: 'bg-rose-500',
   },
 };
@@ -200,22 +200,22 @@ export default function UsersManagement() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-6">
-        <Card className="group relative overflow-hidden border-indigo-300/80 bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100 shadow-[0_18px_45px_rgba(79,70,229,0.16)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_30px_60px_rgba(79,70,229,0.25)]">
+        <Card className="group relative overflow-hidden border-indigo-300/80 bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100 shadow-[0_18px_45px_rgba(79,70,229,0.16)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_30px_60px_rgba(79,70,229,0.25)] dark:border-indigo-400/25 dark:bg-gradient-to-br dark:from-[#1a2745] dark:via-[#233861] dark:to-[#2b4a75] dark:shadow-[0_18px_40px_rgba(2,6,23,0.5)] dark:hover:shadow-[0_20px_44px_rgba(2,6,23,0.56)]">
           <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:linear-gradient(to_right,rgba(79,70,229,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(79,70,229,0.1)_1px,transparent_1px)] [background-size:28px_28px]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-cyan-500 to-violet-500" />
-          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-indigo-300/35 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
+          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-indigo-300/35 blur-3xl dark:bg-indigo-500/16" />
+          <div className="pointer-events-none absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl dark:bg-cyan-500/14" />
           <CardContent className="relative p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200">
                   <Sparkles className="h-3.5 w-3.5" />
                   Admin Control Room
                 </p>
-                <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
                   Users <span className="bg-gradient-to-r from-indigo-700 to-violet-700 bg-clip-text text-transparent">Management</span>
                 </h1>
-                <p className="mt-1 text-sm text-indigo-900/80 sm:text-base">Creative, high-contrast oversight for all platform users.</p>
+                <p className="mt-1 text-sm text-indigo-900/80 sm:text-base dark:text-indigo-200/85">Creative, high-contrast oversight for all platform users.</p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -228,15 +228,15 @@ export default function UsersManagement() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm transition-all duration-300 group-hover:translate-x-0.5">
+                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm transition-all duration-300 group-hover:translate-x-0.5 dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200 dark:shadow-none">
                   <Activity className="h-4 w-4 animate-pulse" />
                   <span>Live Directory</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm">
+                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200 dark:shadow-none">
                   <Sparkles className="h-4 w-4" />
                   <span>Policy Guard Enabled</span>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-2.5 py-2 shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-2.5 py-2 shadow-sm dark:border-indigo-400/30 dark:bg-slate-800/70 dark:shadow-none">
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 text-sky-600">
                     <UserRound className="h-3.5 w-3.5" />
                   </span>
@@ -253,13 +253,13 @@ export default function UsersManagement() {
         </Card>
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Card className="group relative overflow-hidden border-indigo-200 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <Card className="group relative overflow-hidden border-indigo-200 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none dark:hover:shadow-none">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-600">Total</p>
-                  <p className="mt-1 text-2xl font-black text-slate-900">{summary.total}</p>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">{summary.total}</p>
                   <p className="mt-0.5 text-[11px] font-medium text-indigo-500">Directory visibility</p>
                 </div>
                 <span className="rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
@@ -268,49 +268,49 @@ export default function UsersManagement() {
               </div>
             </CardContent>
           </Card>
-          <Card className="group relative overflow-hidden border-emerald-200 bg-emerald-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <Card className="group relative overflow-hidden border-emerald-200 bg-emerald-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-400/25 dark:bg-emerald-500/24 dark:shadow-none dark:hover:shadow-none">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-green-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">Active</p>
-                  <p className="mt-1 text-2xl font-black text-emerald-900">{summary.active}</p>
-                  <p className="mt-0.5 text-[11px] font-medium text-emerald-700">Healthy accounts</p>
-                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-emerald-600/90">Whole platform data</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-900 dark:text-emerald-100">{summary.active}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-200">Healthy accounts</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-emerald-600/90 dark:text-emerald-200/85">Whole platform data</p>
                 </div>
-                <span className="rounded-xl border border-emerald-200 bg-white/80 p-2 text-emerald-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <span className="rounded-xl border border-emerald-200 bg-white/80 p-2 text-emerald-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-emerald-400/35 dark:bg-slate-800/70 dark:text-emerald-200">
                   <ShieldCheck className="h-4 w-4" />
                 </span>
               </div>
             </CardContent>
           </Card>
-          <Card className="group relative overflow-hidden border-rose-200 bg-rose-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <Card className="group relative overflow-hidden border-rose-200 bg-rose-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-rose-400/25 dark:bg-rose-500/24 dark:shadow-none dark:hover:shadow-none">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 to-red-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-rose-700">Suspended</p>
-                  <p className="mt-1 text-2xl font-black text-rose-900">{summary.suspended}</p>
-                  <p className="mt-0.5 text-[11px] font-medium text-rose-700">Needs review</p>
-                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-rose-600/90">Whole platform data</p>
+                  <p className="mt-1 text-2xl font-black text-rose-900 dark:text-rose-100">{summary.suspended}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-rose-700 dark:text-rose-200">Needs review</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-rose-600/90 dark:text-rose-200/85">Whole platform data</p>
                 </div>
-                <span className="rounded-xl border border-rose-200 bg-white/80 p-2 text-rose-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <span className="rounded-xl border border-rose-200 bg-white/80 p-2 text-rose-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-rose-400/35 dark:bg-slate-800/70 dark:text-rose-200">
                   <UserX className="h-4 w-4" />
                 </span>
               </div>
             </CardContent>
           </Card>
-          <Card className="group relative overflow-hidden border-sky-200 bg-sky-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <Card className="group relative overflow-hidden border-sky-200 bg-sky-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-sky-400/25 dark:bg-sky-500/24 dark:shadow-none dark:hover:shadow-none">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 to-cyan-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-700">Role Split</p>
-                  <p className="mt-1 text-sm font-bold text-sky-900">{summary.clients} Clients / {summary.vendors} Vendors</p>
-                  <p className="mt-0.5 text-[11px] font-medium text-sky-700">Balance indicator</p>
-                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-sky-600/90">Whole platform data</p>
+                  <p className="mt-1 text-sm font-bold text-sky-900 dark:text-sky-100">{summary.clients} Clients / {summary.vendors} Vendors</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-200">Balance indicator</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-sky-600/90 dark:text-sky-200/85">Whole platform data</p>
                 </div>
-                <span className="rounded-xl border border-sky-200 bg-white/80 p-2 text-sky-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <span className="rounded-xl border border-sky-200 bg-white/80 p-2 text-sky-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-sky-400/35 dark:bg-slate-800/70 dark:text-sky-200">
                   <Filter className="h-4 w-4" />
                 </span>
               </div>
@@ -318,7 +318,7 @@ export default function UsersManagement() {
           </Card>
         </div>
 
-        <Card className="border-indigo-200 bg-white/90 shadow-sm">
+        <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
           <CardContent className="p-4 sm:p-5">
             <div className="grid gap-3">
               <div className="relative">
@@ -327,7 +327,7 @@ export default function UsersManagement() {
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search by name or email..."
-                  className="h-11 border-indigo-200 bg-indigo-50/30 pl-10 text-slate-800 placeholder:text-slate-400 focus-visible:border-indigo-300"
+                  className="h-11 border-indigo-200 bg-indigo-50/30 pl-10 text-slate-800 placeholder:text-slate-400 focus-visible:border-indigo-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -347,7 +347,7 @@ export default function UsersManagement() {
                     className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-300 ${
                       isActive
                         ? 'border-indigo-600 bg-indigo-600 text-white shadow-[0_8px_18px_rgba(79,70,229,0.35)]'
-                        : 'border-indigo-200 bg-white text-indigo-700 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50'
+                        : 'border-indigo-200 bg-white text-indigo-700 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-400/25 dark:bg-slate-800 dark:text-indigo-200 dark:hover:border-indigo-400/35 dark:hover:bg-indigo-500/16'
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -378,7 +378,7 @@ export default function UsersManagement() {
             const status = STATUS_META[user.status];
 
             return (
-              <Card key={user.id} className="group relative overflow-hidden border-indigo-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <Card key={user.id} className="group relative overflow-hidden border-indigo-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none dark:hover:shadow-none">
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-violet-500" />
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -391,13 +391,13 @@ export default function UsersManagement() {
                         className="shrink-0 ring-2 ring-white"
                       />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
-                        <p className="truncate text-xs text-slate-600">{user.email}</p>
+                        <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
+                        <p className="truncate text-xs text-slate-600 dark:text-slate-400">{user.email}</p>
                       </div>
                     </div>
                     <Badge className={role.badgeClass}>{role.label}</Badge>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
+                  <div className="mt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                     <span className="inline-flex items-center gap-1.5">
                       <CalendarClock className="h-3.5 w-3.5 text-indigo-500" />
                       {formatDate(user.joinedDate)}
@@ -408,7 +408,7 @@ export default function UsersManagement() {
                     </Badge>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Requests: <span className="text-slate-900">{user.requests}</span></p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Requests: <span className="text-slate-900 dark:text-slate-100">{user.requests}</span></p>
                     <Button
                       size="sm"
                       variant="outline"
@@ -432,12 +432,12 @@ export default function UsersManagement() {
           )}
         </div>
 
-        <Card className="hidden md:block border-indigo-200 bg-white/95 shadow-sm">
+        <Card className="hidden md:block border-indigo-200 bg-white/95 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-indigo-100 bg-indigo-50/60">
+                  <tr className="border-b border-indigo-100 bg-indigo-50/60 dark:border-slate-700 dark:bg-slate-800/90">
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">User</th>
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Role</th>
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-indigo-700">Status</th>
@@ -452,7 +452,7 @@ export default function UsersManagement() {
                     const status = STATUS_META[user.status];
 
                     return (
-                      <tr key={user.id} className="group border-b border-indigo-100/70 transition-colors hover:bg-indigo-50/50">
+                      <tr key={user.id} className="group border-b border-indigo-100/70 transition-colors hover:bg-indigo-50/50 dark:border-slate-700 dark:hover:bg-slate-800/70">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <UserAvatarIconOnly
@@ -463,8 +463,8 @@ export default function UsersManagement() {
                               className="shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
-                              <p className="truncate text-xs text-slate-600">{user.email}</p>
+                              <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user.name}</p>
+                              <p className="truncate text-xs text-slate-600 dark:text-slate-400">{user.email}</p>
                             </div>
                           </div>
                         </td>
@@ -477,7 +477,7 @@ export default function UsersManagement() {
                             {status.label}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-700">{formatDate(user.joinedDate)}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">{formatDate(user.joinedDate)}</td>
                         <td className="px-6 py-4 text-right">
                           <span className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-700">
                             <Activity className="h-3 w-3" />
@@ -512,7 +512,7 @@ export default function UsersManagement() {
         </Card>
 
         {!isLoading && totalCount > 0 && (
-          <Card className="border-indigo-200 bg-white/90 shadow-sm">
+          <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700">
                 Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(currentPage * USERS_PER_PAGE, totalCount)} of {totalCount}
@@ -522,7 +522,7 @@ export default function UsersManagement() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1 || isLoading}
                 >
@@ -537,7 +537,7 @@ export default function UsersManagement() {
                     variant={page === currentPage ? 'default' : 'outline'}
                     className={page === currentPage
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'}
+                      : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18'}
                     onClick={() => setCurrentPage(page)}
                     disabled={isLoading}
                   >
@@ -549,7 +549,7 @@ export default function UsersManagement() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages || isLoading}
                 >

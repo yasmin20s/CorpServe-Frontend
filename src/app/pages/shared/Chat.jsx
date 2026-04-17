@@ -481,41 +481,41 @@ export default function Chat() {
   const mySenderType = isClient ? 'Client' : 'Vendor';
 
   const roomsList = (
-    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/90 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
+    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/90 shadow-[0_14px_35px_rgba(79,70,229,0.08)] dark:border-indigo-500/35 dark:bg-slate-950/90 dark:shadow-[0_18px_40px_rgba(2,6,23,0.65)]">
       <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-0">
-        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3">
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3 dark:border-indigo-500/30 dark:from-slate-900 dark:to-indigo-950/45">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-indigo-700 inline-flex items-center gap-1.5">
+            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-indigo-700 inline-flex items-center gap-1.5 dark:text-indigo-200">
               <MessageSquare className="h-4 w-4" />
               Conversations
             </h3>
-            <Badge className="border border-indigo-200 bg-white text-indigo-700">{visibleRooms.length}</Badge>
+            <Badge className="border border-indigo-200 bg-white text-indigo-700 dark:border-indigo-400/40 dark:bg-slate-900 dark:text-indigo-200">{visibleRooms.length}</Badge>
           </div>
           <div className="mt-2 relative">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-indigo-400" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-indigo-400 dark:text-indigo-300" />
             <Input
               value={roomSearch}
               onChange={(e) => setRoomSearch(e.target.value)}
               placeholder="Search conversation"
-              className="h-8 border-indigo-200 bg-white/90 pl-8 text-xs text-slate-700"
+              className="h-8 border-indigo-200 bg-white/90 pl-8 text-xs text-slate-700 dark:border-indigo-400/35 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-400"
             />
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(to_bottom,rgba(255,255,255,0.65),rgba(238,242,255,0.35))]">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(to_bottom,rgba(255,255,255,0.65),rgba(238,242,255,0.35))] dark:bg-[linear-gradient(to_bottom,rgba(2,6,23,0.88),rgba(15,23,42,0.82))]">
           {loadingRooms && (
-            <div className="p-6 text-center text-slate-500">Loading chats...</div>
+            <div className="p-6 text-center text-slate-500 dark:text-slate-300">Loading chats...</div>
           )}
           {!loadingRooms && rooms.length === 0 && (
             <div className="flex flex-col items-center gap-3 p-8 text-center">
-              <MessageSquare className="h-10 w-10 text-indigo-300" />
-              <p className="text-sm font-semibold text-slate-700">No conversations yet</p>
-              <p className="text-xs text-slate-500">
+              <MessageSquare className="h-10 w-10 text-indigo-300 dark:text-indigo-400" />
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">No conversations yet</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Chat rooms are created when a proposal is accepted.
               </p>
             </div>
           )}
           {!loadingRooms && rooms.length > 0 && visibleRooms.length === 0 && (
-            <div className="p-6 text-center text-sm text-indigo-700">No conversation matches your search.</div>
+            <div className="p-6 text-center text-sm text-indigo-700 dark:text-indigo-200">No conversation matches your search.</div>
           )}
           {visibleRooms.map((room) => {
             const name = role === 'client' ? room.vendorName : room.clientName;
@@ -530,8 +530,8 @@ export default function Chat() {
                 onClick={() => handleSelectRoom(room.id)}
                 className={`group mx-2 my-1.5 rounded-2xl border cursor-pointer transition-all duration-300 ${
                   sameChatRoomId(selectedRoomId, room.id)
-                    ? 'border-indigo-300 bg-indigo-100/80 shadow-[0_10px_22px_rgba(79,70,229,0.16)]'
-                    : 'border-transparent hover:border-indigo-200 hover:bg-indigo-50/80 hover:translate-x-0.5'
+                    ? 'border-indigo-300 bg-indigo-100/80 shadow-[0_10px_22px_rgba(79,70,229,0.16)] dark:border-indigo-400/50 dark:bg-indigo-500/20 dark:shadow-[0_12px_28px_rgba(15,23,42,0.6)]'
+                    : 'border-transparent hover:border-indigo-200 hover:bg-indigo-50/80 hover:translate-x-0.5 dark:hover:border-indigo-400/45 dark:hover:bg-indigo-500/14'
                 }`}
               >
                 <div className="flex items-start gap-3 p-3.5">
@@ -547,17 +547,17 @@ export default function Chat() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-gray-900 truncate">{name}</h4>
-                      <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                      <h4 className="font-semibold text-gray-900 truncate dark:text-slate-100">{name}</h4>
+                      <span className="text-xs text-gray-500 flex-shrink-0 ml-2 dark:text-slate-400">
                         {formatTime(room.lastMessageTime || room.createdAt)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="text-sm text-gray-500 truncate dark:text-slate-400">
                         {room.lastMessage || 'No messages yet'}
                       </p>
                       {room.unreadCount > 0 && (
-                        <Badge className="ml-2 bg-indigo-600 text-white flex-shrink-0">
+                        <Badge className="ml-2 bg-indigo-600 text-white flex-shrink-0 dark:bg-indigo-500 dark:text-indigo-50">
                           {room.unreadCount}
                         </Badge>
                       )}
@@ -573,22 +573,22 @@ export default function Chat() {
   );
 
   const messagePanel = (
-    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)]">
+    <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-indigo-200 bg-white/95 shadow-[0_14px_35px_rgba(79,70,229,0.08)] dark:border-indigo-500/35 dark:bg-slate-950/95 dark:shadow-[0_18px_40px_rgba(2,6,23,0.65)]">
       <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-0">
         {!selectedRoom ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
-            <MessageSquare className="h-16 w-16 text-indigo-200" />
-            <p className="text-lg font-semibold text-slate-700">Select a conversation</p>
-            <p className="text-sm text-slate-500">Choose a chat room from the list to start messaging.</p>
+            <MessageSquare className="h-16 w-16 text-indigo-200 dark:text-indigo-400" />
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-100">Select a conversation</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Choose a chat room from the list to start messaging.</p>
           </div>
         ) : (
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {/* Chat Header */}
-            <div className="p-4 border-b border-indigo-100 bg-gradient-to-r from-white via-indigo-50/60 to-sky-50/60 flex-shrink-0">
+            <div className="p-4 border-b border-indigo-100 bg-gradient-to-r from-white via-indigo-50/60 to-sky-50/60 flex-shrink-0 dark:border-indigo-500/30 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/35">
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBackToRooms}
-                  className="lg:hidden p-1 rounded-md hover:bg-gray-100 text-gray-600"
+                  className="lg:hidden p-1 rounded-md hover:bg-gray-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
@@ -603,8 +603,8 @@ export default function Chat() {
                   />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{counterpartyName}</h3>
-                  <p className="text-sm text-gray-600 inline-flex items-center gap-1.5">
+                  <h3 className="font-semibold text-gray-900 truncate dark:text-slate-100">{counterpartyName}</h3>
+                  <p className="text-sm text-gray-600 inline-flex items-center gap-1.5 dark:text-slate-300">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     {isClient ? 'Vendor' : 'Client'}
                   </p>
@@ -614,17 +614,17 @@ export default function Chat() {
 
             {/* ✅ Messages — flex-[1_1_0%] فقط بدون flex-1 مكررة، وبدون overflowAnchor */}
             <div
-              className="flex min-h-0 min-w-0 flex-[1_1_0%] flex-col overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4"
+              className="flex min-h-0 min-w-0 flex-[1_1_0%] flex-col overflow-y-auto overscroll-contain bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12),transparent_45%),linear-gradient(to_bottom,#f8faff,#eef2ff)] p-4 dark:bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.2),transparent_45%),linear-gradient(to_bottom,#020617,#0f172a)]"
               ref={messagesViewportRef}
             >
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-12">
-                  <p className="text-slate-500">Loading messages...</p>
+                  <p className="text-slate-500 dark:text-slate-300">Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-                  <p className="text-sm font-semibold text-slate-600">No messages yet</p>
-                  <p className="text-xs text-slate-400">Send the first message to start the conversation.</p>
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-200">No messages yet</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Send the first message to start the conversation.</p>
                 </div>
               ) : (
                 <div className="flex min-h-0 w-full flex-col space-y-4">
@@ -644,7 +644,7 @@ export default function Chat() {
                         >
                           {showDayDivider && (
                             <div className="flex justify-center">
-                              <span className="rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 shadow-sm">
+                              <span className="rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 shadow-sm dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:shadow-none">
                                 {messageDayLabel(msg.sentAt)}
                               </span>
                             </div>
@@ -658,7 +658,7 @@ export default function Chat() {
                                   className={`max-w-[78%] rounded-2xl p-3 shadow-sm ${
                                     isMe
                                       ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-md'
-                                      : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100'
+                                      : 'bg-white text-gray-900 rounded-bl-md border border-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
                                   }`}
                                 >
                                   {msg.mediaUrl && imageMedia && (
@@ -679,7 +679,7 @@ export default function Chat() {
                                       className={`flex items-center gap-2 mb-2 rounded-lg border px-3 py-2 text-sm ${
                                         isMe
                                           ? 'border-indigo-300/40 bg-indigo-500/30 text-white hover:bg-indigo-500/50'
-                                          : 'border-indigo-200 bg-indigo-50 text-slate-700 hover:bg-indigo-100/60'
+                                          : 'border-indigo-200 bg-indigo-50 text-slate-700 hover:bg-indigo-100/60 dark:border-indigo-400/30 dark:bg-indigo-500/12 dark:text-indigo-100 dark:hover:bg-indigo-500/18'
                                       }`}
                                     >
                                       <FileText className="w-4 h-4 flex-shrink-0" />
@@ -695,7 +695,7 @@ export default function Chat() {
                                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                   )}
                                   <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
-                                    <p className={`text-xs ${isMe ? 'text-indigo-200' : 'text-gray-500'}`}>
+                                    <p className={`text-xs ${isMe ? 'text-indigo-200' : 'text-gray-500 dark:text-slate-400'}`}>
                                       {formatMessageTime(msg.sentAt)}
                                     </p>
                                     {isMe && (
@@ -722,7 +722,7 @@ export default function Chat() {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-indigo-100 bg-white flex-shrink-0">
+            <div className="p-4 border-t border-indigo-100 bg-white flex-shrink-0 dark:border-indigo-500/30 dark:bg-slate-950">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -731,17 +731,17 @@ export default function Chat() {
                 onChange={handleFileSelect}
               />
               {pendingFile && (
-                <div className="mb-2 flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm">
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm dark:border-indigo-400/35 dark:bg-indigo-500/12">
                   {pendingFile.type.startsWith('image/') ? (
-                    <Image className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                    <Image className="w-4 h-4 text-indigo-600 flex-shrink-0 dark:text-indigo-200" />
                   ) : (
-                    <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                    <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0 dark:text-indigo-200" />
                   )}
-                  <span className="truncate text-slate-700">{pendingFile.name}</span>
-                  <span className="text-xs text-slate-500 flex-shrink-0">
+                  <span className="truncate text-slate-700 dark:text-slate-100">{pendingFile.name}</span>
+                  <span className="text-xs text-slate-500 flex-shrink-0 dark:text-slate-400">
                     {(pendingFile.size / 1024).toFixed(0)} KB
                   </span>
-                  <button onClick={() => setPendingFile(null)} className="ml-auto text-slate-400 hover:text-red-500">
+                  <button onClick={() => setPendingFile(null)} className="ml-auto text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -751,7 +751,7 @@ export default function Chat() {
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-9 w-9 rounded-xl border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100"
+                  className="h-9 w-9 rounded-xl border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-400/35 dark:bg-indigo-500/12 dark:text-indigo-200 dark:hover:bg-indigo-500/22"
                   disabled={sending}
                   onClick={() => openFilePicker('all')}
                   title="Attach"
@@ -768,7 +768,7 @@ export default function Chat() {
                       pendingFile ? handleSendAttachment() : handleSend();
                     }
                   }}
-                  className="flex-1 min-w-0"
+                  className="flex-1 min-w-0 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
                   disabled={sending}
                 />
                 <Button

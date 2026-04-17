@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { BellRing, MessageSquare, User, LogOut, ChevronLeft, ChevronRight, ShieldCheck, Menu, Settings, LayoutGrid, Activity } from 'lucide-react';
 import { Button } from './ui/button';
+import ThemeToggleButton from './ThemeToggleButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
 import { useAuth } from '../hooks/useAuth';
@@ -217,28 +218,29 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   }, [normalizedRole]);
 
   const theme = {
-    appShellClass: 'flex min-h-screen flex-col bg-slate-50',
-    headerClass: 'h-16 fixed top-0 left-0 right-0 z-50 border-b border-indigo-200/90 bg-gradient-to-r from-[#f5f7ff]/95 via-[#eef0ff]/95 to-[#e7edff]/95 shadow-[0_10px_24px_rgba(79,70,229,0.14)] backdrop-blur supports-[backdrop-filter]:bg-white/70',
-    brandTitleClass: 'text-black',
-    mobileMenuButtonClass: 'md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
-    notificationButtonClass: 'relative h-10 w-10 rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-100 text-indigo-700 shadow-[0_6px_14px_rgba(99,102,241,0.14)] transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:from-indigo-50 hover:to-violet-100 hover:shadow-[0_10px_22px_rgba(79,70,229,0.22)]',
+    appShellClass: 'flex min-h-screen flex-col bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100',
+    headerClass: 'h-16 fixed top-0 left-0 right-0 z-50 border-b border-indigo-200/90 bg-gradient-to-r from-[#f5f7ff]/95 via-[#eef0ff]/95 to-[#e7edff]/95 shadow-[0_10px_24px_rgba(79,70,229,0.14)] backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-indigo-500/30 dark:bg-gradient-to-r dark:from-[#111a33]/95 dark:via-[#162241]/95 dark:to-[#1f2d52]/95 dark:shadow-[0_10px_24px_rgba(2,6,23,0.5)] dark:supports-[backdrop-filter]:bg-slate-900/70',
+    brandTitleClass: 'text-black dark:text-slate-100',
+    mobileMenuButtonClass: 'md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
+    themeToggleButtonClass: 'h-10 w-10 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-white to-amber-100 text-amber-700 shadow-[0_6px_14px_rgba(251,191,36,0.22)] transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:from-amber-50 hover:to-yellow-100 hover:shadow-[0_10px_22px_rgba(245,158,11,0.3)] dark:border-amber-400/45 dark:bg-gradient-to-br dark:from-amber-500/25 dark:to-orange-500/15 dark:text-amber-200 dark:shadow-[0_10px_22px_rgba(245,158,11,0.25)] dark:hover:border-amber-300/60 dark:hover:from-amber-400/30 dark:hover:to-orange-400/20',
+    notificationButtonClass: 'relative h-10 w-10 rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-100 text-indigo-700 shadow-[0_6px_14px_rgba(99,102,241,0.14)] transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:from-indigo-50 hover:to-violet-100 hover:shadow-[0_10px_22px_rgba(79,70,229,0.22)] dark:border-fuchsia-400/40 dark:bg-gradient-to-br dark:from-violet-500/24 dark:to-fuchsia-500/16 dark:text-violet-200 dark:shadow-[0_10px_22px_rgba(139,92,246,0.28)] dark:hover:border-fuchsia-300/60 dark:hover:from-violet-400/30 dark:hover:to-fuchsia-400/24',
     notificationBadgeClass: 'absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-fuchsia-600 px-1.5 text-[10px] font-bold text-white shadow-[0_6px_14px_rgba(192,38,211,0.35)]',
-    chatButtonClass: 'relative h-10 w-10 rounded-2xl border border-sky-200/80 bg-gradient-to-br from-white to-sky-100 text-sky-700 shadow-[0_6px_14px_rgba(14,165,233,0.16)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:from-sky-50 hover:to-cyan-100 hover:shadow-[0_10px_22px_rgba(14,165,233,0.24)]',
+    chatButtonClass: 'relative h-10 w-10 rounded-2xl border border-sky-200/80 bg-gradient-to-br from-white to-sky-100 text-sky-700 shadow-[0_6px_14px_rgba(14,165,233,0.16)] transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:from-sky-50 hover:to-cyan-100 hover:shadow-[0_10px_22px_rgba(14,165,233,0.24)] dark:border-cyan-400/40 dark:bg-gradient-to-br dark:from-cyan-500/22 dark:to-blue-500/16 dark:text-cyan-200 dark:shadow-[0_10px_22px_rgba(6,182,212,0.26)] dark:hover:border-cyan-300/60 dark:hover:from-cyan-400/28 dark:hover:to-blue-400/22',
     chatBadgeClass: 'absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-sky-600 px-1.5 text-[10px] font-bold text-white shadow-[0_6px_14px_rgba(2,132,199,0.35)]',
-    profileTriggerClass: 'h-auto gap-2 rounded-2xl border border-transparent bg-transparent py-1.5 px-1 sm:px-2 transition-colors hover:border-indigo-200 hover:bg-white/60',
-    profileAvatarWrapClass: 'flex h-9 w-9 items-center justify-center rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-100 via-blue-100 to-cyan-100 shadow-[0_6px_14px_rgba(99,102,241,0.16)]',
-    profileAvatarIconClass: 'w-4 h-4 text-indigo-700',
-    profileRoleTextClass: 'text-indigo-600',
-    sidebarClass: 'border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff]',
-    workspaceCardClass: 'group flex items-center rounded-2xl border border-indigo-200 bg-gradient-to-r from-white to-indigo-50/70 p-3 shadow-[0_8px_18px_rgba(79,70,229,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-[0_14px_28px_rgba(79,70,229,0.2)]',
-    workspaceIconWrapClass: 'flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 transition-colors duration-300 group-hover:bg-indigo-100',
-    workspaceTitleClass: 'text-base font-bold tracking-tight text-indigo-700',
-    workspaceLiveBadgeClass: 'inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-red-700 shadow-[0_6px_14px_rgba(220,38,38,0.16)]',
+    profileTriggerClass: 'h-auto gap-2 rounded-2xl border border-transparent bg-transparent py-1.5 px-1 sm:px-2 transition-colors hover:border-indigo-200 hover:bg-white/60 dark:hover:border-slate-600 dark:hover:bg-slate-800/70',
+    profileAvatarWrapClass: 'flex h-9 w-9 items-center justify-center rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-100 via-blue-100 to-cyan-100 shadow-[0_6px_14px_rgba(99,102,241,0.16)] dark:border-slate-600 dark:bg-gradient-to-br dark:from-slate-700 dark:via-slate-700 dark:to-slate-600 dark:shadow-[0_8px_16px_rgba(15,23,42,0.5)]',
+    profileAvatarIconClass: 'w-4 h-4 text-indigo-700 dark:text-slate-100',
+    profileRoleTextClass: 'text-indigo-600 dark:text-indigo-200',
+    sidebarClass: 'border-r border-indigo-200 bg-gradient-to-b from-[#eef0ff] via-[#ece8ff] to-[#e1edff] dark:border-slate-700 dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-900 dark:to-slate-800',
+    workspaceCardClass: 'group flex items-center rounded-2xl border border-indigo-200 bg-gradient-to-r from-white to-indigo-50/70 p-3 shadow-[0_8px_18px_rgba(79,70,229,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-[0_14px_28px_rgba(79,70,229,0.2)] dark:border-slate-600 dark:bg-gradient-to-r dark:from-slate-800 dark:to-slate-700 dark:hover:border-slate-500 dark:hover:shadow-[0_14px_28px_rgba(15,23,42,0.45)]',
+    workspaceIconWrapClass: 'flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 transition-colors duration-300 group-hover:bg-indigo-100 dark:border-slate-500 dark:bg-slate-700 dark:text-indigo-200 dark:group-hover:bg-slate-600',
+    workspaceTitleClass: 'text-base font-bold tracking-tight text-indigo-700 dark:bg-gradient-to-r dark:from-[#A96DFF] dark:to-[#D8B9FF] dark:bg-clip-text dark:text-transparent',
+    workspaceLiveBadgeClass: 'inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-red-700 shadow-[0_6px_14px_rgba(220,38,38,0.16)] dark:border-red-400/40 dark:bg-red-900/40 dark:text-red-200',
     workspaceLiveIconClass: 'h-3.5 w-3.5 text-red-500 animate-pulse',
     navActiveClass: 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_10px_24_rgba(79,70,229,0.28)]',
-    navInactiveClass: 'text-slate-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-violet-100 hover:shadow-sm',
-    navHoverBorderClass: 'pointer-events-none absolute inset-0 rounded-xl border border-transparent group-hover:border-indigo-100',
-    navIconInactiveClass: 'text-indigo-600',
+    navInactiveClass: 'text-slate-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-violet-100 hover:shadow-sm dark:text-slate-200 dark:hover:from-slate-700 dark:hover:to-slate-600',
+    navHoverBorderClass: 'pointer-events-none absolute inset-0 rounded-xl border border-transparent group-hover:border-indigo-100 dark:group-hover:border-slate-500/70',
+    navIconInactiveClass: 'text-indigo-600 dark:text-indigo-200',
   };
 
   const roleStructure = {
@@ -286,7 +288,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   <Menu className="h-4 w-4" /> Menu
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 md:hidden">
+              <DropdownMenuContent align="start" className="w-56 border border-indigo-100 bg-white/95 md:hidden dark:border-slate-600 dark:bg-slate-900/95">
                 <DropdownMenuLabel>Navigate</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {sidebarMenuItems.map((item) => (
@@ -311,6 +313,8 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
+            <ThemeToggleButton className={theme.themeToggleButtonClass} />
+
             <Button type="button" onClick={handleNotificationToggle} variant="ghost" size="icon" className={theme.notificationButtonClass}>
               <BellRing className="w-5 h-5"/>
               {unreadCount > 0 && <Badge className={theme.notificationBadgeClass}>{unreadCount > 99 ? '99+' : unreadCount}</Badge>}
@@ -337,24 +341,24 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                     <div className={`flex items-center gap-1 text-[11px] font-semibold ${theme.profileRoleTextClass}`}>
                       <ShieldCheck className="h-3.5 w-3.5" /> <span>{roleLabel}</span>
                     </div>
-                    {displayName && <span className="text-sm font-medium text-slate-800">{displayName}</span>}
+                    {displayName && <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{displayName}</span>}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 overflow-hidden rounded-2xl border border-indigo-100 bg-white/95 p-0 shadow-[0_20px_45px_rgba(79,70,229,0.18)] backdrop-blur" sideOffset={10}>
+              <DropdownMenuContent align="end" className="w-72 overflow-hidden rounded-2xl border border-indigo-100 bg-white/95 p-0 shadow-[0_20px_45px_rgba(79,70,229,0.18)] backdrop-blur dark:border-slate-600 dark:bg-slate-900/95 dark:shadow-[0_20px_45px_rgba(15,23,42,0.55)]" sideOffset={10}>
                 <DropdownMenuLabel className="p-0">
                   <div className="relative overflow-hidden px-3 py-2.5">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-100" />
-                    <div className="relative flex items-center gap-2.5 text-slate-800">
-                      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-indigo-200 bg-white/80 shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-700" />
+                    <div className="relative flex items-center gap-2.5 text-slate-800 dark:text-slate-100">
+                      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-indigo-200 bg-white/80 shadow-sm dark:border-slate-500 dark:bg-slate-700/80">
                         {headerAvatar ? (
                           <img src={headerAvatar} alt={displayName || 'Profile'} className="h-full w-full object-cover" />
                         ) : (
-                          <User className="h-4 w-4 text-indigo-600" />
+                          <User className="h-4 w-4 text-indigo-600 dark:text-indigo-200" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600">My Account</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-200">My Account</p>
                         <p className="truncate text-sm font-semibold">{displayName || 'CorpServe User'}</p>
                       </div>
                     </div>
@@ -366,9 +370,9 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   <DropdownMenuItem asChild>
                     <Link
                       to={userProfilePath}
-                      className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50"
+                      className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:from-slate-700 dark:hover:to-slate-600"
                     >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-slate-700 dark:text-indigo-200">
                         <User className="h-4 w-4" />
                       </span>
                       <span>User Profile</span>
@@ -380,9 +384,9 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   <DropdownMenuItem asChild>
                     <Link
                       to={profileSettingsPath}
-                      className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50"
+                      className="mx-2 my-1.5 flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition hover:border-indigo-100 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:from-slate-700 dark:hover:to-slate-600"
                     >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-600 dark:bg-slate-700 dark:text-violet-200">
                         <Settings className="h-4 w-4" />
                       </span>
                       <span>Profile Setting</span>
@@ -393,7 +397,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                 <DropdownMenuItem asChild>
                   <button
                     type="button"
-                    className="mx-2 mt-1 mb-2 flex w-[calc(100%-1rem)] items-center gap-2.5 rounded-xl border border-red-100 bg-red-50/70 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100/70"
+                    className="mx-2 mt-1 mb-2 flex w-[calc(100%-1rem)] items-center gap-2.5 rounded-xl border border-red-100 bg-red-50/70 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100/70 dark:border-red-400/40 dark:bg-red-900/40 dark:text-red-200 dark:hover:border-red-300/60 dark:hover:bg-red-900/60"
                     onClick={handleLogout}
                     disabled={isLoggingOut}
                   >
@@ -417,7 +421,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
                   {isSidebarOpen && (
                     <div className="leading-tight">
                       <p className={theme.workspaceTitleClass}>Workspace</p>
-                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-900">{structure.workspaceSubtitle}</p>
+                      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-900 dark:text-slate-200">{structure.workspaceSubtitle}</p>
                     </div>
                   )}
                 </div>

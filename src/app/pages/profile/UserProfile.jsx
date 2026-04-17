@@ -220,27 +220,27 @@ export default function UserProfile() {
 
           <div className="mb-6 text-center md:mb-8 md:text-left">
             <div className="mb-2 flex items-center justify-center gap-2 md:justify-start">
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">Profile Setting</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 sm:text-3xl lg:text-4xl">Profile Setting</h1>
               <span className="text-2xl text-purple-500 sm:text-3xl">✨</span>
             </div>
-            <p className="text-sm text-gray-600 sm:text-base">Manage your account settings and preferences.</p>
+            <p className="text-sm text-gray-600 dark:text-slate-300 sm:text-base">Manage your account settings and preferences.</p>
           </div>
 
-          <div className="space-y-6 rounded-xl bg-white p-4 shadow-lg sm:space-y-8 sm:rounded-2xl sm:p-6 lg:p-8">
+          <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900/78 dark:shadow-[0_20px_40px_rgba(2,6,23,0.56)] sm:space-y-8 sm:rounded-2xl sm:p-6 lg:p-8">
             {isProfileLoading && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-400/35 dark:bg-blue-500/16 dark:text-blue-200">
                 Loading profile data...
               </div>
             )}
 
             <div>
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <User className="h-5 w-5 text-purple-600" />
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
+                <User className="h-5 w-5 text-purple-600 dark:text-purple-300" />
                 Personal Information
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <Label htmlFor="fullName" className="font-medium text-gray-700">
+                  <Label htmlFor="fullName" className="font-medium text-gray-700 dark:text-slate-200">
                     Full Name
                   </Label>
                   <Input
@@ -250,11 +250,11 @@ export default function UserProfile() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
-                    className="mt-1"
+                    className="mt-1 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email" className="font-medium text-gray-700">
+                  <Label htmlFor="email" className="font-medium text-gray-700 dark:text-slate-200">
                       {role === "vendor" ? "Business Email" : "Email Address"}
                   </Label>
                   <Input
@@ -264,11 +264,11 @@ export default function UserProfile() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
-                    className="mt-1"
+                    className="mt-1 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone" className="font-medium text-gray-700">
+                  <Label htmlFor="phone" className="font-medium text-gray-700 dark:text-slate-200">
                     Phone Number
                   </Label>
                   <Input
@@ -278,7 +278,7 @@ export default function UserProfile() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     disabled={isProfileLoading || isSavingProfile}
-                    className="mt-1"
+                    className="mt-1 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                   />
                 </div>
               </div>
@@ -296,13 +296,13 @@ export default function UserProfile() {
             </div>
 
             <div>
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <Lock className="h-5 w-5 text-purple-500" />
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
+                <Lock className="h-5 w-5 text-purple-500 dark:text-purple-300" />
                 Change Password
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="currentPassword" className="font-medium text-gray-700">
+                  <Label htmlFor="currentPassword" className="font-medium text-gray-700 dark:text-slate-200">
                     Current Password
                   </Label>
                   <div className="relative mt-1">
@@ -310,7 +310,7 @@ export default function UserProfile() {
                       id="currentPassword"
                       type="password"
                       placeholder="........"
-                      className="pr-10"
+                      className="pr-10 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       disabled={isProfileLoading || isChangingPassword}
@@ -319,7 +319,7 @@ export default function UserProfile() {
                 </div>
                 <div className="hidden md:block" />
                 <div>
-                  <Label htmlFor="newPassword" className="font-medium text-gray-700">
+                  <Label htmlFor="newPassword" className="font-medium text-gray-700 dark:text-slate-200">
                     New Password
                   </Label>
                   <div className="relative mt-1">
@@ -327,7 +327,7 @@ export default function UserProfile() {
                       id="newPassword"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="........"
-                      className="pr-10"
+                      className="pr-10 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={isProfileLoading || isChangingPassword}
@@ -335,14 +335,14 @@ export default function UserProfile() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="confirmPassword" className="font-medium text-gray-700">
+                  <Label htmlFor="confirmPassword" className="font-medium text-gray-700 dark:text-slate-200">
                     Confirm New Password
                   </Label>
                   <div className="relative mt-1">
@@ -350,7 +350,7 @@ export default function UserProfile() {
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="........"
-                      className="pr-10"
+                      className="pr-10 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       disabled={isProfileLoading || isChangingPassword}
@@ -358,7 +358,7 @@ export default function UserProfile() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -379,15 +379,15 @@ export default function UserProfile() {
             </div>
 
             <div>
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
-                <span className="text-purple-600">⚙️</span>
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-slate-100">
+                <span className="text-purple-600 dark:text-purple-300">⚙️</span>
                 User Preferences
               </h2>
               <div className="space-y-3">
-                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/80 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">Email Notifications</p>
-                    <p className="text-sm text-gray-500">Receive updates via email</p>
+                    <p className="font-medium text-gray-900 dark:text-slate-100">Email Notifications</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Receive updates via email</p>
                   </div>
                   <Switch
                     checked={emailNotifications}
@@ -395,10 +395,10 @@ export default function UserProfile() {
                     disabled={isProfileLoading || isSavingPreferences}
                   />
                 </div>
-                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/80 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">System Notifications</p>
-                    <p className="text-sm text-gray-500">Receive system alerts in the app</p>
+                    <p className="font-medium text-gray-900 dark:text-slate-100">System Notifications</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Receive system alerts in the app</p>
                   </div>
                   <Switch
                     checked={systemNotifications}
@@ -421,9 +421,9 @@ export default function UserProfile() {
             </div>
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-600 sm:text-base">
+          <p className="mt-6 text-center text-sm text-gray-600 dark:text-slate-300 sm:text-base">
             Need help?{' '}
-            <a href="#" className="font-medium text-purple-600 hover:text-purple-700">
+            <a href="#" className="font-medium text-purple-600 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200">
               Contact Support
             </a>
           </p>

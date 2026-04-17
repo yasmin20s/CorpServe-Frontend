@@ -28,7 +28,7 @@ export default function VendorDashboard() {
     return (<DashboardLayout menuItems={menuItems} userRole="vendor">
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Vendor Dashboard</h1>
+          <h1 className="mb-2 inline-block text-3xl font-bold text-gray-900 dark:bg-gradient-to-r dark:from-[#A96DFF] dark:to-[#D8B9FF] dark:bg-clip-text dark:!text-transparent">Vendor Dashboard</h1>
           <p className="text-gray-600">Track your performance and manage requests</p>
         </div>
 

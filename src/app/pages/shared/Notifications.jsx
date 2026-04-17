@@ -343,56 +343,56 @@ function getNotificationVisual(n) {
 
 const VISUAL_STYLES = {
   payment: {
-    card: 'bg-[#FFFBEB] border-amber-200 shadow-amber-100/20',
-    iconWrap: 'bg-amber-100 text-amber-600',
+    card: 'bg-[#FFFBEB] border-amber-200 shadow-amber-100/20 dark:bg-amber-500/10 dark:border-amber-400/35 dark:shadow-none',
+    iconWrap: 'bg-amber-100 text-amber-600 dark:bg-amber-500/18 dark:text-amber-200',
     icon: 'alert',
     newPill: 'indigo',
   },
   newProposal: {
-    card: 'bg-[#FAF5FF] border-violet-200/90 shadow-violet-100/25',
-    iconWrap: 'bg-violet-100 text-violet-600',
+    card: 'bg-[#FAF5FF] border-violet-200/90 shadow-violet-100/25 dark:bg-violet-500/10 dark:border-violet-400/35 dark:shadow-none',
+    iconWrap: 'bg-violet-100 text-violet-600 dark:bg-violet-500/18 dark:text-violet-200',
     icon: 'clock',
     newPill: 'violet',
   },
   completed: {
-    card: 'bg-[#F0FDF4] border-emerald-200/90 shadow-emerald-100/25',
-    iconWrap: 'bg-emerald-100 text-emerald-700',
+    card: 'bg-[#F0FDF4] border-emerald-200/90 shadow-emerald-100/25 dark:bg-emerald-500/10 dark:border-emerald-400/35 dark:shadow-none',
+    iconWrap: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/18 dark:text-emerald-200',
     icon: 'checkCheck',
     newPill: 'violet',
   },
   slaWarn: {
-    card: 'bg-amber-50/95 border-amber-200 shadow-amber-100/30',
-    iconWrap: 'bg-amber-100 text-amber-700',
+    card: 'bg-amber-50/95 border-amber-200 shadow-amber-100/30 dark:bg-amber-500/12 dark:border-amber-400/35 dark:shadow-none',
+    iconWrap: 'bg-amber-100 text-amber-700 dark:bg-amber-500/18 dark:text-amber-200',
     icon: 'triangle',
     newPill: 'amber',
   },
   proposalPurple: {
-    card: 'bg-[#FAF5FF] border-violet-200/90 shadow-violet-100/25',
-    iconWrap: 'bg-violet-100 text-violet-600',
+    card: 'bg-[#FAF5FF] border-violet-200/90 shadow-violet-100/25 dark:bg-violet-500/10 dark:border-violet-400/35 dark:shadow-none',
+    iconWrap: 'bg-violet-100 text-violet-600 dark:bg-violet-500/18 dark:text-violet-200',
     icon: 'clock',
     newPill: 'violet',
   },
   system: {
-    card: 'bg-[#F8FAFC] border-slate-200 shadow-slate-100/20',
-    iconWrap: 'bg-slate-200 text-slate-600',
+    card: 'bg-[#F8FAFC] border-slate-200 shadow-slate-100/20 dark:bg-slate-900 dark:border-slate-700 dark:shadow-none',
+    iconWrap: 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-100',
     icon: 'shield',
     newPill: 'indigo',
   },
   browse: {
-    card: 'bg-sky-50/90 border-sky-200/85 shadow-sky-100/20',
-    iconWrap: 'bg-sky-100 text-sky-700',
+    card: 'bg-sky-50/90 border-sky-200/85 shadow-sky-100/20 dark:bg-sky-500/10 dark:border-sky-400/35 dark:shadow-none',
+    iconWrap: 'bg-sky-100 text-sky-700 dark:bg-sky-500/18 dark:text-sky-200',
     icon: 'fileStack',
     newPill: 'indigo',
   },
   active: {
-    card: 'bg-indigo-50/80 border-indigo-200/80 shadow-indigo-100/20',
-    iconWrap: 'bg-indigo-100 text-indigo-700',
+    card: 'bg-indigo-50/80 border-indigo-200/80 shadow-indigo-100/20 dark:bg-indigo-500/10 dark:border-indigo-400/35 dark:shadow-none',
+    iconWrap: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/18 dark:text-indigo-200',
     icon: 'activity',
     newPill: 'indigo',
   },
   default: {
-    card: 'bg-slate-50 border-slate-200/90 shadow-slate-100/15',
-    iconWrap: 'bg-slate-200 text-slate-600',
+    card: 'bg-slate-50 border-slate-200/90 shadow-slate-100/15 dark:bg-slate-900 dark:border-slate-700 dark:shadow-none',
+    iconWrap: 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-100',
     icon: 'clock',
     newPill: 'indigo',
   },
@@ -420,12 +420,12 @@ function renderNotificationIcon(kind) {
 
 function newUpdatePillClass(pill) {
   if (pill === 'violet') {
-    return 'text-violet-600 bg-violet-50 px-2 py-1 rounded-full border border-violet-100 animate-pulse';
+    return 'text-violet-600 bg-violet-50 px-2 py-1 rounded-full border border-violet-100 animate-pulse dark:text-violet-200 dark:bg-violet-500/18 dark:border-violet-400/35';
   }
   if (pill === 'amber') {
-    return 'text-amber-800 bg-amber-100 px-2 py-1 rounded-full border border-amber-200 animate-pulse';
+    return 'text-amber-800 bg-amber-100 px-2 py-1 rounded-full border border-amber-200 animate-pulse dark:text-amber-200 dark:bg-amber-500/20 dark:border-amber-400/35';
   }
-  return 'text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 animate-pulse';
+  return 'text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 animate-pulse dark:text-indigo-200 dark:bg-indigo-500/18 dark:border-indigo-400/35';
 }
 
 function getNotificationAction(
@@ -439,15 +439,15 @@ function getNotificationAction(
   const vis = getNotificationVisual(n);
 
   const mintBtn =
-    'bg-emerald-50 text-emerald-800 border-2 border-emerald-200/80 hover:bg-emerald-100/80';
+    'bg-emerald-50 text-emerald-800 border-2 border-emerald-200/80 hover:bg-emerald-100/80 dark:bg-emerald-500/16 dark:text-emerald-200 dark:border-emerald-400/35 dark:hover:bg-emerald-500/24';
   const violetBtn =
-    'bg-violet-50 text-violet-800 border-2 border-violet-200 hover:bg-violet-100/70';
+    'bg-violet-50 text-violet-800 border-2 border-violet-200 hover:bg-violet-100/70 dark:bg-violet-500/16 dark:text-violet-200 dark:border-violet-400/35 dark:hover:bg-violet-500/24';
   const warnBtn =
-    'bg-amber-50 text-amber-900 border-2 border-amber-200 hover:bg-amber-100/80';
+    'bg-amber-50 text-amber-900 border-2 border-amber-200 hover:bg-amber-100/80 dark:bg-amber-500/18 dark:text-amber-200 dark:border-amber-400/35 dark:hover:bg-amber-500/28';
   const skyBtn =
-    'bg-sky-50 text-sky-800 border-2 border-sky-200 hover:bg-sky-100/80';
+    'bg-sky-50 text-sky-800 border-2 border-sky-200 hover:bg-sky-100/80 dark:bg-sky-500/18 dark:text-sky-200 dark:border-sky-400/35 dark:hover:bg-sky-500/28';
   const indigoBtn =
-    'bg-indigo-50 text-indigo-800 border-2 border-indigo-200 hover:bg-indigo-100/70';
+    'bg-indigo-50 text-indigo-800 border-2 border-indigo-200 hover:bg-indigo-100/70 dark:bg-indigo-500/18 dark:text-indigo-200 dark:border-indigo-400/35 dark:hover:bg-indigo-500/28';
 
   if (cat === 'payment') {
     if (r === 'vendor' && isVendorReceived) {
@@ -456,7 +456,7 @@ function getNotificationAction(
         text: 'Received',
         icon: <CheckCheck size={16} />,
         className:
-          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100',
+          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-500/22 dark:text-emerald-200 dark:border-emerald-400/40 dark:hover:bg-emerald-500/22',
       };
     }
 
@@ -466,7 +466,7 @@ function getNotificationAction(
         text: 'Paid',
         icon: <CheckCheck size={16} />,
         className:
-          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100',
+          'bg-emerald-100 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-500/22 dark:text-emerald-200 dark:border-emerald-400/40 dark:hover:bg-emerald-500/22',
       };
     }
 
@@ -485,7 +485,7 @@ function getNotificationAction(
         text: 'Pay Now',
         icon: <CreditCard size={16} />,
         className:
-          'bg-[#E65100] hover:bg-[#BF360C] text-white shadow-orange-200 border-none',
+          'bg-[#E65100] hover:bg-[#BF360C] text-white shadow-orange-200 border-none dark:bg-orange-500 dark:hover:bg-orange-400 dark:text-slate-950',
       };
     }
 
@@ -557,7 +557,7 @@ function getNotificationAction(
       text: 'Learn more',
       icon: <ShieldCheck size={16} />,
       className:
-        'bg-slate-200/50 text-slate-700 border-2 border-slate-300 hover:bg-slate-300/50',
+        'bg-slate-200/50 text-slate-700 border-2 border-slate-300 hover:bg-slate-300/50 dark:bg-slate-700/55 dark:text-slate-100 dark:border-slate-500 dark:hover:bg-slate-700',
     };
   }
 
@@ -592,7 +592,7 @@ function getNotificationAction(
     text: 'Open',
     icon: <Clock size={16} />,
     className:
-      'bg-slate-100 text-slate-800 border-2 border-slate-200 hover:bg-slate-200/60',
+      'bg-slate-100 text-slate-800 border-2 border-slate-200 hover:bg-slate-200/60 dark:bg-slate-700/55 dark:text-slate-100 dark:border-slate-500 dark:hover:bg-slate-700',
   };
 }
 
@@ -793,7 +793,7 @@ export default function Notifications() {
     if (list.length === 0) return null;
     return (
       <div className="space-y-4 pt-4">
-        <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-[2px] px-2">
+        <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-[2px] px-2 dark:text-slate-500">
           {title}
         </h3>
         <div className="space-y-4">
@@ -835,7 +835,7 @@ export default function Notifications() {
                     handleMarkRead(n);
                   }
                 }}
-                className={`group relative flex gap-5 p-6 rounded-[28px] border transition-all duration-300 transform cursor-pointer hover:scale-[1.01] hover:shadow-xl ${styles.card}`}
+                className={`group relative flex gap-5 p-6 rounded-[28px] border transition-all duration-300 transform cursor-pointer hover:scale-[1.01] hover:shadow-xl dark:hover:shadow-none ${styles.card}`}
               >
                 <div
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${styles.iconWrap}`}
@@ -845,22 +845,22 @@ export default function Notifications() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h4 className="font-black text-[17px] tracking-tight text-black">
+                    <h4 className="font-black text-[17px] tracking-tight text-black dark:text-slate-100">
                       {n.title}
                     </h4>
                     {showOverdue && (
-                      <Badge className="bg-rose-100 text-rose-600 text-[10px] font-black px-2 py-0.5 rounded-lg border-none uppercase tracking-wider">
+                      <Badge className="bg-rose-100 text-rose-600 text-[10px] font-black px-2 py-0.5 rounded-lg border-none uppercase tracking-wider dark:bg-rose-500/20 dark:text-rose-200">
                         Overdue
                       </Badge>
                     )}
                     {isActionDone && (
-                      <Badge className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-lg border border-emerald-200 uppercase tracking-wider">
+                      <Badge className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-lg border border-emerald-200 uppercase tracking-wider dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-400/35">
                         {isVendorReceived && !isPaymentSettled ? 'Received' : 'Paid'}
                       </Badge>
                     )}
                   </div>
 
-                  <p className="text-[14.5px] leading-relaxed max-w-4xl text-slate-900 font-semibold transition-colors duration-300">
+                  <p className="text-[14.5px] leading-relaxed max-w-4xl text-slate-900 font-semibold transition-colors duration-300 dark:text-slate-200">
                     {n.message}
                   </p>
 
@@ -896,12 +896,12 @@ export default function Notifications() {
 
                 <div className="flex flex-col items-end justify-between py-1 min-w-[90px] shrink-0">
                   <div className="flex flex-col items-end gap-2">
-                    <span className="text-[11px] font-black text-slate-500 bg-white/60 px-2 py-1 rounded-md shadow-sm uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-slate-500 bg-white/60 px-2 py-1 rounded-md shadow-sm uppercase tracking-widest dark:bg-slate-800 dark:text-slate-300 dark:shadow-none">
                       {formatRelativeTime(n.createdAt, nowTick)}
                     </span>
 
                     {n.isRead ? (
-                      <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                      <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 dark:bg-emerald-500/18 dark:text-emerald-200 dark:border-emerald-400/35">
                         <CheckCheck size={12} strokeWidth={3} />
                         <span className="text-[9px] font-black uppercase">
                           Read
@@ -914,10 +914,10 @@ export default function Notifications() {
                         <div
                           className={`w-1.5 h-1.5 rounded-full ${
                             styles.newPill === 'violet'
-                              ? 'bg-violet-600'
+                              ? 'bg-violet-600 dark:bg-violet-300'
                               : styles.newPill === 'amber'
-                                ? 'bg-amber-700'
-                                : 'bg-indigo-600'
+                                ? 'bg-amber-700 dark:bg-amber-300'
+                                : 'bg-indigo-600 dark:bg-indigo-300'
                           }`}
                         />
                         <span className="text-[9px] font-black uppercase tracking-tighter">
@@ -938,13 +938,13 @@ export default function Notifications() {
   return (
     <DashboardLayout menuItems={menuItems} userRole={userRole}>
       <div className="space-y-8 max-w-6xl mx-auto pb-10">
-        <Card className="relative overflow-hidden rounded-[32px] border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-blue-100 p-8 shadow-[0_16px_36px_rgba(79,70,229,0.12)]">
+        <Card className="relative overflow-hidden rounded-[32px] border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-blue-100 p-8 shadow-[0_16px_36px_rgba(79,70,229,0.12)] dark:border-indigo-400/35 dark:bg-gradient-to-r dark:from-slate-900 dark:via-indigo-950/55 dark:to-slate-900 dark:shadow-[0_18px_40px_rgba(2,6,23,0.62)]">
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
             <div>
-              <h1 className="mb-2 text-3xl font-black text-indigo-900 tracking-tight">
+              <h1 className="mb-2 text-3xl font-black text-indigo-900 tracking-tight dark:text-indigo-100">
                 Notifications
               </h1>
-              <p className="text-indigo-800/80 font-medium">
+              <p className="text-indigo-800/80 font-medium dark:text-indigo-200/85">
                 Stay on top of your requests and payments.
               </p>
             </div>
@@ -952,7 +952,7 @@ export default function Notifications() {
               variant="ghost"
               disabled={markAllLoading || items.length === 0}
               onClick={handleMarkAllAsRead}
-              className="bg-white/50 hover:bg-white text-indigo-900 font-bold rounded-2xl gap-2 transition-all shadow-sm shrink-0"
+              className="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-2xl gap-2 transition-all shadow-sm shrink-0 dark:bg-emerald-500/18 dark:hover:bg-emerald-500/28 dark:text-emerald-200 dark:shadow-none"
             >
               <Check size={18} />{' '}
               {markAllLoading ? 'Updating…' : 'Mark all as read'}
@@ -961,7 +961,7 @@ export default function Notifications() {
         </Card>
 
         {loading && (
-          <p className="text-center text-slate-600 font-medium py-8">
+          <p className="text-center text-slate-600 font-medium py-8 dark:text-slate-300">
             Loading notifications…
           </p>
         )}
@@ -973,7 +973,7 @@ export default function Notifications() {
         )}
 
         {!loading && !loadError && items.length === 0 && (
-          <p className="text-center text-slate-500 font-medium py-8">
+          <p className="text-center text-slate-500 font-medium py-8 dark:text-slate-400">
             No notifications yet.
           </p>
         )}
@@ -991,7 +991,7 @@ export default function Notifications() {
               variant="outline"
               disabled={loadingMore}
               onClick={loadMore}
-              className="rounded-2xl border-indigo-200 bg-white text-indigo-900 font-bold px-8 py-6"
+              className="rounded-2xl border-indigo-200 bg-white text-indigo-900 font-bold px-8 py-6 dark:border-indigo-400/35 dark:bg-slate-900 dark:text-indigo-100 dark:hover:bg-slate-800"
             >
               {loadingMore ? 'Loading…' : 'See older notifications'}
             </Button>

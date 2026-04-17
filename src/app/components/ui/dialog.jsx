@@ -12,7 +12,7 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
         <DialogPrimitive.Overlay
             ref={ref}
             data-slot="dialog-overlay"
-            className={cn("data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px]", className)}
+            className={cn("data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px] dark:bg-slate-950/78 dark:backdrop-blur-[3px]", className)}
             {...props}
         />
 ));
@@ -24,11 +24,11 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
             <DialogPrimitive.Content
                 ref={ref}
                 data-slot="dialog-content"
-                className={cn("data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[92dvh] w-full max-w-[calc(100%-1rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-violet-200/80 bg-gradient-to-br from-white/96 via-violet-50/75 to-blue-50/80 p-4 shadow-[0_24px_80px_-35px_rgba(76,29,149,0.55)] backdrop-blur-md duration-200 sm:max-w-lg sm:rounded-2xl sm:p-6", className)}
+                className={cn("data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[92dvh] w-full max-w-[calc(100%-1rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-violet-200/80 bg-gradient-to-br from-white/96 via-violet-50/75 to-blue-50/80 p-4 text-slate-900 shadow-[0_24px_80px_-35px_rgba(76,29,149,0.55)] backdrop-blur-md duration-200 sm:max-w-lg sm:rounded-2xl sm:p-6 dark:border-indigo-400/35 dark:bg-gradient-to-br dark:from-[#0f172a] dark:via-[#131f3b] dark:to-[#172554] dark:text-slate-100 dark:shadow-[0_28px_80px_-40px_rgba(2,6,23,0.88)]", className)}
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close className="absolute top-4 right-4 rounded-md border border-violet-200/70 bg-white/75 p-1.5 text-slate-500 opacity-90 transition-colors hover:bg-violet-100/70 hover:text-violet-700 focus:ring-2 focus:ring-violet-400/60 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+                <DialogPrimitive.Close className="absolute top-4 right-4 rounded-md border border-violet-200/70 bg-white/75 p-1.5 text-slate-500 opacity-90 transition-colors hover:bg-violet-100/70 hover:text-violet-700 focus:ring-2 focus:ring-violet-400/60 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 dark:border-indigo-400/35 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-100">
                     <XIcon />
                     <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>

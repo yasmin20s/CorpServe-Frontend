@@ -37,6 +37,8 @@ const menuItems = [
   { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5" /> },
 ];
 
+const ITEMS_PER_PAGE = 5;
+
 function CountUpNumber({ value, duration = 700, formatter = (current) => current, className = '' }) {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -96,40 +98,40 @@ function isPayoutCompleted(status) {
 
 function paymentStatusClass(status) {
   const value = normalizeStatus(status);
-  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-  if (value === 'failed' || value === 'cancelled') return 'bg-rose-100 text-rose-700 border-rose-200';
-  if (value === 'pending') return 'bg-amber-100 text-amber-700 border-amber-200';
-  return 'bg-slate-100 text-slate-700 border-slate-200';
+  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/18 dark:text-emerald-200 dark:border-emerald-400/30';
+  if (value === 'failed' || value === 'cancelled') return 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/18 dark:text-rose-200 dark:border-rose-400/30';
+  if (value === 'pending') return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/18 dark:text-amber-200 dark:border-amber-400/30';
+  return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/35 dark:text-slate-200 dark:border-slate-600';
 }
 
 function payoutStatusClass(status) {
   return isPayoutCompleted(status)
-    ? 'bg-blue-100 text-blue-700 border-blue-200'
-    : 'bg-violet-100 text-violet-700 border-violet-200';
+    ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/18 dark:text-blue-200 dark:border-blue-400/30'
+    : 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/18 dark:text-violet-200 dark:border-violet-400/30';
 }
 
 function paymentRowTone(status) {
   const value = normalizeStatus(status);
   if (value === 'completed' || value === 'paid') {
     return {
-      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60',
+      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60 dark:border-emerald-400/25 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:via-slate-900 dark:to-cyan-500/10',
       stripe: 'from-emerald-500 to-cyan-500',
     };
   }
   if (value === 'pending') {
     return {
-      wrapper: 'border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-white to-orange-50/60',
+      wrapper: 'border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-white to-orange-50/60 dark:border-amber-400/25 dark:bg-gradient-to-r dark:from-amber-500/10 dark:via-slate-900 dark:to-orange-500/10',
       stripe: 'from-amber-500 to-orange-500',
     };
   }
   if (value === 'failed' || value === 'cancelled') {
     return {
-      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60',
+      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60 dark:border-rose-400/25 dark:bg-gradient-to-r dark:from-rose-500/10 dark:via-slate-900 dark:to-pink-500/10',
       stripe: 'from-rose-500 to-pink-500',
     };
   }
   return {
-    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25',
+    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25 dark:border-indigo-400/20 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/95 dark:to-indigo-500/10',
     stripe: 'from-indigo-500 to-violet-500',
   };
 }
@@ -142,6 +144,7 @@ export default function PaymentsMonitor() {
   const [isUpdatingId, setIsUpdatingId] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [payoutRefs, setPayoutRefs] = useState({});
 
   const loadPayments = async ({ silent = false } = {}) => {
@@ -211,6 +214,23 @@ export default function PaymentsMonitor() {
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   }, [payments, query, statusFilter]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / ITEMS_PER_PAGE));
+
+  const paginatedPayments = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPayments.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredPayments, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, statusFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const handleMarkPayout = async (paymentId) => {
     if (!paymentId || !user?.token) return;
     setIsUpdatingId(paymentId);
@@ -233,18 +253,19 @@ export default function PaymentsMonitor() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-6">
-        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)]">
+        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)] dark:border-violet-400/30 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-[0_20px_44px_rgba(2,6,23,0.58)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-sky-500" />
           <div className="absolute right-6 top-6 h-3 w-3 rounded-full bg-violet-500/80 animate-pulse" />
-          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl" />
+          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl dark:bg-violet-500/16" />
           <CardContent className="relative p-6 sm:p-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700 transition-transform duration-300 hover:scale-[1.02]">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700 transition-transform duration-300 hover:scale-[1.02] dark:border-violet-400/30 dark:bg-slate-900/80 dark:text-violet-200">
                   <Sparkles className="h-3.5 w-3.5" />
                   Cashboard
                 </p>
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Payments Monitor</h1>
-                <p className="mt-2 max-w-2xl text-sm text-violet-800/80">
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Payments Monitor</h1>
+                <p className="mt-2 max-w-2xl text-sm text-violet-800/80 dark:text-violet-200/85">
                   Track platform cashflow, payout readiness, and transaction quality from one cinematic dashboard.
                 </p>
               </div>
@@ -252,7 +273,7 @@ export default function PaymentsMonitor() {
                 type="button"
                 onClick={() => loadPayments({ silent: true })}
                 disabled={isRefreshing}
-                className="gap-2 rounded-xl bg-violet-700 px-5 hover:bg-violet-800"
+                className="gap-2 rounded-xl bg-violet-700 px-5 hover:bg-violet-800 dark:bg-violet-600 dark:hover:bg-violet-500"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh Data
@@ -318,7 +339,7 @@ export default function PaymentsMonitor() {
           </Card>
         </div>
 
-        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40">
+        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/95 dark:to-indigo-500/10">
           <CardContent className="grid gap-4 p-4 md:grid-cols-[1fr_210px]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -326,11 +347,11 @@ export default function PaymentsMonitor() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search by request, client, vendor, order, or payment id"
-                className="h-11 rounded-xl border-indigo-100 pl-9 focus-visible:ring-indigo-400"
+                className="h-11 rounded-xl border-indigo-100 pl-9 focus-visible:ring-indigo-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-11 rounded-xl border-indigo-100">
+              <SelectTrigger className="h-11 rounded-xl border-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -344,22 +365,24 @@ export default function PaymentsMonitor() {
           </CardContent>
         </Card>
 
-        <Card className="border-indigo-100 bg-gradient-to-b from-white to-indigo-50/20">
+        <Card className="border-indigo-100 bg-gradient-to-b from-white to-indigo-50/20 dark:border-indigo-400/25 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-900/95">
           <CardHeader className="pb-1">
-            <CardTitle className="text-xl font-bold text-slate-900">Transaction Stream</CardTitle>
-            <p className="text-sm text-slate-500">{filteredPayments.length} records match your current filter</p>
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">Transaction Stream</CardTitle>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {filteredPayments.length} records match your current filter · Page {currentPage} of {totalPages}
+            </p>
           </CardHeader>
           <CardContent className="space-y-3 p-4 pt-2">
-            {isLoading && <p className="py-6 text-sm text-slate-500">Loading payments data...</p>}
+            {isLoading && <p className="py-6 text-sm text-slate-500 dark:text-slate-400">Loading payments data...</p>}
 
             {!isLoading && filteredPayments.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-10 text-center text-sm text-indigo-700">
+              <div className="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-10 text-center text-sm text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/10 dark:text-indigo-200">
                 No payments match this filter.
               </div>
             )}
 
             {!isLoading &&
-              filteredPayments.map((payment) => {
+              paginatedPayments.map((payment) => {
                 const canMarkPayout = normalizeStatus(payment.paymentStatus) === 'completed' && !isPayoutCompleted(payment.payoutStatus);
                 const isUpdating = isUpdatingId === payment.paymentId;
                 const tone = paymentRowTone(payment.paymentStatus);
@@ -372,8 +395,8 @@ export default function PaymentsMonitor() {
                     <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${tone.stripe}`} />
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-base font-semibold text-slate-900">{payment.requestTitle || 'Untitled Request'}</h3>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{payment.requestTitle || 'Untitled Request'}</h3>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                           Payment ID: {payment.paymentId || 'N/A'} • Order: {payment.merchantOrderId || 'N/A'}
                         </p>
                       </div>
@@ -388,7 +411,7 @@ export default function PaymentsMonitor() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80">
                         <p className="text-xs text-slate-500">Client</p>
                         <div className="mt-1">
                           <UserAvatar
@@ -399,7 +422,7 @@ export default function PaymentsMonitor() {
                           />
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80">
                         <p className="text-xs text-slate-500">Vendor</p>
                         <div className="mt-1">
                           <UserAvatar
@@ -410,18 +433,18 @@ export default function PaymentsMonitor() {
                           />
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80">
                         <p className="text-xs text-slate-500">Total Amount</p>
-                        <p className="font-semibold text-slate-800">{formatMoney(payment.totalAmount)}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-100">{formatMoney(payment.totalAmount)}</p>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80">
                         <p className="text-xs text-slate-500">Commission</p>
-                        <p className="font-semibold text-slate-800">{formatMoney(payment.commision)}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-100">{formatMoney(payment.commision)}</p>
                       </div>
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
                         <p>Created: {formatDate(payment.createdAt)}</p>
                         <p>Paid: {formatDate(payment.paidAt)}</p>
                       </div>
@@ -437,13 +460,13 @@ export default function PaymentsMonitor() {
                               }))
                             }
                             placeholder="Payout reference (optional)"
-                            className="h-10 w-full rounded-xl border-indigo-100 sm:w-60"
+                            className="h-10 w-full rounded-xl border-indigo-100 sm:w-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
                           />
                           <Button
                             type="button"
                             onClick={() => handleMarkPayout(payment.paymentId)}
                             disabled={isUpdating}
-                            className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                            className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
                           >
                             {isUpdating ? 'Updating...' : 'Mark as paid'}
                           </Button>
@@ -460,6 +483,53 @@ export default function PaymentsMonitor() {
                   </div>
                 );
               })}
+
+            {!isLoading && filteredPayments.length > ITEMS_PER_PAGE && (
+              <div className="flex flex-col gap-3 rounded-xl border border-indigo-100 bg-white/90 p-3 dark:border-indigo-400/25 dark:bg-slate-800/78 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredPayments.length)} of {filteredPayments.length}
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    Previous
+                  </Button>
+
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <Button
+                      key={page}
+                      type="button"
+                      size="sm"
+                      variant={page === currentPage ? 'default' : 'outline'}
+                      className={page === currentPage
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18'}
+                      onClick={() => setCurrentPage(page)}
+                      disabled={isLoading}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

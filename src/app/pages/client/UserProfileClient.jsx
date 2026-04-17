@@ -42,36 +42,39 @@ function pick(obj, ...keys) {
 }
 
 const tagTone = {
-  design: 'border border-violet-200 bg-violet-50 text-violet-700',
-  marketing: 'border border-pink-200 bg-pink-50 text-pink-700',
-  legal: 'border border-amber-200 bg-amber-50 text-amber-700',
-  'web dev': 'border border-sky-200 bg-sky-50 text-sky-700',
+  'device maintenance': 'border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/35 dark:bg-blue-500/16 dark:text-blue-200',
+  'it support': 'border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 dark:border-fuchsia-400/35 dark:bg-fuchsia-500/16 dark:text-fuchsia-200',
+  design: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-400/35 dark:bg-violet-500/16 dark:text-violet-200',
+  marketing: 'border border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-400/35 dark:bg-pink-500/16 dark:text-pink-200',
+  legal: 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200',
+  'web dev': 'border border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/35 dark:bg-sky-500/16 dark:text-sky-200',
+  general: 'border border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-500/45 dark:bg-slate-700/45 dark:text-slate-200',
 };
 
 function statTone(label) {
   const key = String(label).toLowerCase();
-  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200';
-  if (key.includes('progress')) return 'text-blue-900 bg-blue-200';
-  if (key.includes('budget')) return 'text-fuchsia-900 bg-fuchsia-200';
-  return 'text-violet-900 bg-violet-200';
+  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200 dark:text-emerald-200 dark:bg-emerald-500/28';
+  if (key.includes('progress')) return 'text-blue-900 bg-blue-200 dark:text-blue-200 dark:bg-blue-500/28';
+  if (key.includes('budget')) return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-200 dark:bg-fuchsia-500/28';
+  return 'text-violet-900 bg-violet-200 dark:text-violet-200 dark:bg-violet-500/28';
 }
 
 function statCardWrapTone(index) {
   const tones = [
-    'from-violet-200 via-fuchsia-100 to-indigo-200 border-violet-300 shadow-violet-200/80',
-    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 shadow-emerald-200/80',
-    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 shadow-sky-200/80',
-    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 shadow-fuchsia-200/80',
+    'from-violet-200 via-fuchsia-100 to-indigo-200 border-violet-300 dark:from-violet-500/22 dark:via-fuchsia-500/14 dark:to-indigo-500/22 dark:border-violet-400/35',
+    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 dark:from-emerald-500/20 dark:via-teal-500/14 dark:to-cyan-500/20 dark:border-emerald-400/35',
+    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 dark:from-sky-500/20 dark:via-blue-500/14 dark:to-indigo-500/20 dark:border-sky-400/35',
+    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 dark:from-fuchsia-500/20 dark:via-pink-500/14 dark:to-rose-500/20 dark:border-fuchsia-400/35',
   ];
   return tones[index % tones.length];
 }
 
 function statTextTone(index) {
   const tones = [
-    { value: 'text-slate-900', label: 'text-violet-700' },
-    { value: 'text-slate-900', label: 'text-emerald-700' },
-    { value: 'text-slate-900', label: 'text-blue-700' },
-    { value: 'text-slate-900', label: 'text-fuchsia-700' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-violet-700 dark:text-violet-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-emerald-700 dark:text-emerald-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-blue-700 dark:text-blue-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-fuchsia-700 dark:text-fuchsia-200' },
   ];
   return tones[index % tones.length];
 }
@@ -93,18 +96,18 @@ function normalizeStatusLabel(rawStatus) {
 
 function requestStatusTone(statusLabel) {
   const normalized = String(statusLabel).toLowerCase();
-  if (normalized === 'completed') return 'border border-emerald-200 text-emerald-700 bg-emerald-100';
-  if (normalized === 'in progress') return 'border border-blue-200 text-blue-700 bg-blue-100';
-  return 'border border-purple-200 text-purple-700 bg-purple-100';
+  if (normalized === 'completed') return 'border border-emerald-200 text-emerald-700 bg-emerald-100 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200';
+  if (normalized === 'in progress') return 'border border-blue-200 text-blue-700 bg-blue-100 dark:border-blue-400/35 dark:bg-blue-500/16 dark:text-blue-200';
+  return 'border border-purple-200 text-purple-700 bg-purple-100 dark:border-purple-400/35 dark:bg-purple-500/16 dark:text-purple-200';
 }
 
 function categoryPillTone(index) {
   const tones = [
-    'border-indigo-200 bg-indigo-50 text-indigo-700',
-    'border-sky-200 bg-sky-50 text-sky-700',
-    'border-violet-200 bg-violet-50 text-violet-700',
-    'border-amber-200 bg-amber-50 text-amber-700',
-    'border-slate-200 bg-slate-50 text-slate-700',
+    'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200',
+    'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/35 dark:bg-sky-500/16 dark:text-sky-200',
+    'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-400/35 dark:bg-violet-500/16 dark:text-violet-200',
+    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200',
+    'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-500/45 dark:bg-slate-700/45 dark:text-slate-200',
   ];
   return tones[index % tones.length];
 }
@@ -286,7 +289,7 @@ export default function UserProfileClient() {
     return (
       <DashboardLayout menuItems={menuItems} userRole="client">
         <div className="cs-profile-shell relative mx-auto flex min-h-[40vh] w-full max-w-6xl items-center justify-center overflow-x-hidden pb-8">
-          <p className="text-center text-slate-600">Loading profile...</p>
+          <p className="text-center text-slate-600 dark:text-slate-300">Loading profile...</p>
         </div>
       </DashboardLayout>
     );
@@ -295,26 +298,26 @@ export default function UserProfileClient() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="client">
       <div className="cs-profile-shell relative mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-8">
-        <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl" />
-        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl" />
-        <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl" />
+        <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl dark:bg-violet-500/15" />
+        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-cyan-500/12" />
+        <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl dark:bg-indigo-500/12" />
 
         <section
-          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)]"
+          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-none dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-none"
           style={{ animationDelay: '30ms' }}
         >
-          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6]" />
+          <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6] dark:from-[#4c1d95] dark:via-[#4338ca] dark:to-[#1d4ed8]" />
           <div className="px-4 pb-5 pt-0 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="flex flex-col items-start gap-2">
-                <div className="relative -mt-10 h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-lg shadow-indigo-200">
+                <div className="relative -mt-10 h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-none dark:border-slate-900 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
                   <ProfilePhotoLightbox
                     src={pic}
                     wrapperClassName="h-full w-full"
-                    imgClassName="cs-profile-image-thumb cs-profile-image-glow h-full w-full object-cover"
+                    imgClassName="cs-profile-image-thumb h-full w-full object-cover"
                     fallback={
-                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 text-center">
-                        <span className="px-1 text-[10px] font-semibold leading-tight text-indigo-700">Upload your profile picture</span>
+                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 text-center dark:from-indigo-500/24 dark:to-blue-500/20">
+                        <span className="px-1 text-[10px] font-semibold leading-tight text-indigo-700 dark:text-indigo-200">Upload your profile picture</span>
                       </div>
                     }
                   />
@@ -323,7 +326,7 @@ export default function UserProfileClient() {
                   type="button"
                   onClick={openPhotoPicker}
                   disabled={isUploadingPhoto}
-                  className="inline-flex min-h-8 items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex min-h-8 items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
                   title="Upload new photo"
                 >
                   <Camera className="h-3.5 w-3.5" />
@@ -332,7 +335,7 @@ export default function UserProfileClient() {
                 <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoSelected} />
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200">
                   <CircleDot className="h-3 w-3" /> Verified
                 </span>
                 <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${accountStatusClasses}`}>
@@ -342,7 +345,7 @@ export default function UserProfileClient() {
                   <button
                     type="button"
                     onClick={startEditingProfile}
-                    className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                    className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200 dark:hover:bg-indigo-500/24"
                   >
                     <Pencil className="h-3 w-3" /> Edit Profile
                   </button>
@@ -352,38 +355,38 @@ export default function UserProfileClient() {
 
             <div className="mt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="break-words text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">{fullName}</h1>
+                <h1 className="break-words text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">{fullName}</h1>
               </div>
 
-              <div className="mt-3 space-y-3 text-sm text-slate-500">
+              <div className="mt-3 space-y-3 text-sm text-slate-500 dark:text-slate-300">
                 {isEditingProfile ? (
-                  <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3">
+                  <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/12">
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <Building2 className="h-3.5 w-3.5" /> Company Name
                       </label>
                       <Input
                         value={draftValues.company}
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, company: e.target.value }))}
                         placeholder="Add your company name"
-                        className="h-9 bg-white"
+                        className="h-9 bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <MapPin className="h-3.5 w-3.5" /> Location
                       </label>
                       <Input
                         value={draftValues.location}
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, location: e.target.value }))}
                         placeholder="Add your location"
-                        className="h-9 bg-white"
+                        className="h-9 bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <Briefcase className="h-3.5 w-3.5" /> Description
                       </label>
                       <Textarea
@@ -391,7 +394,7 @@ export default function UserProfileClient() {
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, bio: e.target.value }))}
                         rows={4}
                         placeholder="Add your company description"
-                        className="bg-white"
+                        className="bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
                   </div>
@@ -415,7 +418,7 @@ export default function UserProfileClient() {
                     </div>
 
                     <div className="flex max-w-4xl items-start gap-1.5">
-                      <p className={`${bioText ? 'text-slate-600' : 'italic text-slate-400'}`}>{bioText || 'Add your company description'}</p>
+                      <p className={`${bioText ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}`}>{bioText || 'Add your company description'}</p>
                     </div>
                   </>
                 )}
@@ -436,14 +439,14 @@ export default function UserProfileClient() {
             <button
               type="button"
               onClick={cancelEditingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <X className="h-4 w-4" /> Cancel
             </button>
             <button
               type="button"
               onClick={saveEditingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200"
+              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200 dark:bg-emerald-500/18 dark:text-emerald-200 dark:hover:bg-emerald-500/28"
             >
               <Check className="h-4 w-4" /> Save
             </button>
@@ -457,11 +460,11 @@ export default function UserProfileClient() {
             return (
               <article
                 key={item.label}
-                className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${statCardWrapTone(index)}`}
+                className={`cs-profile-stat-card relative overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-none transition-all duration-200 hover:-translate-y-1 hover:shadow-none ${statCardWrapTone(index)}`}
                 style={{ animationDelay: `${100 + index * 55}ms` }}
               >
-                <div className="pointer-events-none absolute -right-4 -top-4 h-14 w-14 rounded-full bg-white/35 blur-xl" />
-                <span className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-md ring-2 ring-white/75 ${statTone(item.label)}`}>
+                <div className="pointer-events-none absolute -right-4 -top-4 h-14 w-14 rounded-full bg-white/20 blur-xl dark:bg-slate-100/8" />
+                <span className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full shadow-sm ring-2 ring-white/45 dark:ring-slate-200/15 ${statTone(item.label)}`}>
                   <Icon className="h-4 w-4" />
                 </span>
                 <p className={`text-[28px] font-black leading-none ${textTone.value}`}>{item.value}</p>
@@ -471,17 +474,17 @@ export default function UserProfileClient() {
           })}
         </section>
 
-        <section className="cs-profile-section-reveal rounded-2xl border border-slate-200 bg-white shadow-[0_10px_20px_rgba(15,23,42,0.06)]" style={{ animationDelay: '120ms' }}>
-          <div className="border-b border-slate-100 px-4 py-2.5 sm:px-5">
-            <h2 className="text-sm font-semibold text-slate-700">Recent Requests</h2>
+        <section className="cs-profile-section-reveal rounded-2xl border border-slate-200 bg-white shadow-none dark:border-slate-700 dark:bg-slate-900/74 dark:shadow-none" style={{ animationDelay: '120ms' }}>
+          <div className="border-b border-slate-100 px-4 py-2.5 dark:border-slate-700 sm:px-5">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Recent Requests</h2>
           </div>
 
           {recentRequests.length === 0 && (
-            <div className="px-4 py-3 text-sm text-slate-500 sm:px-5">No recent requests yet.</div>
+            <div className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 sm:px-5">No recent requests yet.</div>
           )}
 
           {recentRequests.length > 0 && (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {recentRequests.map((request) => {
                 const requestId = pick(request, 'requestId', 'RequestId') ?? request?.id;
                 const title = pick(request, 'requestTitle', 'RequestTitle') || `Request #${requestId ?? '-'}`;
@@ -491,22 +494,26 @@ export default function UserProfileClient() {
                 );
                 const amount = formatMoney(pick(request, 'budgetMax', 'BudgetMax', 'budgetMin', 'BudgetMin'));
                 const rawTag = String(pick(request, 'category', 'Category', 'categoryName', 'CategoryName') || 'General').trim();
-                const shortTag = rawTag.toLowerCase().includes('web') ? 'Web Dev' : rawTag;
-                const tone = tagTone[String(shortTag).toLowerCase()] || 'bg-slate-100 text-slate-700';
+                let tagKey = rawTag.toLowerCase();
+                if (tagKey.includes('web')) tagKey = 'web dev';
+                if (tagKey.includes('device')) tagKey = 'device maintenance';
+                if (tagKey.includes('support')) tagKey = 'it support';
+                const tone = tagTone[tagKey] || tagTone.general;
+                const shortTag = rawTag.charAt(0).toUpperCase() + rawTag.slice(1);
 
                 return (
                   <article
                     key={String(requestId ?? title)}
-                    className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 sm:grid-cols-12 sm:items-center sm:px-5"
+                    className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 dark:hover:from-violet-500/12 dark:hover:to-cyan-500/10 sm:grid-cols-12 sm:items-center sm:px-5"
                   >
                     <div className="sm:col-span-7">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>{shortTag}</span>
-                      <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 sm:text-lg">{title}</h3>
-                      <p className="text-xs text-slate-400 sm:text-sm">{date}</p>
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${tone} shadow-none`}>{shortTag}</span>
+                      <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">{title}</h3>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 sm:text-sm">{date}</p>
                     </div>
 
                     <div className="text-left sm:col-span-2 sm:text-right">
-                      <p className="text-lg font-medium text-slate-800 sm:text-xl">{amount}</p>
+                      <p className="text-lg font-medium text-slate-800 dark:text-slate-200 sm:text-xl">{amount}</p>
                     </div>
 
                     <div className="sm:col-span-3 sm:text-right">
@@ -522,10 +529,10 @@ export default function UserProfileClient() {
           )}
         </section>
 
-        <section className="cs-profile-section-reveal rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/70 to-indigo-50/30 px-4 py-5 shadow-sm sm:px-6" style={{ animationDelay: '170ms' }}>
-          <h2 className="mb-3 text-lg font-semibold text-slate-700">Preferred Categories</h2>
+        <section className="cs-profile-section-reveal rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/70 to-indigo-50/30 px-4 py-5 shadow-none dark:border-slate-700 dark:from-slate-900 dark:via-slate-900/90 dark:to-indigo-500/10 sm:px-6" style={{ animationDelay: '170ms' }}>
+          <h2 className="mb-3 text-lg font-semibold text-slate-700 dark:text-slate-200">Preferred Categories</h2>
           {preferredCategories.length === 0 ? (
-            <p className="text-sm text-slate-500">No preferred categories yet.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">No preferred categories yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2.5">
               {preferredCategories.map((cat, index) => {
@@ -543,7 +550,7 @@ export default function UserProfileClient() {
         </section>
 
         <section
-          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4"
+          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-none dark:from-[#4c1d95] dark:via-[#3730a3] dark:to-[#1d4ed8] dark:shadow-none sm:px-5 sm:py-4"
           style={{ animationDelay: '220ms' }}
         >
           <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />
@@ -560,7 +567,7 @@ export default function UserProfileClient() {
               onClick={() => {
                 if (userId) navigate(`/client/user/${encodeURIComponent(String(userId))}`);
               }}
-              className="w-full rounded-xl bg-white/25 px-3.5 py-1.5 text-sm font-semibold backdrop-blur transition hover:bg-white/40 sm:w-auto"
+              className="w-full rounded-xl bg-white/25 px-3.5 py-1.5 text-sm font-semibold backdrop-blur transition hover:bg-white/40 dark:bg-slate-900/45 dark:hover:bg-slate-900/65 sm:w-auto"
             >
               Active Partners
             </button>

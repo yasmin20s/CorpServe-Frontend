@@ -3,7 +3,7 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 
 export default function AppFooter() {
   return (
-    <footer className="bg-gray-900 py-10 text-white">
+    <footer className="border-t border-violet-300/20 bg-gradient-to-b from-[#121f3d] to-[#080f1f] py-10 text-white">
       <div className="mx-auto w-full max-w-7xl px-6">
         <div className="mb-7 grid gap-8 md:grid-cols-3">
           <div>

@@ -179,3 +179,136 @@
     line-height: 1.5;
   }
 }
+
+/* Bridge hard-coded light utility classes so existing pages adapt in dark mode. */
+.dark [class*='bg-white'] {
+  background-color: rgba(15, 23, 42, 0.92) !important;
+}
+
+.dark [class*='bg-slate-50'] {
+  background-color: rgba(30, 41, 59, 0.72) !important;
+}
+
+.dark [class*='bg-slate-100'] {
+  background-color: rgba(51, 65, 85, 0.74) !important;
+}
+
+.dark [class*='text-black'] {
+  color: rgb(241, 245, 249) !important;
+}
+
+.dark [class*='text-slate-900'] {
+  color: rgb(241, 245, 249) !important;
+}
+
+.dark [class*='text-slate-950'] {
+  color: rgb(248, 250, 252) !important;
+}
+
+.dark [class*='text-slate-800'] {
+  color: rgb(226, 232, 240) !important;
+}
+
+.dark [class*='text-slate-700'] {
+  color: rgb(203, 213, 225) !important;
+}
+
+.dark [class*='text-slate-600'] {
+  color: rgb(203, 213, 225) !important;
+}
+
+.dark [class*='text-slate-500'] {
+  color: rgb(148, 163, 184) !important;
+}
+
+.dark [class*='text-slate-400'] {
+  color: rgb(148, 163, 184) !important;
+}
+
+.dark [class*='text-gray-900'] {
+  color: rgb(241, 245, 249) !important;
+}
+
+.dark [class*='text-gray-800'] {
+  color: rgb(226, 232, 240) !important;
+}
+
+.dark [class*='text-gray-700'] {
+  color: rgb(203, 213, 225) !important;
+}
+
+.dark [class*='text-gray-600'] {
+  color: rgb(203, 213, 225) !important;
+}
+
+.dark [class*='text-gray-500'] {
+  color: rgb(148, 163, 184) !important;
+}
+
+.dark [class*='text-gray-400'] {
+  color: rgb(148, 163, 184) !important;
+}
+
+.dark [class*='border-slate-200'],
+.dark [class*='border-gray-200'],
+.dark [class*='border-indigo-100'],
+.dark [class*='border-indigo-200'] {
+  border-color: rgba(100, 116, 139, 0.6) !important;
+}
+
+/* Keep star icons consistently yellow in both light and dark themes. */
+.lucide-star {
+  color: rgb(250, 204, 21) !important;
+}
+
+/* Keep sparkles icons consistently yellow in both light and dark themes. */
+.lucide-sparkles {
+  color: rgb(250, 204, 21) !important;
+}
+
+/* Centralized dark popup normalization across Radix/Vaul content primitives. */
+.dark [data-slot='dialog-overlay'],
+.dark [data-slot='alert-dialog-overlay'],
+.dark [data-slot='sheet-overlay'],
+.dark [data-slot='drawer-overlay'] {
+  background-color: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.dark [data-slot='dialog-content'],
+.dark [data-slot='alert-dialog-content'],
+.dark [data-slot='popover-content'],
+.dark [data-slot='dropdown-menu-content'],
+.dark [data-slot='dropdown-menu-sub-content'],
+.dark [data-slot='select-content'],
+.dark [data-slot='context-menu-content'],
+.dark [data-slot='context-menu-sub-content'],
+.dark [data-slot='hover-card-content'],
+.dark [data-slot='menubar-content'],
+.dark [data-slot='menubar-sub-content'],
+.dark [data-slot='sheet-content'],
+.dark [data-slot='drawer-content'],
+.dark [data-slot='command'] {
+  background-image: linear-gradient(165deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.94));
+  color: rgb(226, 232, 240);
+  border-color: rgba(99, 102, 241, 0.28);
+  box-shadow: 0 26px 70px -42px rgba(2, 6, 23, 0.96);
+}
+
+.dark [data-slot='tooltip-content'],
+.dark [data-slot='tooltip-content'] [data-slot='tooltip-arrow'] {
+  background-color: rgb(15, 23, 42);
+  color: rgb(226, 232, 240);
+}
+
+.dark [data-slot='command-input-wrapper'] {
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+.dark [data-slot='command-input'] {
+  color: rgb(226, 232, 240);
+}
+
+.dark [data-slot='command-input']::placeholder {
+  color: rgb(148, 163, 184);
+}

@@ -97,10 +97,10 @@ function isImageDocType(documentType) {
 
 function sampleFrameTone(index) {
   const tones = [
-    'border-violet-300 bg-violet-50/35',
-    'border-cyan-300 bg-cyan-50/35',
-    'border-emerald-300 bg-emerald-50/35',
-    'border-amber-300 bg-amber-50/35',
+    'border-violet-300 bg-violet-50/35 dark:border-violet-400/35 dark:bg-violet-500/10',
+    'border-cyan-300 bg-cyan-50/35 dark:border-cyan-400/35 dark:bg-cyan-500/10',
+    'border-emerald-300 bg-emerald-50/35 dark:border-emerald-400/35 dark:bg-emerald-500/10',
+    'border-amber-300 bg-amber-50/35 dark:border-amber-400/35 dark:bg-amber-500/10',
   ];
   return tones[index % tones.length];
 }
@@ -113,25 +113,25 @@ function formatMoney(value) {
 
 function statTone(label) {
   const key = String(label).toLowerCase();
-  if (key.includes('clients')) return 'text-blue-900 bg-blue-200';
-  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200';
-  return 'text-fuchsia-900 bg-fuchsia-200';
+  if (key.includes('clients')) return 'text-blue-900 bg-blue-200 dark:text-blue-200 dark:bg-blue-500/22';
+  if (key.includes('completed')) return 'text-emerald-900 bg-emerald-200 dark:text-emerald-200 dark:bg-emerald-500/22';
+  return 'text-fuchsia-900 bg-fuchsia-200 dark:text-fuchsia-200 dark:bg-fuchsia-500/22';
 }
 
 function statCardWrapTone(index) {
   const tones = [
-    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 shadow-sky-200/80',
-    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 shadow-emerald-200/80',
-    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 shadow-fuchsia-200/80',
+    'from-sky-200 via-blue-100 to-indigo-200 border-sky-300 shadow-sky-200/80 dark:from-sky-500/18 dark:via-blue-500/14 dark:to-indigo-500/20 dark:border-sky-400/35 dark:shadow-none',
+    'from-emerald-200 via-teal-100 to-cyan-200 border-emerald-300 shadow-emerald-200/80 dark:from-emerald-500/18 dark:via-teal-500/14 dark:to-cyan-500/20 dark:border-emerald-400/35 dark:shadow-none',
+    'from-fuchsia-200 via-pink-100 to-rose-200 border-fuchsia-300 shadow-fuchsia-200/80 dark:from-fuchsia-500/18 dark:via-pink-500/14 dark:to-rose-500/20 dark:border-fuchsia-400/35 dark:shadow-none',
   ];
   return tones[index % tones.length];
 }
 
 function statTextTone(index) {
   const tones = [
-    { value: 'text-slate-900', label: 'text-blue-700' },
-    { value: 'text-slate-900', label: 'text-emerald-700' },
-    { value: 'text-slate-900', label: 'text-fuchsia-700' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-blue-700 dark:text-blue-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-emerald-700 dark:text-emerald-200' },
+    { value: 'text-slate-900 dark:text-slate-100', label: 'text-fuchsia-700 dark:text-fuchsia-200' },
   ];
   return tones[index % tones.length];
 }
@@ -550,7 +550,7 @@ export default function UserProfileVendor() {
     return (
       <DashboardLayout menuItems={menuItems} userRole="vendor">
         <div className="cs-profile-shell relative mx-auto flex min-h-[40vh] w-full max-w-6xl items-center justify-center overflow-x-hidden pb-8">
-          <p className="text-center text-slate-600">Loading profile...</p>
+          <p className="text-center text-slate-600 dark:text-slate-300">Loading profile...</p>
         </div>
       </DashboardLayout>
     );
@@ -559,26 +559,26 @@ export default function UserProfileVendor() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="vendor">
       <div className="cs-profile-shell relative mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-8">
-        <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl" />
-        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl" />
-        <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl" />
+        <div className="cs-profile-orb-a pointer-events-none absolute -left-16 top-8 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl dark:bg-violet-500/12" />
+        <div className="cs-profile-orb-b pointer-events-none absolute -right-16 top-28 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl dark:bg-cyan-500/10" />
+        <div className="cs-profile-orb-c pointer-events-none absolute bottom-20 left-1/3 h-44 w-44 rounded-full bg-indigo-300/10 blur-3xl dark:bg-indigo-500/10" />
 
         <section
-          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)]"
+          className="cs-profile-hero cs-profile-section-reveal overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-[0_16px_34px_rgba(99,102,241,0.12)] dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-[0_20px_44px_rgba(2,6,23,0.58)]"
           style={{ animationDelay: '30ms' }}
         >
           <div className="h-16 bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#3b82f6]" />
           <div className="px-4 pb-5 pt-0 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="-mt-10 flex flex-col items-start gap-2">
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-lg shadow-indigo-200">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white shadow-lg shadow-indigo-200 dark:border-slate-900 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
                   <ProfilePhotoLightbox
                     src={pic}
                     wrapperClassName="cs-profile-avatar-bob h-full w-full"
                     imgClassName="cs-profile-image-thumb cs-profile-image-glow h-full w-full object-cover"
                     fallback={
-                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg shadow-indigo-200">
-                        <Building2 className="h-9 w-9 text-indigo-700" />
+                      <div className="cs-profile-avatar-bob flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg shadow-indigo-200 dark:from-indigo-500/24 dark:to-blue-500/20 dark:shadow-[0_14px_30px_rgba(2,6,23,0.56)]">
+                        <Building2 className="h-9 w-9 text-indigo-700 dark:text-indigo-200" />
                       </div>
                     }
                   />
@@ -587,7 +587,7 @@ export default function UserProfileVendor() {
                   type="button"
                   onClick={openPhotoPicker}
                   disabled={isUploadingPhoto}
-                  className="inline-flex min-h-8 items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex min-h-8 items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
                 >
                   <Camera className="h-3.5 w-3.5" />
                   <span>{isUploadingPhoto ? 'Uploading...' : hasVendorAvatar ? 'Change Photo' : 'Upload Photo'}</span>
@@ -596,11 +596,11 @@ export default function UserProfileVendor() {
               </div>
               <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
                 {isVendorVerified ? (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200">
                     <CircleDot className="h-3 w-3" /> Verified
                   </span>
                 ) : (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     <CircleDot className="h-3 w-3" /> Unverified
                   </span>
                 )}
@@ -611,7 +611,7 @@ export default function UserProfileVendor() {
                   ? servedCategories.map((name, i) => (
                       <span
                         key={`${name}-${i}`}
-                        className="max-w-[min(100%,14rem)] truncate rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                        className="max-w-[min(100%,14rem)] truncate rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800 dark:border-violet-400/35 dark:bg-violet-500/16 dark:text-violet-200"
                         title={name}
                       >
                         {name}
@@ -622,7 +622,7 @@ export default function UserProfileVendor() {
                   <button
                     type="button"
                     onClick={startEditingProfile}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200 dark:hover:bg-indigo-500/24"
                   >
                     <Pencil className="h-3 w-3" /> Edit Profile
                   </button>
@@ -633,45 +633,45 @@ export default function UserProfileVendor() {
             <div className="mt-3">
               <div className="flex flex-wrap items-center gap-2">
                 <h1
-                  className={`break-words text-2xl font-black tracking-tight sm:text-3xl ${fullName ? 'text-slate-900' : 'italic text-slate-500'}`}
+                  className={`break-words text-2xl font-black tracking-tight sm:text-3xl ${fullName ? 'text-slate-900 dark:text-slate-100' : 'italic text-slate-500 dark:text-slate-400'}`}
                 >
                   {fullName || 'Add your name in profile settings'}
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200">
                   <Star className="h-3 w-3 fill-current" /> {averageRating} Rating
                   {ratingCountDisplay != null && ratingCountDisplay > 0 ? (
-                    <span className="font-normal text-amber-800/90">({ratingCountDisplay})</span>
+                    <span className="font-normal text-amber-800/90 dark:text-amber-200/80">({ratingCountDisplay})</span>
                   ) : null}
                 </span>
               </div>
 
-              <div className="mt-3 space-y-3 text-sm text-slate-500">
+              <div className="mt-3 space-y-3 text-sm text-slate-500 dark:text-slate-300">
                 {isEditingProfile ? (
-                  <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3">
+                  <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/12">
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <Building2 className="h-3.5 w-3.5" /> Company Name
                       </label>
                       <Input
                         value={draftValues.companyName}
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, companyName: e.target.value }))}
                         placeholder="Add your company name"
-                        className="h-9 bg-white"
+                        className="h-9 bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <MapPin className="h-3.5 w-3.5" /> Location
                       </label>
                       <Input
                         value={draftValues.location}
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, location: e.target.value }))}
                         placeholder="Add your location"
-                        className="h-9 bg-white"
+                        className="h-9 bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
                         <FileText className="h-3.5 w-3.5" /> Description
                       </label>
                       <Textarea
@@ -679,7 +679,7 @@ export default function UserProfileVendor() {
                         onChange={(e) => setDraftValues((prev) => ({ ...prev, description: e.target.value }))}
                         rows={4}
                         placeholder="Add your company description"
-                        className="bg-white"
+                        className="bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                       />
                     </div>
                   </div>
@@ -688,24 +688,24 @@ export default function UserProfileVendor() {
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                       <span className="inline-flex items-center gap-1.5">
                         <Mail className="h-4 w-4 text-violet-500" />
-                        {vendorEmail || <span className="italic text-slate-400">Add your email from settings</span>}
+                        {vendorEmail || <span className="italic text-slate-400 dark:text-slate-500">Add your email from settings</span>}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <Building2 className="h-4 w-4 text-indigo-500" />
-                        <span className={companyDisplay ? 'text-slate-600' : 'italic text-slate-400'}>
+                        <span className={companyDisplay ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                           {companyDisplay || 'Add your company name'}
                         </span>
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="h-4 w-4 text-sky-500" />
-                        <span className={vendorLocation ? 'text-slate-600' : 'italic text-slate-400'}>
+                        <span className={vendorLocation ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                           {vendorLocation || 'Add your location'}
                         </span>
                       </span>
                     </div>
                     <div className="flex items-start gap-1.5">
                       <FileText className="mt-0.5 h-4 w-4 text-fuchsia-500" />
-                      <p className={vendorDescription ? 'text-slate-600' : 'italic text-slate-400'}>
+                      <p className={vendorDescription ? 'text-slate-600 dark:text-slate-300' : 'italic text-slate-400 dark:text-slate-500'}>
                         {vendorDescription || 'Add your company description'}
                       </p>
                     </div>
@@ -738,13 +738,13 @@ export default function UserProfileVendor() {
         </section>
 
         <section
-          className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5"
+          className="cs-profile-section-reveal rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 shadow-[0_10px_24px_rgba(79,70,229,0.12)] sm:p-5 dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900/92 dark:to-indigo-950/35 dark:shadow-none"
           style={{ animationDelay: '110ms' }}
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 className="text-base font-semibold text-indigo-900">Upload Work Samples (Optional)</h2>
-              <p className="mt-1 text-sm text-indigo-700/80">
+              <h2 className="text-base font-semibold text-indigo-900 dark:text-indigo-100">Upload Work Samples (Optional)</h2>
+              <p className="mt-1 text-sm text-indigo-700/80 dark:text-indigo-200/80">
                 {isEditingProfile
                   ? 'Add or remove files below; nothing is saved until you tap Save. Cancel discards all changes.'
                   : 'Uploaded work samples are shown below.'}
@@ -755,7 +755,7 @@ export default function UserProfileVendor() {
                 type="button"
                 onClick={openSamplesPicker}
                 disabled={isSavingProfile}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:opacity-60 dark:border-indigo-400/35 dark:bg-slate-900 dark:text-indigo-200 dark:hover:bg-indigo-500/18 dark:shadow-none"
               >
                 <Upload className="h-3.5 w-3.5" /> Add files
               </button>
@@ -774,17 +774,17 @@ export default function UserProfileVendor() {
           ) : null}
 
           {isEditingProfile && totalSamples === 0 && (
-            <div className="mt-4 rounded-xl border-2 border-dashed border-indigo-300/70 bg-white/80 p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700">
+            <div className="mt-4 rounded-xl border-2 border-dashed border-indigo-300/70 bg-white/80 p-4 text-center dark:border-indigo-400/35 dark:bg-slate-900/80">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
                 <Upload className="h-5 w-5" />
               </div>
-              <p className="text-sm font-medium text-slate-800">Drag and drop files or choose from your device</p>
-              <p className="mt-1 text-xs text-slate-500">Allowed: images, PDF, DOC, DOCX - max 10MB per file</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Drag and drop files or choose from your device</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Allowed: images, PDF, DOC, DOCX - max 10MB per file</p>
               <button
                 type="button"
                 onClick={openSamplesPicker}
                 disabled={isSavingProfile}
-                className="mt-3 inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60"
+                className="mt-3 inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200 dark:hover:bg-indigo-500/24"
               >
                 <Upload className="h-4 w-4" /> Upload Files
               </button>
@@ -794,26 +794,26 @@ export default function UserProfileVendor() {
           {imageSamples.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-800">Image Samples</h3>
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Image Samples</h3>
                 {imagePageCount > 1 && (
-                  <div className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-1.5 py-1">
+                  <div className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-1.5 py-1 dark:border-indigo-400/35 dark:bg-slate-900">
                     <button
                       type="button"
                       onClick={() => setImagePage((prev) => Math.max(0, prev - 1))}
                       disabled={imagePage === 0}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:text-slate-300 dark:text-indigo-200 dark:hover:bg-indigo-500/18 dark:disabled:text-slate-600"
                       title="Previous images"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <span className="text-xs font-medium text-slate-600">
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                       {imagePage + 1} / {imagePageCount}
                     </span>
                     <button
                       type="button"
                       onClick={() => setImagePage((prev) => Math.min(imagePageCount - 1, prev + 1))}
                       disabled={imagePage >= imagePageCount - 1}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:text-slate-300 dark:text-indigo-200 dark:hover:bg-indigo-500/18 dark:disabled:text-slate-600"
                       title="Next images"
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -835,10 +835,10 @@ export default function UserProfileVendor() {
                         <Eye className="h-3.5 w-3.5" /> View
                       </span>
                     </button>
-                    <div className="flex items-center justify-between gap-2 border-t border-white/70 bg-white/85 px-2.5 py-2">
+                    <div className="flex items-center justify-between gap-2 border-t border-white/70 bg-white/85 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-900/85">
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-medium text-slate-800">{item.name}</p>
-                        <p className="text-[11px] text-slate-500">Portfolio file</p>
+                        <p className="truncate text-xs font-medium text-slate-800 dark:text-slate-100">{item.name}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Portfolio file</p>
                       </div>
                       {isEditingProfile && (
                         <button
@@ -859,13 +859,13 @@ export default function UserProfileVendor() {
 
           {documentSamples.length > 0 && (
             <div className="mt-4">
-              <h3 className="mb-2 text-sm font-semibold text-slate-800">Document Samples</h3>
+                <h3 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-100">Document Samples</h3>
               <div className="space-y-2">
                 {documentSamples.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-indigo-100 bg-white px-3 py-2">
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border border-indigo-100 bg-white px-3 py-2 dark:border-indigo-400/30 dark:bg-slate-900">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-800">{item.name}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{item.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {item.documentType && !isImageDocType(item.documentType)
                           ? String(item.documentType).split('/').pop()
                           : getDocumentKindLabel({ name: item.name })}
@@ -877,7 +877,7 @@ export default function UserProfileVendor() {
                       <button
                         type="button"
                         onClick={() => viewDocumentSample(item)}
-                        className="inline-flex h-7 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                        className="inline-flex h-7 items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200 dark:hover:bg-indigo-500/24"
                       >
                         <Eye className="h-3.5 w-3.5" /> View
                       </button>
@@ -898,8 +898,8 @@ export default function UserProfileVendor() {
             </div>
           )}
 
-          {!isEditingProfile && totalSamples === 0 && <p className="mt-4 text-sm text-slate-500">No work samples uploaded yet.</p>}
-          {isSavingProfile ? <p className="mt-2 text-xs text-indigo-600">Saving profile…</p> : null}
+          {!isEditingProfile && totalSamples === 0 && <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No work samples uploaded yet.</p>}
+          {isSavingProfile ? <p className="mt-2 text-xs text-indigo-600 dark:text-indigo-300">Saving profile…</p> : null}
         </section>
 
         {isEditingProfile && (
@@ -908,7 +908,7 @@ export default function UserProfileVendor() {
               type="button"
               onClick={cancelEditingProfile}
               disabled={isSavingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <X className="h-4 w-4" /> Cancel
             </button>
@@ -916,32 +916,32 @@ export default function UserProfileVendor() {
               type="button"
               onClick={saveEditingProfile}
               disabled={isSavingProfile}
-              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-9 items-center gap-1 rounded-lg bg-emerald-100 px-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500/18 dark:text-emerald-200 dark:hover:bg-emerald-500/28"
             >
               <Check className="h-4 w-4" /> {isSavingProfile ? 'Saving…' : 'Save'}
             </button>
           </section>
         )}
 
-        <section className="cs-profile-section-reveal rounded-2xl border border-slate-200 bg-white shadow-[0_10px_20px_rgba(15,23,42,0.06)]" style={{ animationDelay: '180ms' }}>
-          <div className="border-b border-slate-100 px-4 py-2.5 sm:px-5">
-            <h2 className="text-sm font-semibold text-slate-700">Recent Requests</h2>
+        <section className="cs-profile-section-reveal rounded-2xl border border-slate-200 bg-white shadow-[0_10px_20px_rgba(15,23,42,0.06)] dark:border-slate-700 dark:bg-slate-900/74 dark:shadow-none" style={{ animationDelay: '180ms' }}>
+          <div className="border-b border-slate-100 px-4 py-2.5 sm:px-5 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Recent Requests</h2>
           </div>
 
           {loading && (
-            <div className="px-4 py-3 text-sm text-slate-500 sm:px-5">Loading recent requests...</div>
+            <div className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 sm:px-5">Loading recent requests...</div>
           )}
 
           {!loading && recentFromApi.length === 0 && (
-            <div className="px-4 py-3 text-sm text-slate-500 sm:px-5">No recent requests yet.</div>
+            <div className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 sm:px-5">No recent requests yet.</div>
           )}
 
           {!loading && recentFromApi.length > 0 && (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {recentFromApi.map((request) => (
                 <article
                   key={String(request?.id || request?.title)}
-                  className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 sm:grid-cols-12 sm:items-center sm:px-5"
+                  className="grid grid-cols-1 gap-1.5 px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-violet-50/40 hover:to-cyan-50/40 dark:hover:from-violet-500/12 dark:hover:to-cyan-500/10 sm:grid-cols-12 sm:items-center sm:px-5"
                 >
                   <div className="sm:col-span-7">
                     <span
@@ -953,14 +953,14 @@ export default function UserProfileVendor() {
                     >
                       {request?.status === 'Completed' ? 'Completed' : 'In Progress'}
                     </span>
-                    <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 sm:text-lg">{request?.title || 'Request'}</h3>
-                    <p className="text-xs text-slate-500 sm:text-sm">
+                    <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">{request?.title || 'Request'}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                       {request?.client || 'Client'} • {formatDate(request?.date)}
                     </p>
                   </div>
 
                   <div className="text-left sm:col-span-2 sm:text-right">
-                    <p className="text-lg font-medium text-slate-800 sm:text-xl">{formatMoney(request?.amount)}</p>
+                    <p className="text-lg font-medium text-slate-800 dark:text-slate-200 sm:text-xl">{formatMoney(request?.amount)}</p>
                   </div>
 
                   <div className="sm:col-span-3 sm:text-right">
@@ -982,7 +982,7 @@ export default function UserProfileVendor() {
         </section>
 
         <section
-          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4"
+          className="cs-profile-section-reveal relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#5b5cf0] to-[#2f7de1] px-4 py-4 text-white shadow-[0_12px_24px_rgba(79,70,229,0.24)] sm:px-5 sm:py-4 dark:from-[#4c1d95] dark:via-[#3730a3] dark:to-[#1d4ed8] dark:shadow-[0_16px_32px_rgba(2,6,23,0.58)]"
           style={{ animationDelay: '220ms' }}
         >
           <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/20 blur-2xl" />
@@ -1015,7 +1015,7 @@ export default function UserProfileVendor() {
             if (!open) setPendingDeleteSampleId('');
           }}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this sample?</AlertDialogTitle>
               <AlertDialogDescription>
