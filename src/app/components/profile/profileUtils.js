@@ -59,8 +59,8 @@ export function getAccountStatusLabel(accountStatusRaw) {
 
 export function getAccountStatusClasses(accountStatusRaw) {
   const status = getAccountStatusLabel(accountStatusRaw).toLowerCase();
-  if (status === 'suspended') return 'border border-rose-200 bg-rose-50 text-rose-700';
-  return 'border border-emerald-200 bg-emerald-50 text-emerald-700';
+  if (status === 'suspended') return 'border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/35 dark:bg-rose-500/16 dark:text-rose-200';
+  return 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200';
 }
 
 /** Category pill palette (index-based) */

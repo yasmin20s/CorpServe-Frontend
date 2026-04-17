@@ -85,7 +85,7 @@ export default function ClientDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <Card>
+        <Card className="border-slate-200/80 dark:border-slate-700/70 dark:bg-slate-900/70">
           <CardHeader>
             <CardTitle>Recent Requests</CardTitle>
           </CardHeader>
@@ -120,30 +120,30 @@ export default function ClientDashboard() {
                 vendor: '3 proposals',
                 progress: 0,
             },
-        ].map((request, index) => (<div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+        ].map((request, index) => (<div key={index} className="flex items-center justify-between rounded-lg border border-slate-200/80 bg-slate-50 p-4 transition-colors hover:bg-slate-100 dark:border-slate-700/70 dark:bg-slate-800/65 dark:hover:bg-slate-800/90">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Package className="w-6 h-6 text-blue-600"/>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                      <Package className="h-6 w-6 text-blue-600 dark:text-blue-300"/>
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{request.title}</h4>
+                      <h4 className="font-medium text-slate-900 dark:text-slate-100">{request.title}</h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-600">{request.category}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">{request.vendor}</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">{request.category}</span>
+                        <span className="text-slate-400 dark:text-slate-500">•</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">{request.vendor}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${request.status === 'Completed'
-                ? 'bg-green-100 text-green-700'
+                ? 'border border-green-200 bg-green-100 text-green-700 dark:border-green-400/30 dark:bg-green-500/20 dark:text-green-200'
                 : request.status === 'Active'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-yellow-100 text-yellow-700'}`}>
+                    ? 'border border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-400/30 dark:bg-blue-500/20 dark:text-blue-200'
+                    : 'border border-yellow-200 bg-yellow-100 text-yellow-700 dark:border-yellow-400/30 dark:bg-yellow-500/20 dark:text-yellow-200'}`}>
                         {request.status}
                       </div>
-                      {request.progress > 0 && (<p className="text-sm text-gray-600 mt-1">{request.progress}% Complete</p>)}
+                      {request.progress > 0 && (<p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{request.progress}% Complete</p>)}
                     </div>
                   </div>
                 </div>))}

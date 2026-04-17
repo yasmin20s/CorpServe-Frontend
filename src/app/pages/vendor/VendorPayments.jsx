@@ -92,40 +92,40 @@ function isPayoutCompleted(status) {
 
 function paymentStatusClass(status) {
   const value = normalizeStatus(status);
-  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-  if (value === 'failed' || value === 'cancelled') return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-  if (value === 'pending') return 'bg-orange-100 text-orange-800 border-orange-200';
-  return 'bg-slate-100 text-slate-700 border-slate-200';
+  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/16 dark:text-emerald-200 dark:border-emerald-400/35';
+  if (value === 'failed' || value === 'cancelled') return 'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/16 dark:text-indigo-200 dark:border-indigo-400/35';
+  if (value === 'pending') return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/16 dark:text-orange-200 dark:border-orange-400/35';
+  return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:text-slate-200 dark:border-slate-700';
 }
 
 function payoutStatusClass(status) {
   return isPayoutCompleted(status)
-    ? 'bg-violet-100 text-violet-800 border-violet-200'
-    : 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    ? 'bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-500/16 dark:text-violet-200 dark:border-violet-400/35'
+    : 'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/16 dark:text-indigo-200 dark:border-indigo-400/35';
 }
 
 function paymentRowTone(status) {
   const value = normalizeStatus(status);
   if (value === 'completed' || value === 'paid') {
     return {
-      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60',
+      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60 dark:border-emerald-400/30 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:via-slate-900 dark:to-cyan-500/10',
       stripe: 'from-emerald-500 to-cyan-500',
     };
   }
   if (value === 'pending') {
     return {
-      wrapper: 'border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-white to-orange-50/60',
+      wrapper: 'border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-white to-orange-50/60 dark:border-amber-400/30 dark:bg-gradient-to-r dark:from-amber-500/10 dark:via-slate-900 dark:to-orange-500/10',
       stripe: 'from-amber-500 to-orange-500',
     };
   }
   if (value === 'failed' || value === 'cancelled') {
     return {
-      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60',
+      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60 dark:border-rose-400/30 dark:bg-gradient-to-r dark:from-rose-500/10 dark:via-slate-900 dark:to-pink-500/10',
       stripe: 'from-rose-500 to-pink-500',
     };
   }
   return {
-    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25',
+    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25 dark:border-indigo-400/30 dark:bg-gradient-to-r dark:from-slate-900 dark:via-indigo-950/25 dark:to-violet-950/22',
     stripe: 'from-indigo-500 to-violet-500',
   };
 }
@@ -207,18 +207,19 @@ export default function VendorPayments() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="vendor">
       <div className="space-y-5">
-        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)]">
-          <div className="absolute right-6 top-6 h-3 w-3 rounded-full bg-violet-500/80 animate-pulse" />
-          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl" />
+        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)] dark:border-violet-400/30 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-[0_20px_44px_rgba(2,6,23,0.58)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-sky-500" />
+          <div className="absolute right-6 top-6 h-3 w-3 rounded-full bg-violet-500/80 animate-pulse dark:bg-violet-300" />
+          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl dark:bg-violet-500/16" />
           <CardContent className="p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700 transition-transform duration-300 hover:scale-[1.02]">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700 transition-transform duration-300 hover:scale-[1.02] dark:border-violet-400/35 dark:bg-slate-900 dark:text-violet-200">
                   <Sparkles className="h-3.5 w-3.5" />
                   Cashboard
                 </p>
-                <h1 className="text-3xl font-black text-slate-900">Vendor Payments</h1>
-                <p className="mt-1 text-sm text-violet-800/80">A brand new board layout focused on speed and clarity.</p>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Vendor Payments</h1>
+                <p className="mt-1 text-sm text-violet-800/80 dark:text-violet-200/85">A brand new board layout focused on speed and clarity.</p>
               </div>
               <Button
                 type="button"
@@ -261,22 +262,22 @@ export default function VendorPayments() {
           </Card>
         </div>
 
-        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 transition-shadow duration-300 hover:shadow-md">
+        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 transition-shadow duration-300 hover:shadow-md dark:border-indigo-400/30 dark:bg-gradient-to-r dark:from-slate-900 dark:via-indigo-950/25 dark:to-slate-900 dark:hover:shadow-none">
           <CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_220px_auto]">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search by request, order, or payment id"
-                className="h-10 rounded-xl border-indigo-100 bg-white pl-9 transition-shadow duration-300 focus-visible:ring-indigo-400"
+                className="h-10 rounded-xl border-indigo-100 bg-white pl-9 transition-shadow duration-300 focus-visible:ring-indigo-400 dark:border-indigo-400/30 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-xl border-indigo-100 bg-white transition-shadow duration-300">
+              <SelectTrigger className="h-10 rounded-xl border-indigo-100 bg-white transition-shadow duration-300 dark:border-indigo-400/30 dark:bg-slate-900 dark:text-slate-100">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                 <SelectItem value="all">All Payments</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -284,18 +285,18 @@ export default function VendorPayments() {
                 <SelectItem value="payout-pending">Completed with pending payout</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700">
+            <div className="flex items-center rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/14 dark:text-indigo-200">
               {filteredPayments.length} visible
             </div>
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          {isLoading && <p className="py-4 text-sm text-slate-500 animate-pulse">Loading payments data...</p>}
+          {isLoading && <p className="py-4 text-sm text-slate-500 animate-pulse dark:text-slate-300">Loading payments data...</p>}
 
           {!isLoading && filteredPayments.length === 0 && (
-            <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 xl:col-span-2 animate-pulse">
-              <CardContent className="p-8 text-center text-sm font-medium text-indigo-700">No payments match this filter.</CardContent>
+            <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 xl:col-span-2 animate-pulse dark:border-indigo-400/30 dark:bg-gradient-to-r dark:from-slate-900 dark:via-indigo-950/25 dark:to-slate-900">
+              <CardContent className="p-8 text-center text-sm font-medium text-indigo-700 dark:text-indigo-200">No payments match this filter.</CardContent>
             </Card>
           )}
 
@@ -310,10 +311,10 @@ export default function VendorPayments() {
 
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-base font-semibold text-slate-900">{payment.requestTitle || `Request ${payment.requestId || '-'}`}</h3>
-                        <p className="mt-1 text-xs text-slate-500">{payment.paymentId || 'N/A'} • {payment.merchantOrderId || 'N/A'}</p>
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{payment.requestTitle || `Request ${payment.requestId || '-'}`}</h3>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{payment.paymentId || 'N/A'} • {payment.merchantOrderId || 'N/A'}</p>
                       </div>
-                      <div className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] font-bold text-slate-800 transition-transform duration-300 group-hover:scale-105 backdrop-blur">
+                      <div className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] font-bold text-slate-800 transition-transform duration-300 group-hover:scale-105 backdrop-blur dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100">
                         {formatMoney(payment.vendorNetAmount)}
                       </div>
                     </div>
@@ -324,21 +325,21 @@ export default function VendorPayments() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Created</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatDate(payment.createdAt)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-900/80">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Created</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{formatDate(payment.createdAt)}</p>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Gross</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatMoney(payment.amount)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-900/80">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Gross</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{formatMoney(payment.amount)}</p>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Commission</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatMoney(payment.commision)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-900/80">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Commission</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{formatMoney(payment.commision)}</p>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Net</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatMoney(payment.vendorNetAmount)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-900/80">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Net</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{formatMoney(payment.vendorNetAmount)}</p>
                       </div>
                     </div>
                   </CardContent>

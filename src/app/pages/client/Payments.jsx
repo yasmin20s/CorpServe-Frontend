@@ -47,34 +47,34 @@ function normalizeStatus(value) {
 
 function paymentStatusClass(status) {
   const value = normalizeStatus(status);
-  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-  if (value === 'failed' || value === 'cancelled') return 'bg-rose-100 text-rose-700 border-rose-200';
-  if (value === 'pending') return 'bg-sky-100 text-sky-700 border-sky-200';
-  return 'bg-slate-100 text-slate-700 border-slate-200';
+  if (value === 'completed' || value === 'paid') return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/18 dark:text-emerald-200 dark:border-emerald-400/35';
+  if (value === 'failed' || value === 'cancelled') return 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/18 dark:text-rose-200 dark:border-rose-400/35';
+  if (value === 'pending') return 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-500/18 dark:text-sky-200 dark:border-sky-400/35';
+  return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/40 dark:text-slate-200 dark:border-slate-500/40';
 }
 
 function paymentRowTone(status) {
   const value = normalizeStatus(status);
   if (value === 'completed' || value === 'paid') {
     return {
-      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60',
+      wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60 dark:border-emerald-400/30 dark:from-emerald-500/14 dark:via-slate-900 dark:to-cyan-500/12',
       stripe: 'from-emerald-500 to-cyan-500',
     };
   }
   if (value === 'pending') {
     return {
-      wrapper: 'border-sky-200/70 bg-gradient-to-r from-sky-50/60 via-white to-blue-50/60',
+      wrapper: 'border-sky-200/70 bg-gradient-to-r from-sky-50/60 via-white to-blue-50/60 dark:border-sky-400/30 dark:from-sky-500/14 dark:via-slate-900 dark:to-blue-500/12',
       stripe: 'from-sky-500 to-blue-500',
     };
   }
   if (value === 'failed' || value === 'cancelled') {
     return {
-      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60',
+      wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60 dark:border-rose-400/30 dark:from-rose-500/14 dark:via-slate-900 dark:to-pink-500/12',
       stripe: 'from-rose-500 to-pink-500',
     };
   }
   return {
-    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25',
+    wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25 dark:border-slate-700 dark:from-slate-900 dark:via-indigo-500/10 dark:to-violet-500/10',
     stripe: 'from-indigo-500 to-violet-500',
   };
 }
@@ -247,24 +247,24 @@ export default function Payments() {
     };
     return (<DashboardLayout menuItems={menuItems} userRole="client">
       <div className="space-y-5">
-        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)]">
-          <div className="absolute right-6 top-6 h-3 w-3 rounded-full bg-violet-500/80 animate-pulse" />
-          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl" />
+        <Card className="relative overflow-hidden border-violet-200 bg-gradient-to-r from-violet-100 via-fuchsia-50 to-purple-100 shadow-[0_18px_50px_rgba(124,58,237,0.14)] dark:border-indigo-400/25 dark:from-[#161f3c] dark:via-[#1f2f56] dark:to-[#213866] dark:shadow-[0_20px_52px_rgba(2,6,23,0.6)]">
+          <div className="absolute right-6 top-6 h-3 w-3 animate-pulse rounded-full bg-violet-500/80 dark:bg-violet-300/70" />
+          <div className="absolute -right-8 bottom-0 h-24 w-24 rounded-full bg-violet-300/30 blur-2xl dark:bg-violet-500/25" />
           <CardContent className="relative p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-700 transition-transform duration-300 hover:scale-[1.02]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Cashboard
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-violet-300/75 bg-gradient-to-r from-white via-violet-50 to-fuchsia-50 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-violet-700 ring-1 ring-violet-200/70 shadow-[0_8px_22px_rgba(124,58,237,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(124,58,237,0.32)] dark:border-indigo-300/35 dark:bg-gradient-to-r dark:from-indigo-500/24 dark:via-violet-500/18 dark:to-slate-900/85 dark:text-indigo-100 dark:ring-indigo-300/30 dark:shadow-[0_10px_24px_rgba(2,6,23,0.46)]">
+                  <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
+                  CASHBOARD
                 </p>
-                <h1 className="text-3xl font-black text-slate-900">Client Payments</h1>
-                <p className="mt-1 text-sm text-violet-800/80">Manage payments, complete pending invoices, and track your transactions clearly.</p>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Client Payments</h1>
+                <p className="mt-1 text-sm text-violet-800/80 dark:text-slate-300">Manage payments, complete pending invoices, and track your transactions clearly.</p>
               </div>
               <Button
                 type="button"
                 onClick={() => loadPayments({ silent: true })}
                 disabled={isRefreshing}
-                className="gap-2 rounded-xl bg-violet-700 px-5 hover:bg-violet-800"
+                className="gap-2 rounded-xl bg-violet-500 px-5 text-white hover:bg-violet-600 dark:bg-violet-500 dark:hover:bg-violet-400"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh
@@ -303,25 +303,25 @@ export default function Payments() {
         </div>
 
         {pendingPayments.length > 0 && (
-          <Card className="border-sky-200 bg-gradient-to-r from-sky-50/70 via-white to-blue-50/60">
+          <Card className="border-sky-200 bg-gradient-to-r from-sky-50/70 via-white to-blue-50/60 dark:border-sky-400/30 dark:from-sky-500/12 dark:via-slate-900 dark:to-blue-500/12">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sky-700">Pending Payments</CardTitle>
-              <p className="text-sm text-sky-700/80">Please complete payment to continue creating new requests.</p>
+              <CardTitle className="text-sky-700 dark:text-sky-200">Pending Payments</CardTitle>
+              <p className="text-sm text-sky-700/80 dark:text-slate-300">Please complete payment to continue creating new requests.</p>
             </CardHeader>
             <CardContent className="space-y-3 pt-1">
               {pendingPayments.map((payment) => (
-                <div key={payment.paymentId} className="relative overflow-hidden rounded-2xl border border-sky-200/80 bg-white/90 p-4 shadow-sm">
+                <div key={payment.paymentId} className="relative overflow-hidden rounded-2xl border border-sky-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
                   <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-500 to-blue-500" />
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{payment.requestTitle || `Request ${payment.requestId}`}</h4>
-                      <p className="mt-1 text-xs text-slate-500">Invoice: INV-{payment.requestId} • {formatDate(payment.createdAt)}</p>
-                      <p className="mt-1 text-sm text-slate-600">Service: {formatMoney(payment.amount)} • Commission: {formatMoney(payment.commision)}</p>
+                      <h4 className="font-semibold text-slate-900 dark:text-slate-100">{payment.requestTitle || `Request ${payment.requestId}`}</h4>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Invoice: INV-{payment.requestId} • {formatDate(payment.createdAt)}</p>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Service: {formatMoney(payment.amount)} • Commission: {formatMoney(payment.commision)}</p>
                     </div>
 
                     <div className="flex items-center gap-3 md:flex-col md:items-end">
-                      <p className="text-lg font-bold text-slate-900">{formatMoney(payment.totalAmount)}</p>
-                      <Button onClick={() => handlePayment(payment)} disabled={loadingId === payment.requestId} className="rounded-xl bg-violet-700 hover:bg-violet-800">
+                      <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{formatMoney(payment.totalAmount)}</p>
+                      <Button onClick={() => handlePayment(payment)} disabled={loadingId === payment.requestId} className="rounded-xl bg-violet-700 hover:bg-violet-800 dark:bg-violet-600 dark:hover:bg-violet-500">
                         {loadingId === payment.requestId ? 'Redirecting...' : 'Pay Now'}
                       </Button>
                     </div>
@@ -332,23 +332,23 @@ export default function Payments() {
           </Card>
         )}
 
-        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 transition-shadow duration-300 hover:shadow-md">
+        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 transition-shadow duration-300 hover:shadow-md dark:border-slate-700 dark:from-slate-900 dark:via-indigo-500/10 dark:to-sky-500/10 dark:hover:shadow-[0_18px_36px_rgba(2,6,23,0.5)]">
           <CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_220px_auto]">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search by request, payment id, or payout status"
-                className="h-10 rounded-xl border-indigo-100 bg-white pl-9 transition-shadow duration-300 focus-visible:ring-indigo-400"
+                className="h-10 rounded-xl border-indigo-100 bg-white pl-9 transition-shadow duration-300 focus-visible:ring-indigo-400 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus-visible:ring-indigo-400/60"
               />
             </div>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 rounded-xl border-indigo-100 bg-white transition-shadow duration-300">
+              <SelectTrigger className="h-10 rounded-xl border-indigo-100 bg-white transition-shadow duration-300 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="dark:bg-slate-900 dark:text-slate-100">
                 <SelectItem value="all">All Payments</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -356,22 +356,22 @@ export default function Payments() {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700">
+            <div className="flex items-center rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/16 dark:text-indigo-200">
               {filteredHistoryPayments.length} visible
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-indigo-100 bg-gradient-to-b from-white to-indigo-50/20">
+        <Card className="border-indigo-100 bg-gradient-to-b from-white to-indigo-50/20 dark:border-slate-700 dark:from-slate-900 dark:to-slate-900/90">
           <CardHeader className="pb-1">
-            <CardTitle className="text-xl font-bold text-slate-900">Transaction Stream</CardTitle>
-            <p className="text-sm text-slate-500">{filteredHistoryPayments.length} records match your current filter</p>
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">Transaction Stream</CardTitle>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{filteredHistoryPayments.length} records match your current filter</p>
           </CardHeader>
           <CardContent className="space-y-3 p-4 pt-2">
-            {isLoading && <p className="py-4 text-sm text-slate-500 animate-pulse">Loading payments data...</p>}
+            {isLoading && <p className="animate-pulse py-4 text-sm text-slate-500 dark:text-slate-400">Loading payments data...</p>}
 
             {!isLoading && filteredHistoryPayments.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-10 text-center text-sm text-indigo-700">
+              <div className="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-10 text-center text-sm text-indigo-700 dark:border-indigo-400/35 dark:bg-indigo-500/12 dark:text-indigo-200">
                 No payments match this filter.
               </div>
             )}
@@ -389,7 +389,7 @@ export default function Payments() {
                         <h3 className="text-base font-semibold text-slate-900">{transaction.requestTitle || `Request ${transaction.requestId}`}</h3>
                         <p className="mt-1 text-xs text-slate-500">Payment ID: {transaction.paymentId || 'N/A'} • {formatDate(transaction.createdAt)}</p>
                       </div>
-                      <div className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] font-bold text-slate-800 backdrop-blur">
+                      <div className="rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[11px] font-bold text-slate-800 backdrop-blur dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
                         {formatMoney(transaction.totalAmount)}
                       </div>
                     </div>
@@ -398,19 +398,19 @@ export default function Payments() {
                       <Badge className={`border ${paymentStatusClass(transaction.paymentStatus)}`}>
                         {transaction.paymentStatus || 'Unknown'}
                       </Badge>
-                      <Badge className="border border-violet-200 bg-violet-100 text-violet-700">
+                      <Badge className="border border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-400/35 dark:bg-violet-500/18 dark:text-violet-200">
                         Payout: {transaction.payoutStatus || 'pending'}
                       </Badge>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Service</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatMoney(transaction.amount)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-800">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Service</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatMoney(transaction.amount)}</p>
                       </div>
-                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur">
-                        <p className="text-[11px] text-slate-500">Commission</p>
-                        <p className="text-sm font-semibold text-slate-800">{formatMoney(transaction.commision)}</p>
+                      <div className="rounded-xl border border-white/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-slate-600 dark:bg-slate-800">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Commission</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatMoney(transaction.commision)}</p>
                       </div>
                     </div>
                   </div>
@@ -419,21 +419,21 @@ export default function Payments() {
           </CardContent>
         </Card>
         <Dialog open={ratingModalOpen} onOpenChange={setRatingModalOpen}>
-          <DialogContent>
+          <DialogContent className="dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
             <DialogHeader>
               <DialogTitle>Rate Vendor Service</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="rounded-lg border p-3 bg-gray-50">
-                <p className="text-sm text-gray-700 font-medium">{ratingTarget?.requestTitle || 'Completed request'}</p>
-                <p className="text-xs text-gray-500">Vendor: {ratingTarget?.vendorName || '-'}</p>
+              <div className="rounded-lg border bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+                <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{ratingTarget?.requestTitle || 'Completed request'}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Vendor: {ratingTarget?.vendorName || '-'}</p>
               </div>
               <div className="space-y-2">
                 <Label>Rating (1-5)</Label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button key={value} type="button" onClick={() => setStars(value)} className="focus:outline-none">
-                      <Star className={`h-7 w-7 ${value <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                      <Star className={`h-7 w-7 ${value <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-slate-600'}`} />
                     </button>
                   ))}
                 </div>

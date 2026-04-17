@@ -197,64 +197,65 @@ export default function VendorApprovals() {
 
     return (<DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-6">
-        <div className="relative overflow-hidden rounded-3xl border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-fuchsia-100 p-6 shadow-[0_16px_36px_rgba(99,102,241,0.2)] md:p-8">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/50 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-violet-300/45 blur-3xl" />
+        <div className="relative overflow-hidden rounded-3xl border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-fuchsia-100 p-6 shadow-[0_16px_36px_rgba(99,102,241,0.2)] md:p-8 dark:border-indigo-400/30 dark:bg-gradient-to-r dark:from-[#131d37] dark:via-[#1a2a4d] dark:to-[#1e3a62] dark:shadow-[0_20px_44px_rgba(2,6,23,0.58)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-sky-500" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-300/50 blur-3xl dark:bg-indigo-500/18" />
+          <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-violet-300/45 blur-3xl dark:bg-violet-500/16" />
 
           <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="mb-2 text-3xl font-black text-indigo-800">Vendor Approvals</h1>
-              <p className="text-indigo-700/80">Review and approve vendor applications</p>
+              <h1 className="mb-2 text-3xl font-black text-indigo-800 dark:text-indigo-100">Vendor Approvals</h1>
+              <p className="text-indigo-700/80 dark:text-indigo-200/85">Review and approve vendor applications</p>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50/90 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50/90 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:shadow-none">
               <UserCheck className="h-4 w-4" />
               Admin Review Panel
             </div>
           </div>
         </div>
 
-        <Card className="border border-amber-200 bg-amber-50/90 shadow-sm">
+        <Card className="border border-amber-200 bg-amber-50/90 shadow-sm dark:border-amber-400/35 dark:bg-amber-500/16 dark:shadow-none">
           <CardContent className="p-4">
-            <p className="text-sm font-medium text-amber-900">
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
               ⚠️ You have {pendingRequests.length} pending vendor approval{pendingRequests.length !== 1 ? 's' : ''}
             </p>
           </CardContent>
         </Card>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 shadow-sm">
+          <Card className="border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 shadow-sm dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-indigo-500/16 dark:to-violet-500/14 dark:shadow-none">
             <CardContent className="flex items-center gap-3 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6f74ea] text-white">
                 <UserCheck className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Pending Vendors</p>
-                <p className="text-2xl font-bold text-slate-900">{pendingRequests.length}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{pendingRequests.length}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm">
+          <Card className="border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm dark:border-blue-400/30 dark:bg-gradient-to-br dark:from-blue-500/16 dark:to-cyan-500/14 dark:shadow-none">
             <CardContent className="flex items-center gap-3 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
                 <FolderOpen className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Submitted Docs</p>
-                <p className="text-2xl font-bold text-slate-900">{totalDocuments}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalDocuments}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-sm">
+          <Card className="border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-sm dark:border-emerald-400/30 dark:bg-gradient-to-br dark:from-emerald-500/16 dark:to-teal-500/14 dark:shadow-none">
             <CardContent className="flex items-center gap-3 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
                 <Briefcase className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Categories</p>
-                <p className="text-2xl font-bold text-slate-900">{uniqueCategories}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{uniqueCategories}</p>
               </div>
             </CardContent>
           </Card>
@@ -266,22 +267,22 @@ export default function VendorApprovals() {
           }`}
         >
           <div className="space-y-4">
-          {pendingRequests.map((vendor) => (<Card key={vendor.id} className="group relative overflow-hidden border-0 bg-white shadow-[0_10px_28px_rgba(30,41,59,0.08)] ring-1 ring-indigo-100/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(99,102,241,0.18)] hover:ring-indigo-200">
+          {pendingRequests.map((vendor) => (<Card key={vendor.id} className="group relative overflow-hidden border-0 bg-white shadow-[0_10px_28px_rgba(30,41,59,0.08)] ring-1 ring-indigo-100/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(99,102,241,0.18)] hover:ring-indigo-200 dark:bg-slate-900/88 dark:ring-indigo-400/20 dark:shadow-none dark:hover:shadow-none dark:hover:ring-indigo-400/35">
               <CardContent className="relative p-6">
-                <div className="pointer-events-none absolute -left-14 -top-16 h-32 w-32 rounded-full bg-indigo-200/35 blur-2xl" />
-                <div className="pointer-events-none absolute -right-10 -bottom-16 h-36 w-36 rounded-full bg-violet-200/35 blur-2xl" />
+                <div className="pointer-events-none absolute -left-14 -top-16 h-32 w-32 rounded-full bg-indigo-200/35 blur-2xl dark:bg-indigo-500/14" />
+                <div className="pointer-events-none absolute -right-10 -bottom-16 h-36 w-36 rounded-full bg-violet-200/35 blur-2xl dark:bg-violet-500/14" />
                 <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#6f74ea] via-indigo-500 to-violet-500" />
 
                 <div className="mb-5 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-                  <div className="rounded-2xl border border-indigo-100/80 bg-white/95 p-4 shadow-sm">
+                  <div className="rounded-2xl border border-indigo-100/80 bg-white/95 p-4 shadow-sm dark:border-indigo-400/25 dark:bg-slate-900/85 dark:shadow-none">
                     <div className="mb-3 flex items-center gap-3">
-                      <h3 className="text-xl font-semibold text-slate-900">{vendor.organizationName}</h3>
+                      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{vendor.organizationName}</h3>
                       <Badge className="border border-amber-200 bg-amber-100 text-amber-700 shadow-sm">
                         <Clock3 className="mr-1 h-3.5 w-3.5" />
                         Pending
                       </Badge>
                     </div>
-                    <div className="space-y-2 text-sm text-slate-700">
+                    <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
                       <p className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-[#6f74ea]" />
                         <span>{vendor.email}</span>
@@ -305,24 +306,24 @@ export default function VendorApprovals() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
-                    <h4 className="mb-2 flex items-center gap-2 font-medium text-slate-900">
+                  <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/85 dark:shadow-none">
+                    <h4 className="mb-2 flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
                       <FolderOpen className="h-4 w-4 text-[#6f74ea]" />
                       Documents ({vendor.documents.length})
                     </h4>
                     <div className="grid gap-2">
-                    {vendor.documents.map((doc, idx) => (<div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/90 p-2 transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50/60 hover:shadow-sm">
+                    {vendor.documents.map((doc, idx) => (<div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/90 p-2 transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50/60 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:hover:border-indigo-400/35 dark:hover:bg-indigo-500/14 dark:hover:shadow-none">
                         <File className="h-4 w-4 text-[#6f74ea]"/>
                         <div className="flex-1 min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-900">{doc.name}</p>
-                          <p className="text-xs text-slate-500">{doc.size}</p>
+                          <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{doc.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{doc.size}</p>
                         </div>
                       </div>))}
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200/80 bg-slate-50/75 p-3">
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/75 p-3 dark:border-slate-700 dark:bg-slate-800/70">
                   <div className="flex flex-wrap gap-2">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -331,7 +332,7 @@ export default function VendorApprovals() {
                         View Documents
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="border border-indigo-100">
+                    <DialogContent className="border border-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                       <DialogHeader>
                         <DialogTitle>Vendor Documents - {vendor.organizationName}</DialogTitle>
                         <DialogDescription>
@@ -383,7 +384,7 @@ export default function VendorApprovals() {
                         Reject
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="border border-red-100">
+                    <DialogContent className="border border-red-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                       <DialogHeader>
                         <DialogTitle>Reject Vendor - {vendor.organizationName}</DialogTitle>
                         <DialogDescription>
@@ -430,28 +431,28 @@ export default function VendorApprovals() {
             </Card>))}
 
           {isLoading && (
-            <Card className="border border-slate-200 bg-white">
+            <Card className="border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900/85">
               <CardContent className="p-8 text-center">
-                <p className="text-lg font-semibold text-slate-900">Loading pending vendor requests...</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Loading pending vendor requests...</p>
               </CardContent>
             </Card>
           )}
 
           {!isLoading && pendingRequests.length === 0 && (
-            <Card className="border border-slate-200 bg-white">
+            <Card className="border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900/85">
               <CardContent className="p-8 text-center">
                 <CheckCircle className="mx-auto mb-3 h-8 w-8 text-emerald-600" />
-                <p className="text-lg font-semibold text-slate-900">No pending vendor requests</p>
-                <p className="mt-1 text-sm text-slate-500">All pending applications have been reviewed.</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">No pending vendor requests</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">All pending applications have been reviewed.</p>
               </CardContent>
             </Card>
           )}
           </div>
 
           {recentActions.length > 0 && <div className="xl:sticky xl:top-20 xl:z-0">
-            <Card className="border border-slate-200 bg-white shadow-sm">
+            <Card className="border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/85 dark:shadow-none">
               <CardContent className="space-y-3 p-4">
-                <p className="text-sm font-semibold text-slate-800">Recent Status Updates</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Recent Status Updates</p>
 
                 <div className="space-y-2">
                   {recentActions.map((action) => (

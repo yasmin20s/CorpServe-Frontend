@@ -233,14 +233,19 @@ export default function CreateRequest() {
             <div className="space-y-6">
                 
                 {/* Header Card */}
-                <Card className="relative overflow-hidden rounded-3xl border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-blue-100 p-6 shadow-[0_16px_36px_rgba(79,70,229,0.2)] md:p-8">
-                    <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-indigo-300/40 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-blue-300/35 blur-3xl" />
+                <Card className="relative overflow-hidden rounded-3xl border border-indigo-300/70 bg-gradient-to-r from-indigo-100 via-violet-100 to-blue-100 p-6 shadow-[0_16px_36px_rgba(79,70,229,0.2)] dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#121a35] dark:via-[#1c2a52] dark:to-[#1c3a69] dark:shadow-[0_18px_44px_rgba(2,6,23,0.56)] md:p-8">
+                    <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(99,102,241,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.16)_1px,transparent_1px)] [background-size:34px_34px] dark:opacity-20" />
+                    <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-indigo-300/45 blur-3xl dark:bg-indigo-500/30" />
+                    <div className="pointer-events-none absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-blue-300/40 blur-3xl dark:bg-blue-500/24" />
 
                     <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <h1 className="mb-2 text-3xl font-black text-indigo-900">Create New Request</h1>
-                            <p className="text-indigo-800/80">Fill in request details, add budget and timeline, then submit your service request.</p>
+                            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-300/80 bg-white/85 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-700 shadow-[0_8px_20px_rgba(79,70,229,0.22)] dark:border-indigo-300/35 dark:bg-indigo-500/18 dark:text-indigo-100">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Request Studio
+                            </p>
+                            <h1 className="mb-2 text-3xl font-black text-indigo-900 dark:text-slate-100">Create New Request</h1>
+                            <p className="text-indigo-800/80 dark:text-slate-300">Fill in request details, add budget and timeline, then submit your service request.</p>
                         </div>
                         <Button type="button" className="gap-2 bg-[#6f74ea] text-white hover:bg-[#5f64da]" onClick={() => navigate('/client/my-requests')}>
                             <FileStack className="h-4 w-4" />
@@ -252,65 +257,65 @@ export default function CreateRequest() {
                 <form onSubmit={handleSubmit} className="space-y-8 max-w-6xl mx-auto">
                     
                     {/* Main Details Card */}
-                    <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] p-8 bg-white">
+                    <Card className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:border-slate-700/70 dark:bg-slate-900/78 dark:shadow-[0_16px_34px_rgba(2,6,23,0.52)]">
                         <div className="space-y-6">
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-[#1e293b] font-semibold">Request Title</Label>
+                                    <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Request Title</Label>
                                     <Input 
                                         placeholder="e.g., IT Infrastructure Setup" 
-                                        className="bg-[#f1f3f7] border-none py-6 rounded-xl"
+                                        className="rounded-xl border-none bg-[#f1f3f7] py-6 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder:text-slate-400"
                                         value={formData.title} 
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
                                         maxLength={200}
                                         required 
                                     />
-                                    <p className="text-xs text-slate-500">{formData.title.length}/200</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{formData.title.length}/200</p>
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-[#1e293b] font-semibold">Category</Label>
+                                        <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Category</Label>
                                         <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
-                                            <SelectTrigger className="bg-[#f1f3f7] border-none py-6 rounded-xl text-gray-500">
+                                            <SelectTrigger className="rounded-xl border-none bg-[#f1f3f7] py-6 text-gray-500 dark:bg-slate-950/65 dark:text-slate-100">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-xl border-none shadow-lg">
+                                            <SelectContent className="rounded-xl border-none shadow-lg dark:bg-slate-900 dark:text-slate-100">
                                                 {categories.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[#1e293b] font-semibold">Deadline</Label>
-                                        <Input type="date" className="bg-[#f1f3f7] border-none py-6 rounded-xl text-gray-500" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} required/>
+                                        <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Deadline</Label>
+                                        <Input type="date" className="rounded-xl border-none bg-[#f1f3f7] py-6 text-gray-500 dark:bg-slate-950/65 dark:text-slate-100" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} required/>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-[#1e293b] font-semibold">Description</Label>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                    <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Description</Label>
+                                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                                         Write 1-3 short sentences: what service you need, key tasks, and expected result.
                                         Clear and specific descriptions help vendors understand your needs and provide accurate proposals.
                                     </p>
                                     <Textarea 
                                         placeholder="Example: What do you need? What are the key tasks? What is the expected result?" 
                                         rows={4} 
-                                        className="bg-[#f1f3f7] border-none rounded-xl resize-none p-4"
+                                        className="resize-none rounded-xl border-none bg-[#f1f3f7] p-4 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder:text-slate-400"
                                         value={formData.description} 
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
                                         maxLength={500}
                                         required 
                                     />
-                                    <p className="text-xs text-slate-500">{formData.description.length}/500</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{formData.description.length}/500</p>
                                 </div>
 
                                 <div className="space-y-3 pt-2">
-                                    <Label className="text-[#1e293b] font-semibold italic">Attachments (Optional)</Label>
-                                    <div className="border-2 border-dashed border-gray-100 rounded-[20px] p-10 flex flex-col items-center justify-center bg-[#fafbfc] transition-all hover:border-[#6366f1]/30">
-                                        <Upload className="w-10 h-10 text-gray-300 mb-4" strokeWidth={1.5}/>
-                                        <p className="text-sm text-gray-400 mb-5 text-center">Upload supporting documents, images, or files</p>
+                                    <Label className="font-semibold italic text-[#1e293b] dark:text-slate-200">Attachments (Optional)</Label>
+                                    <div className="flex flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-gray-100 bg-[#fafbfc] p-10 transition-all hover:border-[#6366f1]/30 dark:border-slate-700 dark:bg-slate-900/68 dark:hover:border-indigo-400/40">
+                                        <Upload className="mb-4 h-10 w-10 text-gray-300 dark:text-slate-500" strokeWidth={1.5}/>
+                                        <p className="mb-5 text-center text-sm text-gray-400 dark:text-slate-400">Upload supporting documents, images, or files</p>
                                         <label htmlFor="attachments" className="cursor-pointer">
-                                            <div className="bg-white border border-gray-200 text-gray-600 font-semibold py-2 px-8 rounded-xl shadow-sm hover:bg-gray-50 transition-all">
+                                            <div className="rounded-xl border border-gray-200 bg-white px-8 py-2 font-semibold text-gray-600 shadow-sm transition-all hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
                                                 Choose Files
                                             </div>
                                             <input id="attachments" type="file" className="hidden" multiple onChange={handleAttachmentsChange}/>
@@ -319,17 +324,17 @@ export default function CreateRequest() {
                                         {attachments.length > 0 && (
                                             <div className="mt-6 w-full max-w-2xl space-y-2">
                                                 {attachments.map((file) => (
-                                                    <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between rounded-xl border border-indigo-100 bg-white px-3 py-2">
+                                                    <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between rounded-xl border border-indigo-100 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900/80">
                                                         <div className="min-w-0 flex items-center gap-2">
-                                                            <FileText className="h-4 w-4 shrink-0 text-indigo-500" />
-                                                            <p className="truncate text-sm font-medium text-slate-700">{file.name}</p>
-                                                            <span className="shrink-0 text-xs text-slate-500">({formatFileSize(file.size)})</span>
+                                                            <FileText className="h-4 w-4 shrink-0 text-indigo-500 dark:text-indigo-300" />
+                                                            <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{file.name}</p>
+                                                            <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">({formatFileSize(file.size)})</span>
                                                         </div>
                                                         <Button
                                                             type="button"
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-8 px-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                                                            className="h-8 px-2 text-slate-500 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/15 dark:hover:text-red-300"
                                                             onClick={() => removeAttachment(file)}
                                                         >
                                                             <X className="h-4 w-4" />
@@ -346,23 +351,23 @@ export default function CreateRequest() {
 
                     {/* Budget & AI Prediction Section */}
                     <div className="grid md:grid-cols-2 gap-8">
-                        <Card className="border-none shadow-sm rounded-[24px] p-8 bg-white">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Budget Range</h3>
+                        <Card className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
+                            <h3 className="mb-6 text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-slate-400">Budget Range</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-gray-400 font-bold uppercase">Min (EGP)</Label>
-                                    <Input type="number" placeholder="e.g., 5000" className="bg-[#f1f3f7] border-none py-6 rounded-xl" value={formData.budgetMin} onChange={(e)=>setFormData({...formData, budgetMin: e.target.value})} required/>
+                                    <Label className="text-xs font-bold uppercase text-gray-400 dark:text-slate-400">Min (EGP)</Label>
+                                    <Input type="number" placeholder="e.g., 5000" className="rounded-xl border-none bg-[#f1f3f7] py-6 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder:text-slate-400" value={formData.budgetMin} onChange={(e)=>setFormData({...formData, budgetMin: e.target.value})} required/>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-gray-400 font-bold uppercase">Max (EGP)</Label>
-                                    <Input type="number" placeholder="e.g., 10000" className="bg-[#f1f3f7] border-none py-6 rounded-xl" value={formData.budgetMax} onChange={(e)=>setFormData({...formData, budgetMax: e.target.value})} required/>
+                                    <Label className="text-xs font-bold uppercase text-gray-400 dark:text-slate-400">Max (EGP)</Label>
+                                    <Input type="number" placeholder="e.g., 10000" className="rounded-xl border-none bg-[#f1f3f7] py-6 dark:bg-slate-950/65 dark:text-slate-100 dark:placeholder:text-slate-400" value={formData.budgetMax} onChange={(e)=>setFormData({...formData, budgetMax: e.target.value})} required/>
                                 </div>
                             </div>
                         </Card>
 
-                        <Card className={`border-none shadow-sm rounded-[24px] p-8 transition-all duration-500 ${aiEstimate ? 'bg-[#f5f3ff]' : 'bg-[#f1f3f7]'}`}>
+                        <Card className={`rounded-[24px] border border-slate-200 p-8 shadow-sm transition-all duration-500 dark:border-slate-700 ${aiEstimate ? 'bg-[#f5f3ff] dark:bg-indigo-950/35' : 'bg-[#f1f3f7] dark:bg-slate-900/72'}`}>
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-sm font-bold text-[#6366f1] uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[#6366f1] dark:text-indigo-300">
                                     <Bot size={18}/> AI Prediction
                                 </h3>
                                 <Button 
@@ -381,14 +386,14 @@ export default function CreateRequest() {
                                 <div
                                     className={`mb-5 rounded-xl p-4 ${
                                         aiEstimateError.tone === 'red'
-                                            ? 'border border-red-300 bg-red-50 text-red-900'
-                                            : 'border border-amber-300 bg-amber-50 text-amber-900'
+                                            ? 'border border-red-300 bg-red-50 text-red-900 dark:border-red-400/40 dark:bg-red-500/14 dark:text-red-200'
+                                            : 'border border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-400/40 dark:bg-amber-500/14 dark:text-amber-200'
                                     }`}
                                 >
                                     <div className="flex items-start gap-3">
                                         <AlertTriangle
                                             className={`mt-0.5 h-5 w-5 shrink-0 ${
-                                                aiEstimateError.tone === 'red' ? 'text-red-600' : 'text-amber-600'
+                                                aiEstimateError.tone === 'red' ? 'text-red-600 dark:text-red-300' : 'text-amber-600 dark:text-amber-300'
                                             }`}
                                         />
                                         <div>
@@ -403,31 +408,31 @@ export default function CreateRequest() {
                                 <div className="space-y-6 animate-in fade-in duration-700">
                                     <div className="flex justify-between items-end">
                                         <div className="space-y-1">
-                                            <p className="text-xs text-gray-400 uppercase font-bold tracking-tight">Estimated Cost</p>
-                                            <p className="text-2xl font-bold text-[#1e293b]">{aiEstimateView.cost}</p>
+                                            <p className="text-xs font-bold uppercase tracking-tight text-gray-400 dark:text-slate-400">Estimated Cost</p>
+                                            <p className="text-2xl font-bold text-[#1e293b] dark:text-slate-100">{aiEstimateView.cost}</p>
                                         </div>
-                                        <span className="text-sm font-bold text-[#6366f1] bg-white px-3 py-1 rounded-full shadow-sm">
+                                        <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-[#6366f1] shadow-sm dark:bg-slate-800 dark:text-indigo-300">
                                             {aiEstimateView.confidence}% Confidence
                                         </span>
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="w-full bg-white h-3 rounded-full overflow-hidden border border-indigo-50">
+                                        <div className="h-3 w-full overflow-hidden rounded-full border border-indigo-50 bg-white dark:border-slate-600 dark:bg-slate-700/70">
                                             <div className="bg-[#6366f1] h-full rounded-full transition-all duration-1000" style={{ width: `${aiEstimateView.confidence}%` }}></div>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 font-medium italic">Predicted completion date: {aiEstimateView.time}</p>
+                                    <p className="text-xs font-medium italic text-gray-500 dark:text-slate-400">Predicted completion date: {aiEstimateView.time}</p>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-6 text-center opacity-60">
-                                    <p className="text-sm text-gray-400 italic">Fill in your requirements above to get instant predictions.</p>
+                                    <p className="text-sm italic text-gray-400 dark:text-slate-400">Fill in your requirements above to get instant predictions.</p>
                                 </div>
                             )}
                         </Card>
                     </div>
 
-                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-400/45 dark:bg-amber-500/14 dark:text-amber-200">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
                             <div>
                                 <p className="text-sm font-bold">Request clarity review before submission</p>
                                 <p className="mt-1 text-sm leading-relaxed">
@@ -438,9 +443,9 @@ export default function CreateRequest() {
                     </div>
 
                     {requestReviewWarning && (
-                        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-400/45 dark:bg-amber-500/14 dark:text-amber-200">
                             <div className="flex items-start gap-3">
-                                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
                                 <div>
                                     <p className="text-sm font-bold">{requestReviewWarning.title}</p>
                                     <p className="mt-1 text-sm leading-relaxed">{requestReviewWarning.message}</p>
@@ -451,10 +456,10 @@ export default function CreateRequest() {
 
                     {/* Bottom Actions */}
                     <div className="flex gap-4 justify-end items-center pt-4">
-                        <Button type="button" variant="ghost" className="text-gray-400 hover:text-red-500 font-semibold" onClick={() => navigate('/client/dashboard')}>
+                        <Button type="button" variant="ghost" className="font-semibold text-gray-400 hover:text-red-500 dark:text-slate-300 dark:hover:text-red-300" onClick={() => navigate('/client/dashboard')}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting} className="bg-[#6366f1] hover:bg-[#5558e6] text-white rounded-full px-12 py-7 shadow-xl shadow-indigo-100 font-bold text-lg transition-all transform hover:scale-[1.02]">
+                        <Button type="submit" disabled={isSubmitting} className="transform rounded-full bg-[#6366f1] px-12 py-7 text-lg font-bold text-white shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02] hover:bg-[#5558e6] dark:shadow-indigo-900/45">
                             {isSubmitting ? 'Reviewing by AI...' : 'Submit Request'} {!isSubmitting && <ChevronRight size={20} className="ml-2"/>}
                         </Button>
                     </div>
