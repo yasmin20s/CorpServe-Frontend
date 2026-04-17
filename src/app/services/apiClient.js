@@ -1,4 +1,5 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://localhost:7170').replace(/\/+$/, '');
+const ACCESS_TOKEN_REFRESH_LEEWAY_SECONDS = 120;
 let inMemoryAccessToken = '';
 let refreshRequestPromise = null;
 
@@ -84,6 +85,35 @@ function readTokenFromPayload(payload) {
   if (!payload || typeof payload !== 'object') return '';
   const value = payload.token ?? payload.Token;
   return typeof value === 'string' ? value : '';
+}
+
+function parseJwtExpiryMs(token) {
+  if (typeof token !== 'string' || !token.includes('.')) return null;
+
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const decoded = typeof window !== 'undefined' && typeof window.atob === 'function'
+      ? window.atob(padded)
+      : null;
+    if (!decoded) return null;
+
+    const payload = JSON.parse(decoded);
+    const exp = Number(payload?.exp);
+    if (!Number.isFinite(exp) || exp <= 0) return null;
+    return exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpiringSoon(token, leewaySeconds = ACCESS_TOKEN_REFRESH_LEEWAY_SECONDS) {
+  const expiryMs = parseJwtExpiryMs(token);
+  if (!expiryMs) return false;
+  return expiryMs - Date.now() <= leewaySeconds * 1000;
 }
 
 /** Exported so SignalR can refresh JWT before reconnecting. */
@@ -206,6 +236,15 @@ export class ApiError extends Error {
 export async function request(path, options = {}) {
   const { token, headers: extraHeaders, __retryAfterRefresh = false, ...rest } = options;
   const isGetRequest = !rest.method || String(rest.method).toUpperCase() === 'GET';
+
+  const existingToken = inMemoryAccessToken || token;
+  if (!__retryAfterRefresh && existingToken && shouldTryTokenRefresh(path) && isTokenExpiringSoon(existingToken)) {
+    const refreshed = await refreshAccessToken();
+    if (!refreshed && isTokenExpiringSoon(existingToken, 0)) {
+      notifySessionExpired();
+    }
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     cache: rest.cache ?? (isGetRequest ? 'no-store' : undefined),

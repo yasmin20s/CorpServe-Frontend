@@ -12,6 +12,7 @@ import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 import { toast } from '../lib/toast';
 
 const AUTH_STORAGE_KEY = 'corpserve-auth-profile';
+const JWT_REFRESH_LEEWAY_SECONDS = 120;
 
 const initialUserState = {
   fullName: '',
@@ -63,6 +64,31 @@ function parseVerificationStatus(raw) {
     if (!Number.isNaN(numeric)) return numeric;
   }
   return 0;
+}
+
+function parseJwtExpiryMs(token) {
+  if (typeof token !== 'string' || !token.includes('.')) return null;
+
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const payload = JSON.parse(window.atob(padded));
+    const exp = Number(payload?.exp);
+    if (!Number.isFinite(exp) || exp <= 0) return null;
+    return exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
+function shouldRefreshOnBootstrap(token) {
+  const expiryMs = parseJwtExpiryMs(token);
+  if (!expiryMs) return true;
+
+  const remainingMs = expiryMs - Date.now();
+  return remainingMs <= JWT_REFRESH_LEEWAY_SECONDS * 1000;
 }
 
 function readStoredAuthProfile() {
@@ -154,6 +180,14 @@ export function AuthProvider({ children }) {
         setUser(restoredUser);
       }
 
+      if (!shouldRefreshOnBootstrap(restoredUser.token)) {
+        if (isMounted) {
+          persistAuthProfile(restoredUser);
+          setIsBootstrapping(false);
+        }
+        return;
+      }
+
       try {
         const authResponse = await refreshTokenApi();
         const nextUser = buildAuthenticatedUser(
@@ -170,11 +204,11 @@ export function AuthProvider({ children }) {
             persistAuthProfile(nextUser);
           }
         } else if (isMounted) {
-          persistAuthProfile(restoredUser);
+          clearAuthState();
         }
       } catch {
         if (isMounted) {
-          persistAuthProfile(restoredUser);
+          clearAuthState();
         }
       } finally {
         if (isMounted) {
@@ -198,20 +232,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     function handleSessionExpired() {
-      const storedProfile = readStoredAuthProfile();
-      if (storedProfile?.token) {
-        const restoredUser = {
-          fullName: storedProfile.fullName || '',
-          email: storedProfile.email || '',
-          role: toClientRole(storedProfile.role) || 'client',
-          token: storedProfile.token,
-          isAuthenticated: true,
-        };
-        setAccessToken(restoredUser.token);
-        setUser(restoredUser);
-        return;
-      }
-
       clearAuthState();
     }
 

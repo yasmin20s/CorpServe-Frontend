@@ -79,6 +79,12 @@ function paymentRowTone(status) {
   };
 }
 
+function getPendingInvoiceId(payment) {
+  if (payment?.merchantOrderId) return String(payment.merchantOrderId);
+  if (payment?.requestId) return `INV-REQ-${payment.requestId}`;
+  return 'N/A';
+}
+
 export default function Payments() {
     const { user } = useAuth();
     const location = useLocation();
@@ -315,7 +321,7 @@ export default function Payments() {
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                       <h4 className="font-semibold text-slate-900 dark:text-slate-100">{payment.requestTitle || `Request ${payment.requestId}`}</h4>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Invoice: INV-{payment.requestId} • {formatDate(payment.createdAt)}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Invoice: {getPendingInvoiceId(payment)} • {formatDate(payment.createdAt)}</p>
                       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Service: {formatMoney(payment.amount)} • Commission: {formatMoney(payment.commision)}</p>
                     </div>
 
