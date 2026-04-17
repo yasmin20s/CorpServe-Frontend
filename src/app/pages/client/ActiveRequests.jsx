@@ -84,7 +84,7 @@ export default function ClientActiveRequests() {
   }, [loadActiveRequests]);
 
   useSignalREvent(
-    ['SLA created', 'Request progress updated', 'SLA completed', 'SLA blocked', 'SLA delayed', 'SLA deadline warning'],
+    ['SLA created', 'Request progress updated', 'SLA completed', 'SLA blocked', 'SLA delayed', 'SLA deadline warning', 'SLA breached'],
     loadActiveRequests,
   );
 
@@ -163,6 +163,7 @@ export default function ClientActiveRequests() {
                 <SelectItem value="all">All SLA Labels</SelectItem>
                 <SelectItem value="On Track">On Track</SelectItem>
                 <SelectItem value="Warning">Warning</SelectItem>
+                <SelectItem value="Breached">Breached</SelectItem>
                 <SelectItem value="Delayed">Delayed</SelectItem>
                 <SelectItem value="Blocked">Blocked</SelectItem>
               </SelectContent>
@@ -174,6 +175,7 @@ export default function ClientActiveRequests() {
               <SelectContent className="dark:bg-slate-900 dark:text-slate-100">
                 <SelectItem value="all">All Task States</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
+                <SelectItem value="Breached">Breached</SelectItem>
                 <SelectItem value="Delayed">Delayed</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
               </SelectContent>

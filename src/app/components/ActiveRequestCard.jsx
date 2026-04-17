@@ -18,12 +18,14 @@ import {
 const slaBadgeClass = {
   'On Track': 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200',
   Warning: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/35 dark:bg-amber-500/16 dark:text-amber-200',
+  Breached: 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-400/40 dark:bg-rose-500/18 dark:text-rose-100',
   Delayed: 'border-red-200 bg-red-50 text-red-800 dark:border-red-400/35 dark:bg-red-500/16 dark:text-red-200',
   Blocked: 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-400/35 dark:bg-rose-500/16 dark:text-rose-200',
 };
 
 const taskBadgeClass = {
   'In Progress': 'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-400/35 dark:bg-violet-500/16 dark:text-violet-200',
+  Breached: 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-400/40 dark:bg-rose-500/18 dark:text-rose-100',
   Delayed: 'border-red-200 bg-red-50 text-red-800 dark:border-red-400/35 dark:bg-red-500/16 dark:text-red-200',
   Completed: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200',
 };
@@ -186,6 +188,16 @@ export default function ActiveRequestCard({
             >
               <AlertTriangle className="h-4 w-4" />
               Deadline is near
+            </Button>
+          )}
+          {slaLabel === 'Breached' && (
+            <Button
+              type="button"
+              className="gap-2 border border-rose-400 bg-rose-50 text-rose-950 hover:bg-rose-100 dark:border-rose-400/50 dark:bg-rose-500/20 dark:text-rose-100 dark:hover:bg-rose-500/30"
+              onClick={() => onViewSla(request.requestId)}
+            >
+              <AlertTriangle className="h-4 w-4" />
+              SLA breached — act now
             </Button>
           )}
           {typeof onChat === 'function' && (

@@ -44,6 +44,10 @@ const statusStyles = {
     badge: 'border-violet-400 bg-violet-200 text-violet-950 dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100',
     accent: 'from-violet-600/60 via-fuchsia-500/35 to-indigo-500/25',
   },
+  breached: {
+    badge: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/35 dark:bg-rose-500/20 dark:text-rose-100',
+    accent: 'from-rose-600/60 via-orange-500/35 to-violet-500/25',
+  },
   delayed: {
     badge: 'border-fuchsia-400 bg-fuchsia-200 text-fuchsia-950 dark:border-fuchsia-400/35 dark:bg-fuchsia-500/20 dark:text-fuchsia-100',
     accent: 'from-fuchsia-600/60 via-rose-500/35 to-violet-500/25',
@@ -57,6 +61,7 @@ const statusStyles = {
 const slaStatusStyles = {
   active: 'border-violet-300 bg-violet-100 text-violet-900 dark:border-violet-400/30 dark:bg-violet-500/16 dark:text-violet-100',
   breached: 'border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-400/30 dark:bg-rose-500/16 dark:text-rose-100',
+  delayed: 'border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-400/30 dark:bg-fuchsia-500/16 dark:text-fuchsia-100',
   completed: 'border-purple-300 bg-purple-100 text-purple-900 dark:border-purple-400/30 dark:bg-purple-500/16 dark:text-purple-100',
 };
 
@@ -88,17 +93,21 @@ function formatDateShort(v) {
   return d.toISOString().slice(0, 10);
 }
 
+/** Matches CorpServe.Domain.Entities.ProposalModule.SLAStatus int values */
 function contractSlugToInt(slug) {
   if (slug === 'in-progress') return 1;
   if (slug === 'delayed') return 2;
   if (slug === 'completed') return 3;
+  if (slug === 'breached') return 4;
   return undefined;
 }
 
+/** Maps SLA Monitor UI filter slugs to SLAStatus int (same as contractSlugToInt for status rows) */
 function slaUiToInt(slug) {
   if (slug === 'active') return 1;
-  if (slug === 'breached') return 2;
+  if (slug === 'delayed') return 2;
   if (slug === 'completed') return 3;
+  if (slug === 'breached') return 4;
   return undefined;
 }
 
@@ -108,6 +117,7 @@ export default function SLAMonitor() {
   const [hero, setHero] = useState({
     totalSlaContracts: 0,
     inProgressCount: 0,
+    breachedCount: 0,
     delayedCount: 0,
     completedCount: 0,
   });
@@ -168,6 +178,7 @@ export default function SLAMonitor() {
       setHero({
         totalSlaContracts: result.totalSlaContracts,
         inProgressCount: result.inProgressCount,
+        breachedCount: result.breachedCount,
         delayedCount: result.delayedCount,
         completedCount: result.completedCount,
       });
@@ -236,7 +247,7 @@ export default function SLAMonitor() {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
                   <div className="rounded-xl border border-violet-300 bg-violet-50 px-3 py-2.5 dark:border-violet-400/30 dark:bg-violet-500/14">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Total</p>
                     <p className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{hero.totalSlaContracts}</p>
@@ -244,6 +255,10 @@ export default function SLAMonitor() {
                   <div className="rounded-xl border border-violet-300 bg-violet-50 px-3 py-2.5 dark:border-violet-400/30 dark:bg-violet-500/14">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-violet-700">In progress</p>
                     <p className="mt-1 text-xl font-bold text-violet-900">{hero.inProgressCount}</p>
+                  </div>
+                  <div className="rounded-xl border border-rose-400 bg-rose-100 px-3 py-2.5 dark:border-rose-400/30 dark:bg-rose-500/14">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-800">Breached</p>
+                    <p className="mt-1 text-xl font-bold text-rose-950">{hero.breachedCount}</p>
                   </div>
                   <div className="rounded-xl border border-fuchsia-400 bg-fuchsia-100 px-3 py-2.5 dark:border-fuchsia-400/30 dark:bg-fuchsia-500/14">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-700">Delayed</p>
@@ -299,6 +314,7 @@ export default function SLAMonitor() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="breached">Breached</SelectItem>
                   <SelectItem value="delayed">Delayed</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
@@ -315,6 +331,7 @@ export default function SLAMonitor() {
                   <SelectItem value="all">All SLA Statuses</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="breached">Breached</SelectItem>
+                  <SelectItem value="delayed">Delayed</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
@@ -350,7 +367,13 @@ export default function SLAMonitor() {
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       <Badge variant="outline" className="border-indigo-300 bg-indigo-100 px-2 py-0.5 text-[11px] text-indigo-900 sm:px-2.5 sm:py-1 sm:text-xs dark:border-indigo-400/30 dark:bg-indigo-500/16 dark:text-indigo-100">{sla.category || '—'}</Badge>
                       <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${statusConfig.badge}`}>
-                        {sla.contractStatus === 'in-progress' ? 'In Progress' : sla.contractStatus === 'delayed' ? 'Delayed' : 'Completed'}
+                        {sla.contractStatus === 'in-progress'
+                          ? 'In Progress'
+                          : sla.contractStatus === 'breached'
+                            ? 'Breached'
+                            : sla.contractStatus === 'delayed'
+                              ? 'Delayed'
+                              : 'Completed'}
                       </Badge>
                       <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${slaStatusStyles[sla.slaStatus] || 'border-slate-400 bg-slate-300 text-slate-800 dark:border-slate-600 dark:bg-slate-700/30 dark:text-slate-100'}`}>
                         SLA: {sla.slaStatus}
@@ -403,9 +426,20 @@ export default function SLAMonitor() {
                       </span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-violet-100 sm:h-3 dark:bg-slate-800">
-                      <div className={`h-full transition-all duration-500 ${sla.contractStatus === 'delayed' ? 'bg-fuchsia-700' : sla.contractStatus === 'completed' ? 'bg-purple-700' : 'bg-violet-800'}`} style={{ width: `${sla.progress}%` }} />
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          sla.contractStatus === 'delayed'
+                            ? 'bg-fuchsia-700'
+                            : sla.contractStatus === 'breached'
+                              ? 'bg-rose-700'
+                              : sla.contractStatus === 'completed'
+                                ? 'bg-purple-700'
+                                : 'bg-violet-800'
+                        }`}
+                        style={{ width: `${sla.progress}%` }}
+                      />
                     </div>
-                    {sla.contractStatus === 'delayed' && (
+                    {(sla.contractStatus === 'delayed' || sla.contractStatus === 'breached') && (
                       <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-fuchsia-800 sm:mt-3 sm:gap-2 sm:text-sm">
                         <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         Attention: SLA requires immediate follow-up.

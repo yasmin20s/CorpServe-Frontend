@@ -52,6 +52,7 @@ const REQUEST_ACTIVE_WORK_TITLES = new Set([
   'Proposal accepted',
   'Request progress updated',
   'SLA blocked',
+  'SLA breached',
   'SLA delayed',
   'SLA deadline warning',
 ]);
@@ -73,6 +74,7 @@ const COMPLETED_SLA_TITLES = new Set([TITLE_SLA_CREATED, TITLE_SLA_COMPLETED]);
 
 const SLA_WARN_TITLES = new Set([
   'SLA deadline warning',
+  'SLA breached',
   'SLA delayed',
   'SLA blocked',
 ]);

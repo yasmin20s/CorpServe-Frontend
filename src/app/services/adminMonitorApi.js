@@ -220,6 +220,7 @@ export async function getAdminSlasApi({
   return {
     totalSlaContracts: Number(pick(payload, 'totalSlaContracts', 'TotalSlaContracts') ?? 0),
     inProgressCount: Number(pick(payload, 'inProgressCount', 'InProgressCount') ?? 0),
+    breachedCount: Number(pick(payload, 'breachedCount', 'BreachedCount') ?? 0),
     delayedCount: Number(pick(payload, 'delayedCount', 'DelayedCount') ?? 0),
     completedCount: Number(pick(payload, 'completedCount', 'CompletedCount') ?? 0),
     contracts: {
