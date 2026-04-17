@@ -126,6 +126,7 @@ export default function VendorActiveRequests() {
       'SLA blocked',
       'SLA delayed',
       'SLA deadline warning',
+      'SLA breached',
     ],
     loadActiveRequests,
   );
@@ -238,6 +239,7 @@ export default function VendorActiveRequests() {
                 <SelectItem value="all">All SLA Labels</SelectItem>
                 <SelectItem value="On Track">On Track</SelectItem>
                 <SelectItem value="Warning">Warning</SelectItem>
+                <SelectItem value="Breached">Breached</SelectItem>
                 <SelectItem value="Delayed">Delayed</SelectItem>
                 <SelectItem value="Blocked">Blocked</SelectItem>
               </SelectContent>
@@ -249,6 +251,7 @@ export default function VendorActiveRequests() {
               <SelectContent className="dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                 <SelectItem value="all">All Task States</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
+                <SelectItem value="Breached">Breached</SelectItem>
                 <SelectItem value="Delayed">Delayed</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
               </SelectContent>

@@ -34,18 +34,18 @@ export function resolveActiveRequestBadges(request) {
     return { taskState: apiTask || 'Delayed', slaLabel: 'Delayed' };
   }
 
+  if (apiSla === 'Breached' || apiTask === 'Breached') {
+    return { taskState: apiTask || 'Breached', slaLabel: 'Breached' };
+  }
+
   if (hoursLeft <= 0) {
     return { taskState: 'Delayed', slaLabel: 'Delayed' };
   }
 
-  if (hoursLeft <= 72) {
-    const sla =
-      apiSla && apiSla !== 'On Track' && apiSla !== ''
-        ? apiSla
-        : 'Warning';
+  if (hoursLeft <= 48) {
     return {
-      taskState: apiTask || 'In Progress',
-      slaLabel: sla,
+      taskState: apiTask === 'In Progress' || !apiTask ? 'Breached' : apiTask,
+      slaLabel: 'Breached',
     };
   }
 
@@ -90,14 +90,15 @@ export function resolveSlaDialogStatus(sla) {
 
   if (compact === 'blocked' || api === 'Blocked') return 'Blocked';
   if (compact === 'delayed') return 'Delayed';
+  if (compact === 'breached') return 'Breached';
 
   const hoursLeft = hoursUntilDeadline(sla.deadline);
   if (hoursLeft === null) return api || '-';
 
   if (hoursLeft <= 0) return 'Delayed';
-  if (hoursLeft <= 72) {
-    if (compact === 'ontrack' || api === '' || compact === 'inprogress') return 'Warning';
-    return api || 'Warning';
+  if (hoursLeft <= 48) {
+    if (compact === 'ontrack' || api === '' || compact === 'inprogress') return 'Breached';
+    return api || 'Breached';
   }
   if (compact === 'inprogress' || api === '') return 'On Track';
   return api || 'On Track';
