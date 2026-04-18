@@ -26,6 +26,7 @@ const menuItems = [
     { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
+
 const earningsData = [
   { month: 'Nov', billed: 18000, received: 15000 },
   { month: 'Dec', billed: 22000, received: 20000 },
