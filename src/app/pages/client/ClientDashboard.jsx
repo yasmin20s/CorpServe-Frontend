@@ -276,7 +276,7 @@ export default function ClientDashboard() {
         <div className="grid gap-3.5 xl:grid-cols-[1.58fr_1fr]">
           <Card className="cs-card-rise cd-fast-rise border-slate-200/80 bg-gradient-to-br from-white via-slate-50/92 to-slate-100/60 shadow-sm dark:border-violet-400/35 dark:bg-gradient-to-br dark:from-[#170936] dark:via-[#1a0d42] dark:to-[#12082e] dark:shadow-[0_0_0_1px_rgba(167,139,250,0.2)]">
             <CardHeader className="pb-1">
-              <CardTitle className="text-[1.75rem] font-black leading-none text-slate-900 dark:text-slate-100">Request Activity</CardTitle>
+              <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Request Activity</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
               <ResponsiveContainer width="100%" height={210}>
@@ -310,7 +310,7 @@ export default function ClientDashboard() {
 
           <Card className="cs-card-rise cd-fast-rise border-slate-200/80 bg-gradient-to-br from-white via-slate-50/92 to-slate-100/60 shadow-sm dark:border-violet-400/35 dark:bg-gradient-to-br dark:from-[#170936] dark:via-[#1a0d42] dark:to-[#12082e] dark:shadow-[0_0_0_1px_rgba(167,139,250,0.2)]">
             <CardHeader className="pb-1">
-              <CardTitle className="text-[1.75rem] font-black leading-none text-slate-900 dark:text-slate-100">Requests by Category</CardTitle>
+              <CardTitle className="w-fit bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-blue-300 dark:via-cyan-300 dark:to-indigo-300">Requests by Category</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="relative h-[190px]">
@@ -354,7 +354,7 @@ export default function ClientDashboard() {
         <div className="grid gap-3.5 xl:grid-cols-[1.55fr_1fr]">
           <Card className="cs-card-rise cd-fast-rise border-indigo-200/75 bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/24 shadow-[0_14px_30px_rgba(79,70,229,0.12)] dark:border-violet-400/35 dark:bg-gradient-to-br dark:from-[#160833] dark:via-[#1a0d40] dark:to-[#12082b] dark:shadow-[0_0_0_1px_rgba(167,139,250,0.2)]">
             <CardHeader className="pb-1">
-              <CardTitle className="text-[1.75rem] font-black leading-none text-slate-900 dark:text-slate-100">Recent Requests</CardTitle>
+              <CardTitle className="w-fit bg-gradient-to-r from-violet-700 via-indigo-600 to-sky-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-violet-300 dark:via-indigo-300 dark:to-sky-300">Recent Requests</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="hidden overflow-x-auto lg:block">
@@ -416,7 +416,7 @@ export default function ClientDashboard() {
           <div>
             <Card className="cs-card-rise cd-fast-rise border-slate-200/80 bg-gradient-to-br from-white via-slate-50/90 to-slate-100/60 shadow-sm dark:border-cyan-400/35 dark:bg-gradient-to-br dark:from-[#160833] dark:via-[#1a0d40] dark:to-[#12082b] dark:shadow-[0_0_0_1px_rgba(56,189,248,0.2)]">
               <CardHeader className="pb-1">
-                <CardTitle className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">Quick Actions</CardTitle>
+                <CardTitle className="w-fit bg-gradient-to-r from-cyan-700 via-blue-600 to-violet-600 bg-clip-text text-xl font-black tracking-tight text-transparent dark:from-cyan-300 dark:via-blue-300 dark:to-violet-300">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
@@ -469,7 +469,7 @@ export default function ClientDashboard() {
 
         <Card className="cs-card-rise cd-fast-rise border-slate-200/80 bg-gradient-to-br from-white via-violet-50/24 to-indigo-50/18 shadow-sm dark:border-cyan-400/35 dark:bg-gradient-to-br dark:from-[#160833] dark:via-[#1a0d40] dark:to-[#12082b] dark:shadow-[0_0_0_1px_rgba(56,189,248,0.2)]">
           <CardHeader className="pb-1">
-            <CardTitle className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">Pending Payments</CardTitle>
+            <CardTitle className="w-fit bg-gradient-to-r from-fuchsia-700 via-violet-600 to-indigo-600 bg-clip-text text-xl font-black tracking-tight text-transparent dark:from-fuchsia-300 dark:via-violet-300 dark:to-indigo-300">Pending Payments</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="hidden overflow-x-auto lg:block">
