@@ -247,7 +247,7 @@ export function AuthProvider({ children }) {
       suspendedHandledRef.current = true;
 
       clearAuthState();
-      toast.error('Your Account Has Been Suspended, Please Contact Support', {
+      toast.error('Your account is suspended. Please check your email inbox for the reason.', {
         title: 'Account Suspended',
       });
     }

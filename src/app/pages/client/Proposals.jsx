@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { LayoutDashboard, PlusCircle, FileStack, Activity, Wallet, CheckCircle, X, Star, CalendarClock, CalendarDays, HandCoins, ShieldCheck, Sparkles, CircleAlert } from 'lucide-react';
+import ReasonDialog from '../../components/ReasonDialog';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -44,6 +45,7 @@ export default function Proposals() {
     const [proposalCount, setProposalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
+    const [rejectDialogProposalId, setRejectDialogProposalId] = useState(null);
 
     const formatCurrency = (value) => `EGP ${Number(value || 0).toLocaleString()}`;
 
@@ -148,12 +150,13 @@ export default function Proposals() {
       }
     };
 
-    const handleReject = async (proposal) => {
-      if (!user?.token || !proposal?.id) return;
-      setActionLoading(proposal.id);
+    const handleReject = async (proposalId, reason) => {
+      if (!user?.token || !proposalId) return;
+      setActionLoading(proposalId);
       try {
-        await clientRejectProposalApi({ proposalId: proposal.id, token: user.token });
-        toast.success(`Proposal from ${proposal.vendorName} rejected`);
+        await clientRejectProposalApi({ proposalId, reason, token: user.token });
+        toast.success('Proposal rejected');
+        setRejectDialogProposalId(null);
         await loadProposals();
       } catch (error) {
         toast.error(error.message || 'Failed to reject proposal');
@@ -391,15 +394,26 @@ export default function Proposals() {
                         {actionLoading === proposal.id ? 'Processing...' : 'Accept'}
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        className="gap-2 border-red-200 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleReject(proposal)}
-                        disabled={actionLoading === proposal.id}
-                      >
-                        <X className="w-4 h-4"/>
-                        Reject
-                      </Button>
+                      <ReasonDialog
+                        open={rejectDialogProposalId === proposal.id}
+                        onOpenChange={(isOpen) => setRejectDialogProposalId(isOpen ? proposal.id : null)}
+                        title={`Reject Proposal — ${proposal.vendorName}`}
+                        description="Provide a reason for rejecting this proposal. The vendor will be notified by email."
+                        placeholder="Example: The proposed price exceeds our budget. Please revise your offer."
+                        confirmLabel="Confirm Rejection"
+                        isLoading={actionLoading === proposal.id}
+                        onConfirm={(reason) => handleReject(proposal.id, reason)}
+                        trigger={
+                          <Button
+                            variant="outline"
+                            className="gap-2 border-red-200 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            disabled={actionLoading === proposal.id}
+                          >
+                            <X className="w-4 h-4"/>
+                            Reject
+                          </Button>
+                        }
+                      />
                     </div>
                   </CardContent>
                 </Card>

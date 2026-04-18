@@ -135,10 +135,12 @@ export async function getAdminUsersApi({
   };
 }
 
-export async function suspendAdminUserApi({ token, userId }) {
+export async function suspendAdminUserApi({ token, userId, reason }) {
   return request(`/api/AdminMonitor/users/${encodeURIComponent(userId)}/suspend`, {
     method: 'POST',
     token,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
   });
 }
 

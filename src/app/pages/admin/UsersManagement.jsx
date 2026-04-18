@@ -38,6 +38,7 @@ import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { activateAdminUserApi, getAdminUsersApi, suspendAdminUserApi } from '../../services/adminMonitorApi';
 import { UserAvatarIconOnly } from '../../components/UserAvatar';
+import ReasonDialog from '../../components/ReasonDialog';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -105,6 +106,8 @@ export default function UsersManagement() {
   const [currentPage, setCurrentPage] = useState(() => Math.max(1, Number(searchParams.get('page')) || 1));
   const [isLoading, setIsLoading] = useState(true);
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
+  const [suspendDialogUser, setSuspendDialogUser] = useState(null);
+  const [suspendLoading, setSuspendLoading] = useState(false);
 
   useEffect(() => {
     const next = new URLSearchParams();
@@ -173,27 +176,41 @@ export default function UsersManagement() {
   }, [currentPage, totalPages]);
 
   const handleStatusToggleClick = (u) => {
-    setPendingStatusChange({
-      user: u,
-      nextStatus: u.status === 'suspended' ? 'active' : 'suspended',
-    });
+    if (u.status === 'suspended') {
+      setPendingStatusChange({
+        user: u,
+        nextStatus: 'active',
+      });
+    } else {
+      setSuspendDialogUser(u);
+    }
   };
 
-  const handleConfirmStatusChange = async () => {
+  const handleConfirmUnsuspend = async () => {
     if (!pendingStatusChange || !user?.token) return;
-    const { user: targetUser, nextStatus } = pendingStatusChange;
+    const { user: targetUser } = pendingStatusChange;
     try {
-      if (nextStatus === 'suspended') {
-        await suspendAdminUserApi({ token: user.token, userId: targetUser.id });
-        toast.success(`${targetUser.name} suspended`);
-      } else {
-        await activateAdminUserApi({ token: user.token, userId: targetUser.id });
-        toast.success(`${targetUser.name} unsuspended`);
-      }
+      await activateAdminUserApi({ token: user.token, userId: targetUser.id });
+      toast.success(`${targetUser.name} unsuspended`);
       setPendingStatusChange(null);
       await loadUsers();
     } catch (error) {
-      toast.error(error.message || 'Failed to update user status');
+      toast.error(error.message || 'Failed to unsuspend user');
+    }
+  };
+
+  const handleConfirmSuspend = async (reason) => {
+    if (!suspendDialogUser || !user?.token) return;
+    setSuspendLoading(true);
+    try {
+      await suspendAdminUserApi({ token: user.token, userId: suspendDialogUser.id, reason });
+      toast.success(`${suspendDialogUser.name} suspended`);
+      setSuspendDialogUser(null);
+      await loadUsers();
+    } catch (error) {
+      toast.error(error.message || 'Failed to suspend user');
+    } finally {
+      setSuspendLoading(false);
     }
   };
 
@@ -563,28 +580,35 @@ export default function UsersManagement() {
         <AlertDialog open={Boolean(pendingStatusChange)} onOpenChange={(open) => !open && setPendingStatusChange(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{pendingStatusChange?.nextStatus === 'active' ? 'Confirm unsuspend' : 'Confirm suspension'}</AlertDialogTitle>
+              <AlertDialogTitle>Confirm unsuspend</AlertDialogTitle>
               <AlertDialogDescription>
                 {pendingStatusChange
-                  ? (pendingStatusChange.nextStatus === 'active'
-                    ? `Are you sure you want to unsuspend ${pendingStatusChange.user.name} (${pendingStatusChange.user.email}) and restore active status?`
-                    : `Are you sure you want to suspend ${pendingStatusChange.user.name} (${pendingStatusChange.user.email})?`)
+                  ? `Are you sure you want to unsuspend ${pendingStatusChange.user.name} (${pendingStatusChange.user.email}) and restore active status?`
                   : 'Are you sure you want to change this user status?'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleConfirmStatusChange}
-                className={pendingStatusChange?.nextStatus === 'active'
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500'
-                  : 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500'}
+                onClick={handleConfirmUnsuspend}
+                className="bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500"
               >
-                {pendingStatusChange?.nextStatus === 'active' ? 'Unsuspend user' : 'Suspend user'}
+                Unsuspend user
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <ReasonDialog
+          open={Boolean(suspendDialogUser)}
+          onOpenChange={(isOpen) => !isOpen && setSuspendDialogUser(null)}
+          title={suspendDialogUser ? `Suspend — ${suspendDialogUser.name}` : 'Suspend User'}
+          description="Provide a reason for suspending this user. They will be notified by email."
+          placeholder="Example: Multiple policy violations reported by clients."
+          confirmLabel="Suspend User"
+          isLoading={suspendLoading}
+          onConfirm={handleConfirmSuspend}
+        />
       </div>
     </DashboardLayout>
   );

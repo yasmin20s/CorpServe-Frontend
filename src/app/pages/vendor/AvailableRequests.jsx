@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import UserAvatar from '../../components/UserAvatar';
+import ReasonDialog from '../../components/ReasonDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorRequestsApi } from '../../services/vendorRequestsApi';
 import { vendorAcceptProposalApi, vendorNegotiateProposalApi, vendorRejectProposalApi } from '../../services/proposalsApi';
@@ -133,6 +134,7 @@ export default function AvailableRequests() {
   const [proposal, setProposal] = useState({ budget: '', deadline: '', message: '' });
   const [submittingForId, setSubmittingForId] = useState(null);
   const [decliningId, setDecliningId] = useState(null);
+  const [declineDialogRequestId, setDeclineDialogRequestId] = useState(null);
 
   const loadRequests = useCallback(async () => {
     if (!user?.token) return;
@@ -215,18 +217,19 @@ export default function AvailableRequests() {
     }
   };
 
-  const handleDeclineRequest = async (request) => {
+  const handleDeclineRequest = async (request, reason) => {
     if (!user?.token) return;
     setDecliningId(request.requestId);
     try {
       await vendorRejectProposalApi({
         requestId: request.requestId,
-        message: 'Vendor declined the request.',
+        message: reason,
         token: user.token,
       });
       toast.info('Request declined', {
         description: `You declined "${request.title}". You can still review other opportunities.`,
       });
+      setDeclineDialogRequestId(null);
       setRequests((prev) => prev.filter((r) => r.requestId !== request.requestId));
       await loadRequests();
     } catch (error) {
@@ -566,33 +569,24 @@ export default function AvailableRequests() {
                         </DialogContent>
                       </Dialog>
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                      <ReasonDialog
+                        open={declineDialogRequestId === request.requestId}
+                        onOpenChange={(isOpen) => setDeclineDialogRequestId(isOpen ? request.requestId : null)}
+                        title={`Decline Request — ${request.title}`}
+                        description={`Provide a reason for declining this request from ${request.clientName}. The client will be notified.`}
+                        placeholder="Example: This request falls outside my area of expertise."
+                        confirmLabel="Yes, Decline"
+                        isLoading={decliningId === request.requestId}
+                        onConfirm={(reason) => handleDeclineRequest(request, reason)}
+                        trigger={
                           <Button variant="outline" className="gap-2 border-red-200 text-red-600 hover:bg-red-50" disabled={decliningId === request.requestId}>
                             <motion.span animate={{ rotate: [0, -10, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
                               <X className="h-4 w-4"/>
                             </motion.span>
                             {decliningId === request.requestId ? 'Declining...' : 'Decline'}
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Decline this request?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              You are about to decline "{request.title}" from {request.clientName}. This action will dismiss it from your current opportunities list.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-red-600 text-white hover:bg-red-700"
-                              onClick={() => handleDeclineRequest(request)}
-                            >
-                              Yes, Decline
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        }
+                      />
                     </div>
                   </CardContent>
                 </Card>
