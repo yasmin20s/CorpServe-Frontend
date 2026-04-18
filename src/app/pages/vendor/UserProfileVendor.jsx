@@ -171,7 +171,7 @@ async function buildDocumentFilesFromDetails(documents) {
 
 export default function UserProfileVendor() {
   const menuItems = useDashboardMenu('vendor');
-  const { user } = useAuth();
+  const { user, updateAuthenticatedUser } = useAuth();
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -242,7 +242,10 @@ export default function UserProfileVendor() {
 
   const syncHeader = (url) => {
     const r = resolveMediaUrl(url);
-    if (r) window.dispatchEvent(new CustomEvent(PROFILE_PIC_EVENT, { detail: { url: r } }));
+    if (r) {
+      updateAuthenticatedUser({ profilePictureUrl: r });
+      window.dispatchEvent(new CustomEvent(PROFILE_PIC_EVENT, { detail: { url: r } }));
+    }
   };
 
   const documents = useMemo(

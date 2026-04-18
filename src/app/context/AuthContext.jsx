@@ -9,6 +9,8 @@ import {
 } from '../services/authApi';
 import { ApiError, clearAccessToken, setAccessToken } from '../services/apiClient';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
+import { getMyDetailedProfileApi } from '../services/userProfileApi';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 import { toast } from '../lib/toast';
 
 const AUTH_STORAGE_KEY = 'corpserve-auth-profile';
@@ -17,6 +19,7 @@ const JWT_REFRESH_LEEWAY_SECONDS = 120;
 const initialUserState = {
   fullName: '',
   email: '',
+  profilePictureUrl: '',
   role: 'client',
   token: '',
   isAuthenticated: false,
@@ -35,10 +38,11 @@ function getAuthField(payload, camelKey, pascalKey) {
 function normalizeAuthResponse(authResponse, fallbackEmail) {
   const fullName = getAuthField(authResponse, 'fullName', 'FullName');
   const email = getAuthField(authResponse, 'email', 'Email') || fallbackEmail;
+  const profilePictureUrl = getAuthField(authResponse, 'profilePictureUrl', 'ProfilePictureUrl');
   const role = getAuthField(authResponse, 'role', 'Role');
   const token = getAuthField(authResponse, 'token', 'Token');
 
-  return { fullName, email, role, token };
+  return { fullName, email, profilePictureUrl, role, token };
 }
 
 function redirectPathForRole(role) {
@@ -102,6 +106,7 @@ function readStoredAuthProfile() {
     return {
       fullName: parsed.fullName || '',
       email: parsed.email || '',
+      profilePictureUrl: parsed.profilePictureUrl || '',
       role: toClientRole(parsed.role) || 'client',
       token: typeof parsed.token === 'string' ? parsed.token : '',
     };
@@ -121,6 +126,7 @@ function persistAuthProfile(user) {
     JSON.stringify({
       fullName: user.fullName,
       email: user.email,
+      profilePictureUrl: user.profilePictureUrl || '',
       role: user.role,
       token: user.token,
     }),
@@ -136,10 +142,28 @@ function buildAuthenticatedUser(authResponse, fallbackEmail = '', fallbackRole =
   return {
     fullName: normalized.fullName || fallbackName,
     email: normalized.email || fallbackEmail,
+    profilePictureUrl: normalized.profilePictureUrl || '',
     role: toClientRole(normalized.role) || toClientRole(fallbackRole) || 'client',
     token: normalized.token,
     isAuthenticated: true,
   };
+}
+
+async function ensureProfilePicture(user) {
+  if (!user?.token) return user;
+  if (String(user.profilePictureUrl || '').trim()) return user;
+
+  try {
+    const raw = await getMyDetailedProfileApi(user.token);
+    const url = raw && typeof raw === 'object'
+      ? (raw.profilePictureUrl ?? raw.ProfilePictureUrl)
+      : '';
+    const resolved = resolveMediaUrl(url) || '';
+    if (!resolved) return user;
+    return { ...user, profilePictureUrl: resolved };
+  } catch {
+    return user;
+  }
 }
 
 export const AuthContext = createContext(null);
@@ -167,17 +191,20 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      const restoredUser = {
+      let restoredUser = {
         fullName: storedProfile.fullName || '',
         email: storedProfile.email || '',
+        profilePictureUrl: storedProfile.profilePictureUrl || '',
         role: toClientRole(storedProfile.role) || 'client',
         token: storedProfile.token,
         isAuthenticated: true,
       };
 
+      restoredUser = await ensureProfilePicture(restoredUser);
       setAccessToken(restoredUser.token);
       if (isMounted) {
         setUser(restoredUser);
+        persistAuthProfile(restoredUser);
       }
 
       if (!shouldRefreshOnBootstrap(restoredUser.token)) {
@@ -198,10 +225,11 @@ export function AuthProvider({ children }) {
         );
 
         if (nextUser) {
-          setAccessToken(nextUser.token);
+          const hydratedUser = await ensureProfilePicture(nextUser);
+          setAccessToken(hydratedUser.token);
           if (isMounted) {
-            setUser(nextUser);
-            persistAuthProfile(nextUser);
+            setUser(hydratedUser);
+            persistAuthProfile(hydratedUser);
           }
         } else if (isMounted) {
           clearAuthState();
@@ -282,11 +310,12 @@ export function AuthProvider({ children }) {
         email: normalizedEmail,
         password,
       });
-      const nextUser = buildAuthenticatedUser(authResponse, normalizedEmail);
+      let nextUser = buildAuthenticatedUser(authResponse, normalizedEmail);
       if (!nextUser) {
         return { success: false, message: 'Login response is missing token. Please contact support.' };
       }
 
+      nextUser = await ensureProfilePicture(nextUser);
       setAccessToken(nextUser.token);
       setUser(nextUser);
       persistAuthProfile(nextUser);
@@ -331,7 +360,7 @@ export function AuthProvider({ children }) {
       });
 
       const normalizedRole = toClientRole(authResponse.role || role);
-      const nextUser = buildAuthenticatedUser(
+      let nextUser = buildAuthenticatedUser(
         authResponse,
         email.trim(),
         normalizedRole || 'client',
@@ -339,6 +368,7 @@ export function AuthProvider({ children }) {
       );
 
       if (nextUser?.isAuthenticated) {
+        nextUser = await ensureProfilePicture(nextUser);
         setAccessToken(nextUser.token);
         setUser(nextUser);
         persistAuthProfile(nextUser);
