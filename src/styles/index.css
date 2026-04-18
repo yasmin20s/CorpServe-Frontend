@@ -78,6 +78,10 @@
 	box-shadow: 0 8px 20px rgba(111, 116, 234, 0.35);
 }
 
+.animate-shimmer {
+	animation: csShimmerSweep 3s ease-in-out infinite;
+}
+
 @keyframes csProfileIntro {
 	0% {
 		opacity: 0;
