@@ -1,11 +1,15 @@
 import DashboardLayout from '../../components/DashboardLayout';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import DarkVeil from '../../components/backgrounds/DarkVeil';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Link } from 'react-router';
+import { format } from 'date-fns';
 import { AlertTriangle, Briefcase, Clock3, DollarSign, FileText, LayoutDashboard, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { Area, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useAuth } from '../../hooks/useAuth';
+import { getAdminDashboardApi } from '../../services/dashboardApi';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -18,12 +22,10 @@ const menuItems = [
   { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5" /> },
 ];
 
-const statCards = [
+const statCardStyles = [
   {
     title: 'Total Users',
-    value: '1,248',
-    trend: '+34 this week',
-    trendTone: 'positive',
+    key: 'totalUsers',
     icon: Users,
     iconTone: 'text-violet-600 dark:text-violet-200',
     iconWrap: 'bg-violet-100 dark:bg-violet-500/25',
@@ -32,9 +34,7 @@ const statCards = [
   },
   {
     title: 'Active Requests',
-    value: '187',
-    trend: '+12 today',
-    trendTone: 'positive',
+    key: 'activeRequests',
     icon: FileText,
     iconTone: 'text-sky-600 dark:text-sky-200',
     iconWrap: 'bg-sky-100 dark:bg-sky-500/25',
@@ -43,9 +43,7 @@ const statCards = [
   },
   {
     title: 'Platform Revenue',
-    value: '318,500 EGP',
-    trend: '+22% MoM',
-    trendTone: 'positive',
+    key: 'platformRevenue',
     icon: DollarSign,
     iconTone: 'text-fuchsia-600 dark:text-fuchsia-200',
     iconWrap: 'bg-fuchsia-100 dark:bg-fuchsia-500/25',
@@ -54,9 +52,7 @@ const statCards = [
   },
   {
     title: 'SLA Breach Risk',
-    value: '3',
-    trend: 'needs attention',
-    trendTone: 'danger',
+    key: 'slaBreachRisk',
     icon: AlertTriangle,
     iconTone: 'text-orange-600 dark:text-orange-300',
     iconWrap: 'bg-orange-100 dark:bg-orange-500/20',
@@ -104,59 +100,31 @@ const ACTIVITY_COLORS = {
   completed: '#22c55e',
 };
 
-const platformActivityData = [
-    { day: '1', requests: 20, signups: 13, completed: 15 },
-    { day: '2', requests: 23, signups: 13, completed: 16 },
-    { day: '3', requests: 26, signups: 13, completed: 18 },
-    { day: '4', requests: 28, signups: 12, completed: 19 },
-    { day: '5', requests: 29, signups: 12, completed: 21 },
-    { day: '6', requests: 30, signups: 11, completed: 22 },
-    { day: '7', requests: 30, signups: 10, completed: 22 },
-    { day: '8', requests: 29, signups: 9, completed: 23 },
-    { day: '9', requests: 27, signups: 8, completed: 23 },
-    { day: '10', requests: 24, signups: 7, completed: 24 },
-    { day: '11', requests: 21, signups: 6, completed: 23 },
-    { day: '12', requests: 19, signups: 6, completed: 23 },
-    { day: '13', requests: 18, signups: 5, completed: 23 },
-    { day: '14', requests: 18, signups: 6, completed: 22 },
-    { day: '15', requests: 18, signups: 6, completed: 21 },
-    { day: '16', requests: 18, signups: 7, completed: 20 },
-    { day: '17', requests: 20, signups: 8, completed: 19 },
-    { day: '18', requests: 22, signups: 9, completed: 19 },
-    { day: '19', requests: 25, signups: 11, completed: 18 },
-    { day: '20', requests: 28, signups: 12, completed: 17 },
-    { day: '21', requests: 31, signups: 13, completed: 16 },
-    { day: '22', requests: 34, signups: 15, completed: 16 },
-    { day: '23', requests: 36, signups: 16, completed: 16 },
-    { day: '24', requests: 37, signups: 17, completed: 16 },
-    { day: '25', requests: 38, signups: 18, completed: 17 },
-    { day: '26', requests: 37, signups: 18, completed: 17 },
-    { day: '27', requests: 36, signups: 18, completed: 17 },
-    { day: '28', requests: 34, signups: 18, completed: 18 },
-    { day: '29', requests: 32, signups: 17, completed: 20 },
-    { day: '30', requests: 30, signups: 17, completed: 21 },
+const USER_DISTRIBUTION_COLORS = ['#5d66eb', '#2d7fe6', '#f59e0b'];
+const SERVICE_CATEGORY_COLORS = ['#5d66eb', '#6f77ef', '#8289f2', '#959cf5', '#aab0f8'];
+const VENDOR_AVATAR_TONES = [
+  'from-violet-500 to-indigo-500',
+  'from-fuchsia-500 to-violet-500',
+  'from-cyan-500 to-sky-500',
+  'from-amber-400 to-orange-500',
+  'from-emerald-500 to-teal-500',
 ];
-
-const userDistributionData = [
-  { name: 'Clients', value: 58, color: '#5d66eb' },
-  { name: 'Vendors', value: 32, color: '#2d7fe6' },
-  { name: 'Admins', value: 10, color: '#f59e0b' },
-];
-
-const serviceCategoriesData = [
-  { name: 'IT Services', value: 34, color: '#5d66eb' },
-  { name: 'Legal', value: 24, color: '#6f77ef' },
-  { name: 'HR Services', value: 20, color: '#8289f2' },
-  { name: 'Logistics', value: 16, color: '#959cf5' },
-  { name: 'Financial', value: 6, color: '#aab0f8' },
-];
-
-const pendingVendorApprovals = [
-    { initials: 'AM', name: 'Ahmed Mostafa', role: 'Web Dev', date: 'Apr 14', avatarTone: 'from-violet-500 to-indigo-500' },
-    { initials: 'SK', name: 'Sara Khalil', role: 'Legal', date: 'Apr 13', avatarTone: 'from-fuchsia-500 to-violet-500' },
-    { initials: 'ON', name: 'Omar Nasser', role: 'Logistics', date: 'Apr 12', avatarTone: 'from-cyan-500 to-sky-500' },
-    { initials: 'MA', name: 'Mona Adel', role: 'HR', date: 'Apr 11', avatarTone: 'from-amber-400 to-orange-500' },
-];
+const EMPTY_DASHBOARD_DATA = {
+  adminQuickStats: {
+    totalUsers: 0,
+    totalUsersChangeThisWeek: 0,
+    totalActiveRequests: 0,
+    totalActiveRequestsChangeToday: 0,
+    platformRevenue: 0,
+    revenueMoMPercent: 0,
+    slaBreachRiskCount: 0,
+    slaBreachNeedAttention: false,
+  },
+  platformActivities: [],
+  userDistributions: [],
+  serviceCategories: [],
+  pendingVendorApprovals: [],
+};
 
 const pageStagger = {
   hidden: { opacity: 0 },
@@ -216,7 +184,140 @@ function trendTextClass(tone) {
     return 'text-emerald-500 dark:text-emerald-300';
 }
 
+function formatNumber(value) {
+  return new Intl.NumberFormat('en-US').format(Number(value) || 0);
+}
+
+function formatCurrency(value) {
+  return `EGP ${formatNumber(value)}`;
+}
+
+function formatSigned(value) {
+  const numeric = Number(value) || 0;
+  if (numeric > 0) return `+${numeric}`;
+  return `${numeric}`;
+}
+
+function formatDateMMMDay(value) {
+  if (!value) return '--';
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) return '--';
+  return format(parsedDate, 'MMM d');
+}
+
+function getInitials(name) {
+  const text = String(name || '').trim();
+  if (!text) return '--';
+  const words = text.split(/\s+/).filter(Boolean);
+  return words.slice(0, 2).map((word) => word[0].toUpperCase()).join('');
+}
+
 export default function AdminDashboard() {
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState(EMPTY_DASHBOARD_DATA);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+
+      try {
+        const response = await getAdminDashboardApi({ token: user?.token });
+        if (!cancelled) {
+          setDashboardData({
+            ...EMPTY_DASHBOARD_DATA,
+            ...response,
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDashboardData(EMPTY_DASHBOARD_DATA);
+          setErrorMessage(error?.message || 'Could not load dashboard data.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.token]);
+
+  const quickStats = dashboardData.adminQuickStats ?? EMPTY_DASHBOARD_DATA.adminQuickStats;
+  const platformActivityData = useMemo(
+    () => dashboardData.platformActivities ?? [],
+    [dashboardData.platformActivities],
+  );
+  const userDistributionData = useMemo(() => {
+    const distribution = dashboardData.userDistributions?.[0];
+    return [
+      { name: 'Clients', value: Number(distribution?.clientsPercent ?? 0), color: USER_DISTRIBUTION_COLORS[0] },
+      { name: 'Vendors', value: Number(distribution?.vendorsPercent ?? 0), color: USER_DISTRIBUTION_COLORS[1] },
+      { name: 'Admins', value: Number(distribution?.adminsPercent ?? 0), color: USER_DISTRIBUTION_COLORS[2] },
+    ];
+  }, [dashboardData.userDistributions]);
+  const serviceCategoriesData = useMemo(
+    () =>
+      (dashboardData.serviceCategories ?? []).map((item, index) => ({
+        name: item.categoryName,
+        value: Number(item.percent ?? 0),
+        color: SERVICE_CATEGORY_COLORS[index % SERVICE_CATEGORY_COLORS.length],
+      })),
+    [dashboardData.serviceCategories],
+  );
+  const pendingVendorApprovals = useMemo(
+    () =>
+      (dashboardData.pendingVendorApprovals ?? []).map((vendor, index) => ({
+        vendorId: vendor.vendorId,
+        name: vendor.vendorName,
+        role: vendor.categoryName,
+        date: formatDateMMMDay(vendor.submittedAt),
+        avatarTone: VENDOR_AVATAR_TONES[index % VENDOR_AVATAR_TONES.length],
+        initials: getInitials(vendor.vendorName),
+        profilePicUrl: vendor.profilePicUrl,
+      })),
+    [dashboardData.pendingVendorApprovals],
+  );
+  const statCards = useMemo(
+    () => [
+      {
+        ...statCardStyles[0],
+        value: formatNumber(quickStats.totalUsers),
+        trend: `${formatSigned(quickStats.totalUsersChangeThisWeek)} this week`,
+        trendTone: 'positive',
+      },
+      {
+        ...statCardStyles[1],
+        value: formatNumber(quickStats.totalActiveRequests),
+        trend: `${formatSigned(quickStats.totalActiveRequestsChangeToday)} today`,
+        trendTone: 'positive',
+      },
+      {
+        ...statCardStyles[2],
+        value: formatCurrency(quickStats.platformRevenue),
+        trend: `${formatSigned(quickStats.revenueMoMPercent)}% MoM`,
+        trendTone: quickStats.revenueMoMPercent < 0 ? 'warning' : 'positive',
+      },
+      {
+        ...statCardStyles[3],
+        value: formatNumber(quickStats.slaBreachRiskCount),
+        trend: quickStats.slaBreachNeedAttention ? 'needs attention' : 'all clear',
+        trendTone: quickStats.slaBreachNeedAttention ? 'danger' : 'positive',
+      },
+    ],
+    [quickStats],
+  );
+  const displayName = user?.fullName?.trim() || 'Admin';
+
   const renderPlatformActivityTooltip = ({ active, label, payload }) => {
     if (!active || !payload || payload.length === 0) {
       return null;
@@ -308,7 +409,7 @@ export default function AdminDashboard() {
               <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                 Welcome{' '}
                 <span className="bg-gradient-to-r from-[#b9a0ea] via-[#c995ea] to-[#7fdbef] bg-clip-text text-transparent">
-                  Admin
+                  {displayName}
                 </span>
               </h1>
               <p className="max-w-xl text-sm text-slate-200 sm:text-base">
@@ -342,6 +443,18 @@ export default function AdminDashboard() {
             </motion.div>
           </div>
         </motion.section>
+
+        {errorMessage ? (
+          <motion.div variants={sectionReveal} className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-950/30 dark:text-rose-200">
+            {errorMessage}
+          </motion.div>
+        ) : null}
+
+        {isLoading ? (
+          <motion.div variants={sectionReveal} className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)] dark:border-slate-700/70 dark:bg-slate-900 dark:text-slate-300">
+            Loading dashboard data...
+          </motion.div>
+        ) : null}
 
         <motion.section variants={sectionReveal} className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" initial="hidden" animate="show">
           {statCards.map((item) => {
@@ -434,7 +547,7 @@ export default function AdminDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                  <p className="text-[1.9rem] font-black leading-none text-slate-900 dark:text-slate-100">1,248</p>
+                  <p className="text-[1.9rem] font-black leading-none text-slate-900 dark:text-slate-100">{formatNumber(quickStats.totalUsers)}</p>
                   <p className="mt-1 text-base text-slate-500 dark:text-slate-300">Users</p>
                 </div>
               </div>
@@ -488,7 +601,7 @@ export default function AdminDashboard() {
             <div className="divide-y divide-slate-200/80 dark:divide-slate-700/70">
               {pendingVendorApprovals.map((vendor) => (
                 <motion.div
-                  key={vendor.name}
+                  key={vendor.vendorId || vendor.name}
                   className="flex flex-col gap-2.5 py-3 sm:flex-row sm:items-center sm:justify-between"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -496,9 +609,17 @@ export default function AdminDashboard() {
                   whileHover={{ x: 2 }}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${vendor.avatarTone} text-sm font-bold text-white shadow-sm`}>
-                      {vendor.initials}
-                    </span>
+                    {vendor.profilePicUrl ? (
+                      <img
+                        src={vendor.profilePicUrl}
+                        alt={vendor.name}
+                        className="h-11 w-11 shrink-0 rounded-full object-cover shadow-sm"
+                      />
+                    ) : (
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${vendor.avatarTone} text-sm font-bold text-white shadow-sm`}>
+                        {vendor.initials}
+                      </span>
+                    )}
                     <div className="min-w-0">
                       <p className="truncate text-lg font-bold text-slate-900 dark:text-slate-100">{vendor.name}</p>
                       <p className="text-sm text-slate-600 dark:text-slate-300">{vendor.role} - {vendor.date}</p>
@@ -509,6 +630,9 @@ export default function AdminDashboard() {
                   </Link>
                 </motion.div>
               ))}
+              {!isLoading && pendingVendorApprovals.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-300">No pending vendor approvals.</p>
+              ) : null}
             </div>
           </CardContent>
         </Card>

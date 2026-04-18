@@ -284,8 +284,15 @@ export default function MyRequests() {
             ?? (Array.isArray(request.proposals) ? request.proposals.length : 0),
           );
           const ai = pickAiFieldsFromRequest(request);
+          const ratingStarsRaw = request.ratingStars ?? request.RatingStars;
+          const ratingStars = ratingStarsRaw != null && ratingStarsRaw !== '' ? Number(ratingStarsRaw) : null;
+          const hasValidStars = Number.isFinite(ratingStars) && ratingStars > 0;
+          const ratingCommentRaw = request.ratingComment ?? request.RatingComment ?? '';
+          const paidTotalRaw = request.paidTotalAmount ?? request.PaidTotalAmount;
+          const paidTotalNum = paidTotalRaw != null && paidTotalRaw !== '' ? Number(paidTotalRaw) : null;
+          const hasPaidTotal = Number.isFinite(paidTotalNum);
           return {
-            id: request.id,
+            id: request.id ?? request.Id,
             title: request.title,
             description: request.description,
             category: request.categoryName,
@@ -313,7 +320,10 @@ export default function MyRequests() {
               : '-',
             aiConfidence: Number(ai.confidence ?? 0),
             proposalsCount: Number.isFinite(fallbackCount) ? fallbackCount : 0,
-            documents: normalizeRequestDocuments(request, request.id),
+            documents: normalizeRequestDocuments(request, request.id ?? request.Id),
+            vendorRating: hasValidStars ? String(ratingStars) : null,
+            paidBudget: hasPaidTotal ? formatCurrency(paidTotalNum) : null,
+            feedback: String(ratingCommentRaw).trim() || null,
           };
         });
 
@@ -707,48 +717,48 @@ export default function MyRequests() {
           if (!open)
               setSelectedRequest(null);
       }}>
-        <DialogContent className="max-h-[82vh] overflow-x-hidden overflow-y-auto overscroll-contain border-violet-200/80 bg-gradient-to-br from-white/95 via-violet-50/85 to-blue-50/90 p-0 shadow-[0_24px_80px_-35px_rgba(76,29,149,0.65)] backdrop-blur-md dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 sm:max-w-2xl" aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle className="bg-gradient-to-r from-violet-700 to-black bg-clip-text px-4 pt-2 text-xl text-transparent dark:bg-none dark:text-slate-100 sm:px-6">Request Details</DialogTitle>
+        <DialogContent className="max-h-[82vh] w-full min-w-0 max-w-[calc(100%-1rem)] overflow-x-hidden overflow-y-auto overscroll-contain border-violet-200/80 bg-gradient-to-br from-white/95 via-violet-50/85 to-blue-50/90 p-0 shadow-[0_24px_80px_-35px_rgba(76,29,149,0.65)] backdrop-blur-md dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 sm:max-w-2xl" aria-describedby={undefined}>
+          <DialogHeader className="items-center px-4 pb-0 pt-3 text-center sm:items-center sm:px-6 sm:text-center">
+            <DialogTitle className="w-full bg-gradient-to-r from-violet-700 to-black bg-clip-text text-center text-xl text-transparent dark:bg-none dark:text-slate-100">Request Details</DialogTitle>
           </DialogHeader>
 
           {selectedRequest && (
-            <div className="space-y-4 px-4 pb-5 pt-3 sm:px-6 sm:pb-6 animate-in fade-in zoom-in-95 duration-300">
-              <div className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 p-4 dark:border-violet-400/30 dark:from-violet-500/12 dark:to-indigo-500/12">
+            <div className="box-border w-full min-w-0 max-w-full space-y-4 px-4 pb-5 pt-3 animate-in fade-in zoom-in-95 duration-300 sm:px-6 sm:pb-6">
+              <div className="w-full rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 p-4 dark:border-violet-400/30 dark:from-violet-500/12 dark:to-indigo-500/12">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{selectedRequest.title}</h3>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Posted {selectedRequest.createdAt}</p>
                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">All details, uploaded documents, and AI estimate insights in one view.</p>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
+              <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-violet-100 text-violet-700">
                       <Type className="h-3.5 w-3.5" />
                     </span>
                     Title
                   </p>
-                  <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">{selectedRequest.title}</p>
+                  <p className="mt-1 break-words font-medium text-slate-900 dark:text-slate-100">{selectedRequest.title}</p>
                 </div>
-                <div className="rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
+                <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-blue-700">
                       <Shapes className="h-3.5 w-3.5" />
                     </span>
                     Category
                   </p>
-                  <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">{selectedRequest.category}</p>
+                  <p className="mt-1 break-words font-medium text-slate-900 dark:text-slate-100">{selectedRequest.category}</p>
                 </div>
-                <div className="rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
+                <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-amber-100 text-amber-700">
                       <Clock3 className="h-3.5 w-3.5" />
                     </span>
                     {getDeadlineLabel(selectedRequest)}
                   </p>
-                  <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">{getDeadlineValue(selectedRequest)}</p>
+                  <p className="mt-1 break-words font-medium text-slate-900 dark:text-slate-100">{getDeadlineValue(selectedRequest)}</p>
                 </div>
-                <div className="rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75 sm:col-span-2">
+                <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/75 sm:col-span-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</p>
                   <Badge className={`mt-1 ${getStatusBadge(selectedRequest.status)}`}>
                     {selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
@@ -756,7 +766,7 @@ export default function MyRequests() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/75">
+              <div className="w-full rounded-xl border border-indigo-200/80 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/75">
                 <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   <MessageSquareText className="h-3.5 w-3.5" />
                   Description
@@ -764,7 +774,7 @@ export default function MyRequests() {
                 <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">{selectedRequest.description}</p>
               </div>
 
-              <div className="rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 p-4 shadow-sm dark:border-indigo-400/30 dark:from-violet-500/12 dark:via-indigo-500/12 dark:to-blue-500/12">
+              <div className="w-full rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 p-4 shadow-sm dark:border-indigo-400/30 dark:from-violet-500/12 dark:via-indigo-500/12 dark:to-blue-500/12">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">AI Estimation</p>
                   <Badge className="border border-indigo-200 bg-white text-indigo-700 dark:border-indigo-400/35 dark:bg-slate-900 dark:text-indigo-200">
@@ -772,16 +782,16 @@ export default function MyRequests() {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
+                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
                     <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Estimated Budget</p>
                     <p className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{selectedRequest.aiEstimatedCost}</p>
                   </div>
-                  <div className="rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
+                  <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78">
                     <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Estimated Deadline</p>
                     <p className="mt-1 text-base font-bold text-slate-900 dark:text-slate-100">{selectedRequest.aiEstimatedDeadline}</p>
                   </div>
-                  <div className="rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78 sm:col-span-2">
+                  <div className="min-w-0 overflow-hidden rounded-xl border border-indigo-200/80 bg-white/90 p-3 transition-all duration-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900/78 sm:col-span-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Selected Vendor</p>
                     <div className="mt-2">
                       {selectedRequest.vendorId || selectedRequest.vendor ? (
@@ -812,7 +822,7 @@ export default function MyRequests() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-violet-50 to-blue-50 p-4 shadow-sm dark:border-indigo-400/30 dark:from-indigo-500/12 dark:via-violet-500/12 dark:to-blue-500/12">
+              <div className="w-full rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50 via-violet-50 to-blue-50 p-4 shadow-sm dark:border-indigo-400/30 dark:from-indigo-500/12 dark:via-violet-500/12 dark:to-blue-500/12">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">Uploaded Documents</p>
                   <Badge className="border border-indigo-200 bg-white text-indigo-700 dark:border-indigo-400/35 dark:bg-slate-900 dark:text-indigo-200">
@@ -846,7 +856,7 @@ export default function MyRequests() {
               </div>
 
               {selectedRequest.status === 'active' && (
-                <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 dark:border-indigo-400/35 dark:bg-indigo-500/14">
+                <div className="w-full rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 dark:border-indigo-400/35 dark:bg-indigo-500/14">
                   <div className="mb-3 flex items-center justify-between">
                     <div>
                       <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
@@ -875,7 +885,7 @@ export default function MyRequests() {
               )}
 
               {selectedRequest.status === 'completed' && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-400/35 dark:bg-emerald-500/14">
+                <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-400/35 dark:bg-emerald-500/14">
                   <div className="mb-3 flex items-center justify-between">
                     <div>
                       <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
@@ -887,20 +897,22 @@ export default function MyRequests() {
                     <Badge className="border border-emerald-200 bg-white text-emerald-700 dark:border-emerald-400/35 dark:bg-slate-900 dark:text-emerald-200">Completed Request</Badge>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="rounded-lg border border-emerald-200 bg-white/90 p-3 dark:border-emerald-400/30 dark:bg-slate-900/78">
+                  <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="min-w-0 overflow-hidden rounded-lg border border-emerald-200 bg-white/90 p-3 dark:border-emerald-400/30 dark:bg-slate-900/78">
                       <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                         <Star className="h-3.5 w-3.5" />
                         Rating
                       </p>
-                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{selectedRequest.vendorRating ?? '-'} / 5</p>
+                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
+                        {selectedRequest.vendorRating ? `${selectedRequest.vendorRating} / 5` : 'Not rated yet'}
+                      </p>
                     </div>
-                    <div className="rounded-lg border border-emerald-200 bg-white/90 p-3 dark:border-emerald-400/30 dark:bg-slate-900/78">
+                    <div className="min-w-0 overflow-hidden rounded-lg border border-emerald-200 bg-white/90 p-3 dark:border-emerald-400/30 dark:bg-slate-900/78">
                       <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                         <CircleDollarSign className="h-3.5 w-3.5" />
-                        Paid Budget
+                        Paid Price
                       </p>
-                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{selectedRequest.paidBudget || '-'}</p>
+                      <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{selectedRequest.paidBudget ?? '—'}</p>
                     </div>
                   </div>
 
@@ -909,7 +921,7 @@ export default function MyRequests() {
                       <MessageSquareText className="h-3.5 w-3.5" />
                       Feedback
                     </p>
-                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{selectedRequest.feedback || '-'}</p>
+                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{selectedRequest.feedback ?? '—'}</p>
                   </div>
                 </div>
               )}
