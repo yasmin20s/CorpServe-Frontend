@@ -171,6 +171,7 @@ export default function VendorPayments() {
 
   const metrics = useMemo(() => {
     const completedPayments = payments.filter((item) => normalizeStatus(item.paymentStatus) === 'completed');
+    const pendingClientPayments = payments.filter((item) => normalizeStatus(item.paymentStatus) === 'pending');
     const totalGross = completedPayments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const totalReceivable = completedPayments.reduce((sum, item) => sum + Number(item.vendorNetAmount || 0), 0);
     const payoutPendingCount = completedPayments.filter((item) => !isPayoutCompleted(item.payoutStatus)).length;
@@ -179,6 +180,7 @@ export default function VendorPayments() {
       totalGross,
       totalReceivable,
       completedCount: completedPayments.length,
+      pendingClientPaymentCount: pendingClientPayments.length,
       payoutPendingCount,
     };
   }, [payments]);
@@ -254,10 +256,13 @@ export default function VendorPayments() {
           </Card>
           <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white shadow-[0_14px_34px_rgba(249,115,22,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100">Pending</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100">Awaiting client payment</p>
               <p className="mt-1 text-2xl font-black tabular-nums text-white">
-                <CountUpNumber value={metrics.payoutPendingCount} formatter={(current) => Math.round(current)} />
+                <CountUpNumber value={metrics.pendingClientPaymentCount} formatter={(current) => Math.round(current)} />
               </p>
+              {metrics.payoutPendingCount > 0 ? (
+                <p className="mt-2 text-xs text-amber-100">{metrics.payoutPendingCount} paid · payout pending</p>
+              ) : null}
             </CardContent>
           </Card>
         </div>
