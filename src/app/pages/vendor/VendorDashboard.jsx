@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/DashboardLayout';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '../../components/ui/card';
 import {
   LayoutDashboard,
@@ -17,6 +18,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../../hooks/useAuth';
+import { getVendorDashboardApi } from '../../services/dashboardApi';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
@@ -27,43 +30,101 @@ const menuItems = [
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
 
-const earningsData = [
-  { month: 'Nov', billed: 18000, received: 15000 },
-  { month: 'Dec', billed: 22000, received: 20000 },
-  { month: 'Jan', billed: 19000, received: 17000 },
-  { month: 'Feb', billed: 28000, received: 25000 },
-  { month: 'Mar', billed: 35000, received: 30000 },
-  { month: 'Apr', billed: 42300, received: 38000 },
-];
+const EMPTY_VENDOR_DASHBOARD = {
+  vendorQuickStats: {
+    activeContracts: 0,
+    activeContractsChangeThisWeek: 0,
+    revenueThisMonthEGP: 0,
+    revenuePercent: 0,
+    avgRating: 0,
+    totalRatingCount: 0,
+  },
+  earningsOverTimes: [],
+  proposalWinRate: {
+    submitted: 0,
+    accepted: 0,
+    rejected: 0,
+    winRatePercent: 0,
+  },
+  activeContracts: [],
+  upcomingDeadlines: [],
+};
 
 export default function VendorDashboard() {
-  const activeContractsCount = 5;
-  const openProposals = 8;
-  const revenueThisMonth = 42300;
-  const avgRating = 4.8;
-  const ratingsCount = 27;
-  const avgResponseHours = 4;
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState(EMPTY_VENDOR_DASHBOARD);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const submittedProposals = 47;
-  const acceptedProposals = 32;
-  const rejectedProposals = 15;
-  const proposalWinRate = Math.round((acceptedProposals / submittedProposals) * 100);
+  useEffect(() => {
+    let cancelled = false;
+    const loadDashboard = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      try {
+        const payload = await getVendorDashboardApi({ token: user?.token });
+        if (!cancelled) {
+          setDashboardData({
+            ...EMPTY_VENDOR_DASHBOARD,
+            ...payload,
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDashboardData(EMPTY_VENDOR_DASHBOARD);
+          setErrorMessage(error?.message || 'Could not load vendor dashboard.');
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    loadDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.token]);
 
-  const momentumData = earningsData.map((item, index) => ({
-    month: item.month,
-    billed: item.billed / 1000,
-    received: item.received / 1000,
-    target: (item.received * 0.92) / 1000 + (index % 2 === 0 ? 1 : -0.6),
-  }));
-  const latestEarnings = earningsData[earningsData.length - 1];
-  const collectionRate = Math.round((latestEarnings.received / latestEarnings.billed) * 100);
+  const quickStats = dashboardData.vendorQuickStats ?? EMPTY_VENDOR_DASHBOARD.vendorQuickStats;
+  const proposalWin = dashboardData.proposalWinRate ?? EMPTY_VENDOR_DASHBOARD.proposalWinRate;
+  const proposalWinRate = Math.round(Number(proposalWin.winRatePercent || 0));
+  const submittedProposals = Number(proposalWin.submitted || 0);
+  const acceptedProposals = Number(proposalWin.accepted || 0);
+  const rejectedProposals = Number(proposalWin.rejected || 0);
+  const activeContractsCount = Number(quickStats.activeContracts || 0);
+  const avgRating = Number(quickStats.avgRating || 0).toFixed(1);
+  const ratingsCount = Number(quickStats.totalRatingCount || 0);
 
-  const activeContracts = [
-    { label: 'ERP Integration', value: '75%', amount: 'TechCorp Egypt · Apr 30', status: 'in-progress', icon: Briefcase },
-    { label: 'Fleet Management', value: '40%', amount: 'Nile Logistics · May 15', status: 'at-risk', icon: Activity },
-    { label: 'Contract Audit', value: '60%', amount: 'Delta Legal Grp · May 5', status: 'in-progress', icon: FileText },
-    { label: 'HR Consulting', value: '20%', amount: 'SkyBuild Co. · May 20', status: 'active', icon: CheckCircle },
-  ];
+  const momentumData = useMemo(
+    () =>
+      (dashboardData.earningsOverTimes ?? []).map((item, index) => ({
+        month: item.monthLabel || '',
+        billed: Number(item.billedEGP || 0) / 1000,
+        received: Number(item.receivedEGP || 0) / 1000,
+        target: (Number(item.receivedEGP || 0) * 0.92) / 1000 + (index % 2 === 0 ? 1 : -0.6),
+      })),
+    [dashboardData.earningsOverTimes],
+  );
+
+  const activeContracts = useMemo(
+    () =>
+      (dashboardData.activeContracts ?? []).map((item) => {
+        const percent = Math.max(0, Math.min(100, Number(item.progressPercent || 0)));
+        const statusRaw = String(item.contractStatus || '').toLowerCase();
+        const status = statusRaw.includes('delay')
+          ? 'at-risk'
+          : statusRaw.includes('progress')
+            ? 'in-progress'
+            : 'active';
+        return {
+          label: item.requestTitle || 'Request',
+          value: `${percent}%`,
+          amount: `${item.clientName || 'Client'} · ${item.deadline ? new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}`,
+          status,
+          icon: status === 'at-risk' ? AlertTriangle : status === 'in-progress' ? Activity : Briefcase,
+        };
+      }),
+    [dashboardData.activeContracts],
+  );
 
   const statusPillClass = {
     'in-progress': 'bg-emerald-100 text-emerald-700',
@@ -71,13 +132,26 @@ export default function VendorDashboard() {
     active: 'bg-indigo-100 text-indigo-700',
   };
 
-  const upcomingDeadlines = [
-    { date: 'Apr 17', title: 'ERP Phase 1 Delivery', client: 'TechCorp', tone: 'bg-rose-500' },
-    { date: 'Apr 22', title: 'Legal Draft Submission', client: 'Delta Legal', tone: 'bg-amber-500' },
-    { date: 'Apr 30', title: 'Final ERP Handover', client: 'TechCorp', tone: 'bg-emerald-500' },
-    { date: 'May 5', title: 'Audit Report', client: 'Delta Legal', tone: 'bg-sky-500' },
-    { date: 'May 15', title: 'Fleet Report Q2', client: 'Nile Logistics', tone: 'bg-blue-500' },
-  ];
+  const upcomingDeadlines = useMemo(
+    () =>
+      (dashboardData.upcomingDeadlines ?? []).map((item) => {
+        const urgency = String(item.urgencyLevel || '').toLowerCase();
+        const tone = urgency === 'red'
+          ? 'bg-rose-500'
+          : urgency === 'orange'
+            ? 'bg-amber-500'
+            : urgency === 'green'
+              ? 'bg-emerald-500'
+              : 'bg-sky-500';
+        return {
+          date: item.deadline ? new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--',
+          title: item.requestTitle || 'Request',
+          client: item.clientName || 'Client',
+          tone,
+        };
+      }),
+    [dashboardData.upcomingDeadlines],
+  );
 
   return (
     <DashboardLayout menuItems={menuItems} userRole="vendor">
@@ -92,6 +166,8 @@ export default function VendorDashboard() {
           <div className="relative z-10">
             <h1 className="text-4xl font-black sm:text-5xl">Vendor Dashboard</h1>
             <p className="mt-2 text-lg text-white/90">Your performance hub at a glance</p>
+            {errorMessage ? <p className="mt-2 text-sm text-rose-100">{errorMessage}</p> : null}
+            {isLoading ? <p className="mt-2 text-sm text-white/80">Loading dashboard data...</p> : null}
           </div>
         </div>
 
@@ -118,10 +194,10 @@ export default function VendorDashboard() {
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white">
                   <Wallet className="h-6 w-6" />
                 </span>
-                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">42.3k</span>
+                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">{Math.round(Number(quickStats.revenueThisMonthEGP || 0) / 1000)}k</span>
               </div>
               <p className="text-sm font-semibold text-slate-700 mb-2">Revenue This Month</p>
-              <p className="text-xs text-emerald-600 font-bold">↑ 18%</p>
+              <p className="text-xs text-emerald-600 font-bold">{Number(quickStats.revenuePercent || 0) >= 0 ? '↑' : ''}{quickStats.revenuePercent || 0}%</p>
             </CardContent>
           </Card>
 
@@ -135,7 +211,7 @@ export default function VendorDashboard() {
                 <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-600">{avgRating}</span>
               </div>
               <p className="text-sm font-semibold text-slate-700 mb-2">Avg Rating</p>
-              <p className="text-xs text-slate-500">from 27 ratings</p>
+              <p className="text-xs text-slate-500">from {ratingsCount} ratings</p>
             </CardContent>
           </Card>
         </div>
@@ -221,6 +297,11 @@ export default function VendorDashboard() {
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-700 mb-5">Active Contracts</h3>
               <div className="space-y-3">
+                {activeContracts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-indigo-200 bg-white/70 p-4 text-sm text-indigo-700 dark:border-indigo-400/35 dark:bg-slate-900/70 dark:text-indigo-200">
+                    No active contracts right now.
+                  </div>
+                ) : null}
                 {activeContracts.map((item, idx) => {
                   const Icon = item.icon;
                   const statusColors = {
@@ -254,6 +335,11 @@ export default function VendorDashboard() {
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-cyan-600 mb-5">Upcoming Deadlines</h3>
               <div className="space-y-3">
+                {upcomingDeadlines.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-sky-200 bg-white/70 p-4 text-sm text-sky-700 dark:border-sky-400/35 dark:bg-slate-900/70 dark:text-sky-200">
+                    No upcoming deadlines.
+                  </div>
+                ) : null}
                 {upcomingDeadlines.map((deadline) => (
                   <div key={`${deadline.date}-${deadline.title}`} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 hover:shadow-md transition-all border-l-4" style={{ borderColor: deadline.tone.replace('bg-', '') }}>
                     <span className={`mt-1 h-3 w-3 rounded-full ${deadline.tone} flex-shrink-0`} />

@@ -128,6 +128,58 @@ function normalizePendingPayment(raw = {}) {
   };
 }
 
+function normalizeVendorQuickStats(raw = {}) {
+  return {
+    activeContracts: toNumber(pick(raw, 'activeContracts', 'ActiveContracts')),
+    activeContractsChangeThisWeek: toNumber(pick(raw, 'activeContractsChangeThisWeek', 'ActiveContractsChangeThisWeek')),
+    revenueThisMonthEGP: toNumber(pick(raw, 'revenueThisMonthEGP', 'RevenueThisMonthEGP')),
+    revenuePercent: toNumber(pick(raw, 'revenuePercent', 'RevenuePercent')),
+    avgRating: toNumber(pick(raw, 'avgRating', 'AvgRating')),
+    totalRatingCount: toNumber(pick(raw, 'totalRatingCount', 'TotalRatingCount')),
+  };
+}
+
+function normalizeEarningsOverTime(raw = {}) {
+  return {
+    monthLabel: String(pick(raw, 'monthLabel', 'MonthLabel') ?? ''),
+    month: pick(raw, 'month', 'Month') ?? null,
+    billedEGP: toNumber(pick(raw, 'billedEGP', 'BilledEGP')),
+    receivedEGP: toNumber(pick(raw, 'receivedEGP', 'ReceivedEGP')),
+  };
+}
+
+function normalizeProposalWinRate(raw = {}) {
+  return {
+    submitted: toNumber(pick(raw, 'submitted', 'Submitted')),
+    accepted: toNumber(pick(raw, 'accepted', 'Accepted')),
+    rejected: toNumber(pick(raw, 'rejected', 'Rejected')),
+    winRatePercent: toNumber(pick(raw, 'winRatePercent', 'WinRatePercent')),
+  };
+}
+
+function normalizeActiveContract(raw = {}) {
+  return {
+    slaContractId: String(pick(raw, 'slaContractId', 'SLAContractId') ?? ''),
+    requestId: String(pick(raw, 'requestId', 'RequestId') ?? ''),
+    clientName: String(pick(raw, 'clientName', 'ClientName') ?? ''),
+    requestTitle: String(pick(raw, 'requestTitle', 'RequestTitle') ?? ''),
+    deadline: pick(raw, 'deadline', 'Deadline') ?? null,
+    progressPercent: toNumber(pick(raw, 'progressPercent', 'ProgressPercent')),
+    contractStatus: String(pick(raw, 'contractStatus', 'ContractStatus') ?? ''),
+  };
+}
+
+function normalizeUpcomingDeadline(raw = {}) {
+  return {
+    slaContractId: String(pick(raw, 'slaContractId', 'SLAContractId') ?? ''),
+    requestId: String(pick(raw, 'requestId', 'RequestId') ?? ''),
+    clientName: String(pick(raw, 'clientName', 'ClientName') ?? ''),
+    requestTitle: String(pick(raw, 'requestTitle', 'RequestTitle') ?? ''),
+    deadline: pick(raw, 'deadline', 'Deadline') ?? null,
+    urgencyLevel: String(pick(raw, 'urgencyLevel', 'UrgencyLevel') ?? ''),
+  };
+}
+
 export async function getAdminDashboardApi({ token }) {
   const payload = await request('/api/Dashboard/admin', {
     method: 'GET',
@@ -171,5 +223,26 @@ export async function getClientDashboardApi({ token }) {
     categoryBreakdowns: Array.isArray(categoryBreakdownsRaw) ? categoryBreakdownsRaw.map(normalizeCategoryBreakdown) : [],
     recentRequests: Array.isArray(recentRequestsRaw) ? recentRequestsRaw.map(normalizeRecentRequest) : [],
     pendingPayments: Array.isArray(pendingPaymentsRaw) ? pendingPaymentsRaw.map(normalizePendingPayment) : [],
+  };
+}
+
+export async function getVendorDashboardApi({ token }) {
+  const payload = await request('/api/Dashboard/vendor', {
+    method: 'GET',
+    token,
+  });
+
+  const quickStatsRaw = pick(payload, 'vendorQuickStats', 'VendorQuickStats') || {};
+  const earningsRaw = pick(payload, 'earningsOverTimes', 'EarningsOverTimes');
+  const proposalRaw = pick(payload, 'proposalWinRate', 'ProposalWinRate') || {};
+  const activeRaw = pick(payload, 'activeContracts', 'ActiveContracts');
+  const deadlinesRaw = pick(payload, 'upcomingDeadlines', 'UpcomingDeadlines');
+
+  return {
+    vendorQuickStats: normalizeVendorQuickStats(quickStatsRaw),
+    earningsOverTimes: Array.isArray(earningsRaw) ? earningsRaw.map(normalizeEarningsOverTime) : [],
+    proposalWinRate: normalizeProposalWinRate(proposalRaw),
+    activeContracts: Array.isArray(activeRaw) ? activeRaw.map(normalizeActiveContract) : [],
+    upcomingDeadlines: Array.isArray(deadlinesRaw) ? deadlinesRaw.map(normalizeUpcomingDeadline) : [],
   };
 }
