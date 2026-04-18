@@ -78,6 +78,304 @@
 	box-shadow: 0 8px 20px rgba(111, 116, 234, 0.35);
 }
 
+@keyframes cdOrbFloatA {
+	0%,
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.35;
+	}
+	50% {
+		transform: translate3d(16px, -12px, 0) scale(1.08);
+		opacity: 0.75;
+	}
+}
+
+@keyframes cdOrbFloatB {
+	0%,
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+		opacity: 0.28;
+	}
+	50% {
+		transform: translate3d(-14px, 10px, 0) scale(1.06);
+		opacity: 0.62;
+	}
+}
+
+@keyframes cdIconFloat {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-1.5px);
+	}
+}
+
+@keyframes cdActionGlow {
+	0%,
+	100% {
+		box-shadow: 0 3px 10px rgba(79, 70, 229, 0.07);
+	}
+	50% {
+		box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+	}
+}
+
+@keyframes cdWaveShift {
+	0% {
+		background-position: 0 0, 0 0;
+	}
+	100% {
+		background-position: 340px 0, -300px 0;
+	}
+}
+
+@keyframes cdHeroRibbonFlow {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.cd-panel-glass {
+	background-image: radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 45%), radial-gradient(circle at 86% 84%, rgba(99, 102, 241, 0.035), rgba(99, 102, 241, 0) 44%);
+	backdrop-filter: blur(2px);
+}
+
+.dark .cd-panel-glass {
+	background-image: radial-gradient(circle at 18% 16%, rgba(129, 140, 248, 0.14), rgba(129, 140, 248, 0) 46%), radial-gradient(circle at 84% 86%, rgba(34, 211, 238, 0.1), rgba(34, 211, 238, 0) 45%);
+}
+
+.cd-orb-a {
+	animation: cdOrbFloatA 6.2s ease-in-out infinite;
+}
+
+.cd-orb-b {
+	animation: cdOrbFloatB 7s ease-in-out infinite;
+	animation-delay: 0.2s;
+}
+
+.cd-icon-float {
+	animation: cdIconFloat 2.4s ease-in-out infinite;
+}
+
+.cd-action-tile {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	animation: cdActionGlow 3.4s ease-in-out infinite;
+	transition: box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease, transform 220ms ease;
+}
+
+.cd-action-tile::after {
+	content: '';
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	border: 1px solid rgba(99, 102, 241, 0.45);
+	box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.22), 0 0 22px rgba(99, 102, 241, 0.2);
+	opacity: 0;
+	transition: opacity 220ms ease;
+}
+
+.cd-action-tile:hover::after {
+	opacity: 1;
+}
+
+.dark .cd-action-tile::after {
+	border-color: rgba(34, 211, 238, 0.5);
+	box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.28), 0 0 24px rgba(34, 211, 238, 0.22);
+}
+
+.cd-fast-rise {
+	animation-duration: 300ms !important;
+}
+
+.cd-hero-prism {
+	background:
+		radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.055), rgba(99, 102, 241, 0) 40%),
+		radial-gradient(circle at 84% 28%, rgba(14, 165, 233, 0.05), rgba(14, 165, 233, 0) 42%),
+		linear-gradient(125deg, rgba(248, 250, 252, 0.96), rgba(244, 247, 251, 0.92), rgba(240, 246, 252, 0.9));
+}
+
+.cd-hero-wave {
+	background-image:
+		repeating-radial-gradient(ellipse at 78% 30%, rgba(6, 182, 212, 0.16) 0px, rgba(6, 182, 212, 0.16) 2px, transparent 3px, transparent 11px),
+		repeating-radial-gradient(ellipse at 78% 30%, rgba(139, 92, 246, 0.13) 0px, rgba(139, 92, 246, 0.13) 2px, transparent 3px, transparent 11px);
+	background-size: 230px 142px, 270px 162px;
+	background-position: 0 0, 0 0;
+	animation: cdWaveShift 4.6s linear infinite;
+	opacity: 0.56;
+	mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.8) 74%, rgba(0, 0, 0, 0.45));
+}
+
+.cd-hero-ribbon {
+	background:
+		linear-gradient(120deg, rgba(34, 211, 238, 0.2), rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2), rgba(14, 165, 233, 0.2));
+	background-size: 230% 230%;
+	animation: cdHeroRibbonFlow 5.6s ease-in-out infinite;
+	mix-blend-mode: normal;
+	mask-image: linear-gradient(110deg, transparent 0%, rgba(0, 0, 0, 0.75) 35%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.72) 65%, transparent 100%);
+	opacity: 0.82;
+}
+
+.dark .cd-hero-prism {
+	background:
+		radial-gradient(circle at 12% 22%, rgba(129, 140, 248, 0.17), rgba(129, 140, 248, 0) 42%),
+		radial-gradient(circle at 82% 26%, rgba(34, 211, 238, 0.13), rgba(34, 211, 238, 0) 42%),
+		linear-gradient(135deg, rgba(22, 8, 50, 0.95), rgba(34, 12, 70, 0.9), rgba(20, 8, 44, 0.9));
+}
+
+.dark .cd-hero-wave {
+	background-image:
+		repeating-radial-gradient(ellipse at 78% 30%, rgba(103, 232, 249, 0.2) 0px, rgba(103, 232, 249, 0.2) 2px, transparent 3px, transparent 11px),
+		repeating-radial-gradient(ellipse at 78% 30%, rgba(196, 181, 253, 0.18) 0px, rgba(196, 181, 253, 0.18) 2px, transparent 3px, transparent 11px);
+	opacity: 0.72;
+}
+
+.dark .cd-hero-ribbon {
+	background:
+		linear-gradient(120deg, rgba(34, 211, 238, 0.24), rgba(129, 140, 248, 0.27), rgba(196, 181, 253, 0.24), rgba(56, 189, 248, 0.24));
+	mix-blend-mode: lighten;
+	opacity: 0.84;
+}
+
+.cd-dashboard-shell {
+	padding: 3px;
+	background: linear-gradient(135deg, rgba(241, 245, 249, 0.72), rgba(235, 241, 247, 0.6), rgba(232, 240, 246, 0.55));
+	border-radius: 1.2rem;
+}
+
+.dark .cd-dashboard-shell {
+	background: linear-gradient(135deg, rgba(17, 5, 37, 0.96), rgba(29, 9, 61, 0.92), rgba(16, 6, 40, 0.94));
+}
+
+.cd-page-grid {
+	background-image: linear-gradient(to right, rgba(100, 116, 139, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(100, 116, 139, 0.06) 1px, transparent 1px);
+	background-size: 30px 30px;
+	mask-image: radial-gradient(circle at center, black 35%, transparent 100%);
+}
+
+.dark .cd-page-grid {
+	background-image: linear-gradient(to right, rgba(56, 189, 248, 0.09) 1px, transparent 1px), linear-gradient(to bottom, rgba(129, 140, 248, 0.08) 1px, transparent 1px);
+}
+
+.cd-page-orb-a {
+	animation: cdOrbFloatA 7.4s ease-in-out infinite;
+}
+
+.cd-page-orb-b {
+	animation: cdOrbFloatB 8.6s ease-in-out infinite;
+}
+
+@keyframes adHeroIconFloat {
+	0%,
+	100% {
+		transform: translate3d(0, 0, 0);
+	}
+	50% {
+		transform: translate3d(0, -9px, 0);
+	}
+}
+
+@keyframes adHeroIconGlow {
+	0%,
+	100% {
+		box-shadow: 0 6px 16px rgba(76, 29, 149, 0.15);
+	}
+	50% {
+		box-shadow: 0 10px 24px rgba(124, 58, 237, 0.28);
+	}
+}
+
+.ad-hero-icon {
+	animation: adHeroIconFloat 5.2s ease-in-out infinite, adHeroIconGlow 5.2s ease-in-out infinite;
+}
+
+@keyframes adHeroGradientFlow {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+@keyframes adHeroWaveTravel {
+	0% {
+		transform: translateX(-8%);
+		opacity: 0.26;
+	}
+	50% {
+		opacity: 0.52;
+	}
+	100% {
+		transform: translateX(8%);
+		opacity: 0.26;
+	}
+}
+
+@keyframes adNameGlow {
+	0%,
+	100% {
+		box-shadow: 0 10px 22px rgba(76, 29, 149, 0.3);
+	}
+	50% {
+		box-shadow: 0 14px 26px rgba(192, 132, 252, 0.34);
+	}
+}
+
+@keyframes adCardSheen {
+	0% {
+		background-position: -160% 0;
+	}
+	100% {
+		background-position: 160% 0;
+	}
+}
+
+.ad-hero-animated {
+	background-size: 220% 220%;
+	animation: adHeroGradientFlow 11s ease-in-out infinite;
+}
+
+.ad-hero-wave-overlay {
+	background-image: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.06) 24%, rgba(255, 255, 255, 0.18) 44%, rgba(255, 255, 255, 0.08) 64%, transparent 100%);
+	mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.26));
+	animation: adHeroWaveTravel 7.8s ease-in-out infinite;
+}
+
+.ad-admin-name {
+	background: linear-gradient(120deg, #c084fc 0%, #f0abfc 35%, #67e8f9 100%);
+	animation: adNameGlow 4.8s ease-in-out infinite;
+}
+
+.ad-stat-card {
+	position: relative;
+	overflow: hidden;
+}
+
+.ad-stat-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0.42) 50%, rgba(255, 255, 255, 0.05) 58%, transparent 100%);
+	background-size: 180% 100%;
+	animation: adCardSheen 4.6s linear infinite;
+	pointer-events: none;
+	opacity: 0.65;
+}
+
 @keyframes csProfileIntro {
 	0% {
 		opacity: 0;
@@ -387,6 +685,15 @@
 	.cs-profile-image-card,
 	.cs-profile-image-thumb,
 	.cs-profile-image-glow,
+	.cd-orb-a,
+	.cd-orb-b,
+	.cd-page-orb-a,
+	.cd-page-orb-b,
+	.cd-hero-wave,
+	.cd-hero-ribbon,
+	.cd-icon-float,
+	.cd-action-tile,
+	.cd-fast-rise,
 	.vv-lock-ring-outer,
 	.vv-lock-ring-inner,
 	.vv-lock-core,
