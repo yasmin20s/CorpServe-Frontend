@@ -32,6 +32,8 @@ import {
   YAxis,
 } from 'recharts';
 import { getClientDashboardApi } from '../../services/dashboardApi';
+import { startCheckoutApi } from '../../services/paymentsApi';
+import { toast } from '../../lib/toast';
 
 const menuItems = [
   { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -166,6 +168,7 @@ export default function ClientDashboard() {
   const [dashboardData, setDashboardData] = useState(EMPTY_CLIENT_DASHBOARD);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [payingPaymentId, setPayingPaymentId] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -264,15 +267,46 @@ export default function ClientDashboard() {
     () =>
       (dashboardData.pendingPayments ?? []).map((payment) => ({
         paymentId: payment.paymentId,
+        requestId: payment.requestId,
         title: payment.requestTitle,
         invoice: payment.merchantOrderId,
         invoiceDate: formatDateLong(payment.createdAt),
         amount: formatCurrency(payment.amount),
         commissionAmount: formatCurrency(payment.commision),
         totalAmount: formatCurrency(payment.totalAmount),
+        checkoutUrl: typeof payment.checkoutUrl === 'string' ? payment.checkoutUrl.trim() : '',
       })),
     [dashboardData.pendingPayments],
   );
+
+  const handlePayNow = async (payment) => {
+    if (!user?.token) {
+      toast.error('Please sign in to pay.');
+      return;
+    }
+    const directUrl = payment.checkoutUrl;
+    if (directUrl) {
+      window.location.assign(directUrl);
+      return;
+    }
+    if (!payment.requestId) {
+      toast.error('Missing request for this payment.');
+      return;
+    }
+    setPayingPaymentId(payment.paymentId || payment.requestId);
+    try {
+      const checkout = await startCheckoutApi({ requestId: payment.requestId, token: user.token });
+      if (!checkout.checkoutUrl) {
+        toast.error('Checkout URL was not returned. Open Payments to try again.');
+        return;
+      }
+      window.location.assign(checkout.checkoutUrl);
+    } catch (error) {
+      toast.error(error?.message || 'Failed to start checkout.');
+    } finally {
+      setPayingPaymentId('');
+    }
+  };
 
   const renderActivityTooltip = ({ active, label, payload }) => {
     if (!active || !payload || payload.length === 0) {
@@ -639,8 +673,13 @@ export default function ClientDashboard() {
                       <td className="px-2 py-3 text-sm text-slate-700 dark:text-slate-200">{payment.commissionAmount}</td>
                       <td className="px-2 py-3 text-sm font-black text-slate-900 dark:text-slate-100">{payment.totalAmount}</td>
                       <td className="px-2 py-3 text-right">
-                        <Button asChild className="h-8 rounded-xl bg-gradient-to-r from-sky-500 to-violet-600 px-3.5 text-xs font-semibold text-white hover:from-sky-500 hover:to-violet-500">
-                          <Link to="/client/payments">Pay Now</Link>
+                        <Button
+                          type="button"
+                          className="h-8 rounded-xl bg-gradient-to-r from-sky-500 to-violet-600 px-3.5 text-xs font-semibold text-white hover:from-sky-500 hover:to-violet-500"
+                          disabled={Boolean(payingPaymentId)}
+                          onClick={() => handlePayNow(payment)}
+                        >
+                          {payingPaymentId === (payment.paymentId || payment.requestId) ? 'Redirecting…' : 'Pay Now'}
                         </Button>
                       </td>
                     </tr>
@@ -682,8 +721,13 @@ export default function ClientDashboard() {
                         <p className="font-semibold uppercase tracking-[0.04em] text-slate-500 dark:text-slate-300">Total Amount</p>
                         <p className="mt-0.5 text-base font-black text-slate-900 dark:text-slate-100">{payment.totalAmount}</p>
                       </div>
-                      <Button asChild className="h-8 rounded-xl bg-gradient-to-r from-sky-500 to-violet-600 px-3.5 text-xs font-semibold text-white hover:from-sky-500 hover:to-violet-500">
-                        <Link to="/client/payments">Pay Now</Link>
+                      <Button
+                        type="button"
+                        className="h-8 rounded-xl bg-gradient-to-r from-sky-500 to-violet-600 px-3.5 text-xs font-semibold text-white hover:from-sky-500 hover:to-violet-500"
+                        disabled={Boolean(payingPaymentId)}
+                        onClick={() => handlePayNow(payment)}
+                      >
+                        {payingPaymentId === (payment.paymentId || payment.requestId) ? 'Redirecting…' : 'Pay Now'}
                       </Button>
                     </div>
                   </div>
