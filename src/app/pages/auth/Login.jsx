@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -12,6 +12,7 @@ export default function Login() {
   const location = useLocation();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [suspendedMessage, setSuspendedMessage] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,8 +27,12 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSuspendedMessage('');
     const result = await login(formData);
     if (!result.success) {
+      if (result.message?.toLowerCase().includes('suspended')) {
+        setSuspendedMessage(result.message);
+      }
       toast.error(result.message);
       return;
     }
@@ -99,6 +104,16 @@ export default function Login() {
                 </p>
               </div>
             </div>
+
+            {suspendedMessage && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                <div>
+                  <p className="font-semibold">Account Suspended</p>
+                  <p className="mt-1">{suspendedMessage}</p>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 [@media(max-height:820px)]:space-y-3">
               <div className="space-y-2">

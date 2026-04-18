@@ -181,8 +181,13 @@ export async function clientAcceptProposalApi({ proposalId, token }) {
   return normalizeSlaContractDto(raw);
 }
 
-export function clientRejectProposalApi({ proposalId, token }) {
-  return request(`/api/Proposals/${proposalId}/client-reject`, { method: 'POST', token });
+export function clientRejectProposalApi({ proposalId, reason, token }) {
+  return request(`/api/Proposals/${proposalId}/client-reject`, {
+    method: 'POST',
+    token,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
 }
 
 export async function getClientActiveRequestsApi({ token, slaLabel, taskState, search, pageIndex = 1, pageSize = 10 }) {
