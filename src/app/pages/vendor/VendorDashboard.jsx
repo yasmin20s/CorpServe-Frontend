@@ -3,6 +3,7 @@ import StatsCard from '../../components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { LayoutDashboard, Briefcase, Activity, CheckCircle, FileStack, Star, Clock, TrendingUp, Wallet } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
@@ -12,6 +13,7 @@ const menuItems = [
     { label: 'Payments', path: '/vendor/payments', icon: <Wallet className="w-5 h-5"/> },
     { label: 'Analytics', path: '/vendor/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
+
 const earningsData = [
     { month: 'Jan', earnings: 15000 },
     { month: 'Feb', earnings: 18500 },
@@ -20,10 +22,12 @@ const earningsData = [
     { month: 'May', earnings: 24000 },
     { month: 'Jun', earnings: 28000 },
 ];
+
 const completionData = [
     { status: 'On Time', count: 45 },
     { status: 'Delayed', count: 5 },
 ];
+
 export default function VendorDashboard() {
     return (<DashboardLayout menuItems={menuItems} userRole="vendor">
       <div className="space-y-8">
@@ -78,5 +82,6 @@ export default function VendorDashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>);
+    </DashboardLayout>
+    );
 }
