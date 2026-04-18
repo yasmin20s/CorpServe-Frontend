@@ -128,7 +128,7 @@ function formatAvgBudget(avg) {
 export default function UserProfileClient() {
   const navigate = useNavigate();
   const menuItems = useDashboardMenu('client');
-  const { user } = useAuth();
+  const { user, updateAuthenticatedUser } = useAuth();
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -181,9 +181,10 @@ export default function UserProfileClient() {
   const syncHeaderAvatar = useCallback((url) => {
     const resolved = resolveMediaUrl(url);
     if (resolved) {
+      updateAuthenticatedUser({ profilePictureUrl: resolved });
       window.dispatchEvent(new CustomEvent(PROFILE_PIC_EVENT, { detail: { url: resolved } }));
     }
-  }, []);
+  }, [updateAuthenticatedUser]);
 
   const startEditingProfile = () => {
     setDraftValues({

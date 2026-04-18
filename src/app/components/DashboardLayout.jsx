@@ -8,7 +8,6 @@ import { Badge } from './ui/badge';
 import { useAuth } from '../hooks/useAuth';
 import { getUnreadNotificationCountApi } from '../services/notificationsApi';
 import { getUnreadChatCountApi } from '../services/chatApi';
-import { getMyDetailedProfileApi } from '../services/userProfileApi';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { useSignalREvent } from '../context/SignalRContext';
 import { dashboardMenusByRole } from '../config/dashboardMenus';
@@ -17,16 +16,6 @@ import {
   stopChatConnection,
   onUserMessage,
 } from '../lib/chatSignalr';
-
-const PROFILE_STORAGE_PREFIX_BY_ROLE = {
-  client: 'corpserve-client-profile',
-  vendor: 'corpserve-vendor-profile',
-};
-
-const PROFILE_AVATAR_UPDATED_EVENT_BY_ROLE = {
-  client: 'corpserve:client-profile-avatar-updated',
-  vendor: 'corpserve:vendor-profile-avatar-updated',
-};
 
 export default function DashboardLayout({ children, menuItems, userRole }) {
   const location = useLocation();
@@ -133,70 +122,10 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       : null;
   const profileSettingsPath = `/${roleBasePath}/profile-settings`;
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
-  const normalizedEmail = String(user?.email || '').trim().toLowerCase();
 
   useEffect(() => {
-    const profileStoragePrefix = PROFILE_STORAGE_PREFIX_BY_ROLE[normalizedRole];
-    const avatarUpdatedEvent = PROFILE_AVATAR_UPDATED_EVENT_BY_ROLE[normalizedRole];
-
-    if (!profileStoragePrefix || !avatarUpdatedEvent || !normalizedEmail) {
-      setHeaderAvatar('');
-      return;
-    }
-
-    const profileStorageKey = `${profileStoragePrefix}:${normalizedEmail}`;
-    const loadAvatarFromStorage = () => {
-      try {
-        const raw = localStorage.getItem(profileStorageKey);
-        const parsed = raw ? JSON.parse(raw) : null;
-        const avatar = typeof parsed?.avatar === 'string' ? parsed.avatar : '';
-        setHeaderAvatar(avatar);
-      } catch {
-        setHeaderAvatar('');
-      }
-    };
-
-    const onAvatarUpdated = (event) => {
-      if (event?.detail?.email && event.detail.email !== normalizedEmail) return;
-      if (typeof event?.detail?.avatar === 'string' && event.detail.avatar) {
-        setHeaderAvatar(event.detail.avatar);
-        return;
-      }
-      loadAvatarFromStorage();
-    };
-
-    const onStorageUpdated = (event) => {
-      if (event.key && event.key !== profileStorageKey) return;
-      loadAvatarFromStorage();
-    };
-
-    loadAvatarFromStorage();
-    window.addEventListener(avatarUpdatedEvent, onAvatarUpdated);
-    window.addEventListener('storage', onStorageUpdated);
-
-    return () => {
-      window.removeEventListener(avatarUpdatedEvent, onAvatarUpdated);
-      window.removeEventListener('storage', onStorageUpdated);
-    };
-  }, [normalizedRole, normalizedEmail]);
-
-  useEffect(() => {
-    if (!user?.token || isAdmin || (normalizedRole !== 'client' && normalizedRole !== 'vendor')) return undefined;
-    let cancelled = false;
-    (async () => {
-      try {
-        const raw = await getMyDetailedProfileApi(user.token);
-        const url = raw && typeof raw === 'object'
-          ? (raw.profilePictureUrl ?? raw.ProfilePictureUrl)
-          : null;
-        const resolved = resolveMediaUrl(url);
-        if (!cancelled && resolved) setHeaderAvatar(resolved);
-      } catch {
-        /* keep storage / previous */
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.token, normalizedRole, isAdmin]);
+    setHeaderAvatar(resolveMediaUrl(user?.profilePictureUrl) || '');
+  }, [user?.profilePictureUrl]);
 
   useEffect(() => {
     const onClientPic = (e) => {
