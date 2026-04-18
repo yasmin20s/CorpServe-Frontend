@@ -41,35 +41,35 @@ const PAGE_SIZE = 5;
 
 const statusStyles = {
   'in-progress': {
-    badge: 'border-sky-400 bg-sky-200 text-sky-950 dark:border-sky-400/35 dark:bg-sky-500/20 dark:text-sky-100',
-    accent: 'from-sky-600/60 via-cyan-500/35 to-indigo-500/25',
+    badge: 'border-indigo-400 bg-indigo-200 text-indigo-950 dark:border-indigo-400/35 dark:bg-indigo-500/24 dark:text-indigo-100',
+    accent: 'from-indigo-600/85 via-sky-500/60 to-indigo-500/40',
   },
   breached: {
-    badge: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/35 dark:bg-rose-500/20 dark:text-rose-100',
-    accent: 'from-rose-600/60 via-orange-500/35 to-amber-500/25',
+    badge: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/35 dark:bg-rose-500/24 dark:text-rose-100',
+    accent: 'from-rose-600/85 via-red-500/60 to-rose-500/40',
   },
   delayed: {
-    badge: 'border-amber-400 bg-amber-200 text-amber-950 dark:border-amber-400/35 dark:bg-amber-500/20 dark:text-amber-100',
-    accent: 'from-amber-600/60 via-orange-500/35 to-rose-500/25',
+    badge: 'border-sky-400 bg-sky-200 text-sky-950 dark:border-sky-400/35 dark:bg-sky-500/24 dark:text-sky-100',
+    accent: 'from-sky-600/85 via-indigo-500/60 to-sky-500/40',
   },
   completed: {
-    badge: 'border-emerald-400 bg-emerald-200 text-emerald-950 dark:border-emerald-400/35 dark:bg-emerald-500/20 dark:text-emerald-100',
-    accent: 'from-emerald-600/60 via-teal-500/35 to-cyan-500/25',
+    badge: 'border-emerald-400 bg-emerald-200 text-emerald-950 dark:border-emerald-400/35 dark:bg-emerald-500/24 dark:text-emerald-100',
+    accent: 'from-emerald-600/85 via-green-500/60 to-emerald-500/40',
   },
 };
 
 const slaStatusStyles = {
-  active: 'border-sky-300 bg-sky-100 text-sky-900 dark:border-sky-400/30 dark:bg-sky-500/16 dark:text-sky-100',
-  breached: 'border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-400/30 dark:bg-rose-500/16 dark:text-rose-100',
-  delayed: 'border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/16 dark:text-amber-100',
-  completed: 'border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-500/16 dark:text-emerald-100',
+  active: 'border-indigo-400 bg-indigo-200 text-indigo-950 dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:text-indigo-100',
+  breached: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/30 dark:bg-rose-500/18 dark:text-rose-100',
+  delayed: 'border-sky-400 bg-sky-200 text-sky-950 dark:border-sky-400/30 dark:bg-sky-500/18 dark:text-sky-100',
+  completed: 'border-emerald-400 bg-emerald-200 text-emerald-950 dark:border-emerald-400/30 dark:bg-emerald-500/18 dark:text-emerald-100',
 };
 
 const warningLevelStyles = {
   none: 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-700/30 dark:text-slate-200',
-  low: 'border-cyan-300 bg-cyan-100 text-cyan-900 dark:border-cyan-400/30 dark:bg-cyan-500/16 dark:text-cyan-100',
-  medium: 'border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/16 dark:text-amber-100',
-  high: 'border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-400/30 dark:bg-rose-500/16 dark:text-rose-100',
+  low: 'border-indigo-400 bg-indigo-200 text-indigo-950 dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:text-indigo-100',
+  medium: 'border-sky-400 bg-sky-200 text-sky-950 dark:border-sky-400/30 dark:bg-sky-500/18 dark:text-sky-100',
+  high: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/30 dark:bg-rose-500/18 dark:text-rose-100',
 };
 
 function pick(obj, ...keys) {
@@ -233,13 +233,13 @@ export default function SLAMonitor() {
   return (
     <DashboardLayout menuItems={menuItems} userRole="admin">
       <div className="space-y-4 lg:space-y-7">
-        <Card className="border-indigo-300 bg-gradient-to-r from-indigo-200 via-sky-200 to-cyan-200 shadow-[0_14px_34px_rgba(30,64,175,0.2)] dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-[#101a31] dark:via-[#152743] dark:to-[#183456] dark:shadow-[0_14px_30px_rgba(2,6,23,0.45)]">
+        <Card className="group relative overflow-hidden border-indigo-400/80 bg-gradient-to-br from-indigo-200 via-blue-100 to-violet-200 shadow-[0_20px_48px_rgba(79,70,229,0.2)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_32px_64px_rgba(79,70,229,0.28)] dark:border-indigo-400/25 dark:bg-gradient-to-br dark:from-[#1a2745] dark:via-[#233861] dark:to-[#2b4a75] dark:shadow-[0_18px_40px_rgba(2,6,23,0.5)] dark:hover:shadow-[0_20px_44px_rgba(2,6,23,0.56)]">
           <CardContent className="p-4 sm:p-6 lg:p-8">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-sky-500" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-violet-500" />
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-300 bg-white/75 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-900 sm:text-xs dark:border-cyan-400/30 dark:bg-slate-900/78 dark:text-cyan-200">
-                  <Sparkles className="h-3.5 w-3.5 text-emerald-500 sm:h-4 sm:w-4" />
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-700 sm:text-xs dark:border-indigo-400/30 dark:bg-slate-900/78 dark:text-indigo-200">
+                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   SLA Timeline
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900 sm:text-4xl dark:text-slate-100">SLA Monitor</h1>
@@ -248,23 +248,23 @@ export default function SLAMonitor() {
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
-                  <div className="rounded-xl border border-slate-300 bg-white/90 px-3 py-2.5 dark:border-slate-500/35 dark:bg-slate-900/70">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-300">Total</p>
+                  <div className="rounded-xl border border-indigo-200 bg-white/90 px-3 py-2.5 dark:border-indigo-400/35 dark:bg-slate-900/70">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-200">Total</p>
                     <p className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{hero.totalSlaContracts}</p>
                   </div>
-                  <div className="rounded-xl border border-sky-300 bg-sky-50 px-3 py-2.5 dark:border-sky-400/30 dark:bg-sky-500/14">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-200">In progress</p>
-                    <p className="mt-1 text-xl font-bold text-sky-900 dark:text-sky-100">{hero.inProgressCount}</p>
+                  <div className="rounded-xl border border-indigo-400 bg-indigo-200/85 px-3 py-2.5 dark:border-indigo-400/30 dark:bg-indigo-500/18">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">In progress</p>
+                    <p className="mt-1 text-xl font-bold text-indigo-900 dark:text-indigo-100">{hero.inProgressCount}</p>
                   </div>
-                  <div className="rounded-xl border border-rose-400 bg-rose-100 px-3 py-2.5 dark:border-rose-400/30 dark:bg-rose-500/14">
+                  <div className="rounded-xl border border-rose-400 bg-rose-200/85 px-3 py-2.5 dark:border-rose-400/30 dark:bg-rose-500/18">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-800 dark:text-rose-200">Breached</p>
-                    <p className="mt-1 text-xl font-bold text-rose-950 dark:text-rose-100">{hero.breachedCount}</p>
+                    <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">{hero.breachedCount}</p>
                   </div>
-                  <div className="rounded-xl border border-amber-400 bg-amber-100 px-3 py-2.5 dark:border-amber-400/30 dark:bg-amber-500/14">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-200">Delayed</p>
-                    <p className="mt-1 text-xl font-bold text-amber-900 dark:text-amber-100">{hero.delayedCount}</p>
+                  <div className="rounded-xl border border-sky-400 bg-sky-200/85 px-3 py-2.5 dark:border-sky-400/30 dark:bg-sky-500/18">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-200">Delayed</p>
+                    <p className="mt-1 text-xl font-bold text-sky-900 dark:text-sky-100">{hero.delayedCount}</p>
                   </div>
-                  <div className="rounded-xl border border-emerald-400 bg-emerald-100 px-3 py-2.5 dark:border-emerald-400/30 dark:bg-emerald-500/14">
+                  <div className="rounded-xl border border-emerald-400 bg-emerald-200/85 px-3 py-2.5 dark:border-emerald-400/30 dark:bg-emerald-500/18">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-200">Completed</p>
                     <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">{hero.completedCount}</p>
                   </div>
@@ -273,7 +273,7 @@ export default function SLAMonitor() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 border-cyan-400 bg-white text-cyan-900 hover:bg-cyan-50 dark:border-cyan-400/35 dark:bg-slate-900/80 dark:text-cyan-200 dark:hover:bg-cyan-500/16"
+                  className="h-9 border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:hover:bg-indigo-500/16"
                   onClick={() => loadSlas({ silent: true })}
                   disabled={isRefreshing || !user?.token}
                 >
@@ -285,7 +285,7 @@ export default function SLAMonitor() {
           </CardContent>
         </Card>
 
-        <Card className="border-indigo-200 bg-gradient-to-r from-indigo-50 via-cyan-50 to-sky-50 shadow-sm dark:border-indigo-400/20 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/96 dark:to-slate-800 dark:shadow-none">
+        <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/20 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/96 dark:to-slate-800 dark:shadow-none">
           <CardContent className="p-3.5 sm:p-5">
             <div className="grid gap-3 lg:grid-cols-3">
               <Select
@@ -347,7 +347,7 @@ export default function SLAMonitor() {
           {filteredSlas.map((sla, index) => {
             const statusConfig = statusStyles[sla.contractStatus] || statusStyles['in-progress'];
             return (
-              <Card key={sla.id} className="cs-card-rise group relative overflow-hidden border-indigo-200 bg-white shadow-sm transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_12px_26px_rgba(14,116,144,0.18)] dark:border-slate-700 dark:bg-slate-900/88 dark:shadow-none dark:hover:border-cyan-400/35 dark:hover:shadow-none" style={{ animationDelay: `${120 + index * 90}ms` }}>
+              <Card key={sla.id} className="cs-card-rise group relative overflow-hidden border-indigo-300 bg-white shadow-[0_10px_24px_rgba(79,70,229,0.1)] transition-all duration-300 hover:border-indigo-400 hover:shadow-[0_14px_30px_rgba(79,70,229,0.2)] dark:border-slate-700 dark:bg-slate-900/88 dark:shadow-none dark:hover:border-indigo-400/35 dark:hover:shadow-none" style={{ animationDelay: `${120 + index * 90}ms` }}>
                 <div className={`absolute left-0 top-0 h-full w-2 bg-gradient-to-b ${statusConfig.accent}`} />
                 <CardContent className="relative p-3 pl-5 sm:p-5 sm:pl-7">
                   <div className="mb-3 flex flex-col gap-2.5 lg:flex-row lg:items-start lg:justify-between">
@@ -355,7 +355,7 @@ export default function SLAMonitor() {
                       <h3 className="text-base font-semibold text-slate-900 sm:text-xl dark:text-slate-100">{sla.request}</h3>
                       <p className="mt-1 text-xs text-slate-600 sm:text-sm dark:text-slate-300">{sla.description}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 sm:text-sm dark:text-slate-400">
-                        <span className="font-medium text-cyan-700 dark:text-cyan-200">Client:</span>
+                        <span className="font-medium text-indigo-700 dark:text-indigo-200">Client:</span>
                         <UserAvatar
                           userId={sla.clientId}
                           name={sla.client}
@@ -365,7 +365,7 @@ export default function SLAMonitor() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      <Badge variant="outline" className="border-cyan-300 bg-cyan-100 px-2 py-0.5 text-[11px] text-cyan-900 sm:px-2.5 sm:py-1 sm:text-xs dark:border-cyan-400/30 dark:bg-cyan-500/16 dark:text-cyan-100">{sla.category || '—'}</Badge>
+                      <Badge variant="outline" className="border-indigo-400 bg-indigo-200 px-2 py-0.5 text-[11px] text-indigo-950 sm:px-2.5 sm:py-1 sm:text-xs dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:text-indigo-100">{sla.category || '—'}</Badge>
                       <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${statusConfig.badge}`}>
                         {sla.contractStatus === 'in-progress'
                           ? 'In Progress'
@@ -400,12 +400,12 @@ export default function SLAMonitor() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Price</p>
                       <p className="mt-1 text-xs font-semibold text-slate-900 sm:text-sm dark:text-slate-100">{sla.price}</p>
                     </div>
-                    <div className="rounded-lg border border-fuchsia-200 bg-fuchsia-50 p-2.5 sm:p-3 dark:border-fuchsia-400/25 dark:bg-fuchsia-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-fuchsia-700 dark:text-fuchsia-200">Created At</p>
+                    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 sm:p-3 dark:border-indigo-400/25 dark:bg-indigo-500/14">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Created At</p>
                       <p className="mt-1 text-xs font-semibold text-slate-900 sm:text-sm dark:text-slate-100">{sla.createdAt}</p>
                     </div>
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 sm:p-3 dark:border-amber-400/25 dark:bg-amber-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-200">Deadline</p>
+                    <div className="rounded-lg border border-sky-200 bg-sky-50 p-2.5 sm:p-3 dark:border-sky-400/25 dark:bg-sky-500/14">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-200">Deadline</p>
                       <p className="mt-1 text-xs font-semibold text-slate-900 sm:text-sm dark:text-slate-100">{sla.deadline}</p>
                     </div>
                     <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 sm:p-3 dark:border-indigo-400/25 dark:bg-indigo-500/14">
@@ -416,10 +416,10 @@ export default function SLAMonitor() {
                             sla.contractStatus === 'breached'
                               ? 'text-rose-700 dark:text-rose-200'
                               : sla.contractStatus === 'delayed'
-                                ? 'text-amber-700 dark:text-amber-200'
+                                ? 'text-sky-700 dark:text-sky-200'
                                 : sla.contractStatus === 'completed'
                                   ? 'text-emerald-700 dark:text-emerald-200'
-                                  : 'text-cyan-700 dark:text-cyan-200'
+                                  : 'text-indigo-700 dark:text-indigo-200'
                           }`}
                         />
                         {sla.daysRemaining} days
@@ -427,24 +427,24 @@ export default function SLAMonitor() {
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-lg border border-cyan-200 bg-gradient-to-r from-cyan-50 to-indigo-50 p-2.5 sm:p-3 dark:border-cyan-400/25 dark:bg-gradient-to-r dark:from-cyan-500/12 dark:to-indigo-500/12">
+                  <div className="mt-3 rounded-lg border border-indigo-200 bg-gradient-to-r from-indigo-50 to-sky-50 p-2.5 sm:p-3 dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-indigo-500/12 dark:to-sky-500/12">
                     <div className="mb-1.5 flex items-center justify-between sm:mb-2">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-cyan-700 dark:text-cyan-200">SLA Progress</p>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-cyan-900 sm:px-2.5 sm:py-1 sm:text-xs dark:border-cyan-400/30 dark:bg-slate-900/80 dark:text-cyan-100">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">SLA Progress</p>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-indigo-700 sm:px-2.5 sm:py-1 sm:text-xs dark:border-indigo-400/30 dark:bg-slate-900/80 dark:text-indigo-100">
                         {sla.progress}%
                         <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </span>
                     </div>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-cyan-100 sm:h-3 dark:bg-slate-800">
+                    <div className="h-2.5 overflow-hidden rounded-full bg-indigo-100 sm:h-3 dark:bg-slate-800">
                       <div
                         className={`h-full transition-all duration-500 ${
                           sla.contractStatus === 'delayed'
-                            ? 'bg-amber-700'
+                            ? 'bg-sky-700'
                             : sla.contractStatus === 'breached'
                               ? 'bg-rose-700'
                               : sla.contractStatus === 'completed'
                                 ? 'bg-emerald-700'
-                                : 'bg-cyan-700'
+                                : 'bg-indigo-700'
                         }`}
                         style={{ width: `${sla.progress}%` }}
                       />
@@ -459,8 +459,8 @@ export default function SLAMonitor() {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="mt-3 gap-2 border-cyan-300 bg-white text-cyan-900 hover:bg-cyan-50 dark:border-cyan-400/35 dark:bg-slate-800 dark:text-cyan-100 dark:hover:bg-cyan-500/16">
-                        <Eye className="w-4 h-4 text-cyan-600 dark:text-cyan-200" />
+                      <Button variant="outline" size="sm" className="mt-3 gap-2 border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800 dark:text-indigo-100 dark:hover:bg-indigo-500/16">
+                        <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-200" />
                         View SLA Details
                       </Button>
                     </DialogTrigger>
