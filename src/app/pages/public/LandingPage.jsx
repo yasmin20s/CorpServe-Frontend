@@ -2,32 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, Menu, X, Zap, User, } from 'lucide-react';
+import { Monitor, Wrench, TrendingUp, Sparkles, Shield, Users, MessageSquare, Clock, CheckCircle, ArrowRight, Mail, Phone, MapPin, Paintbrush, Laptop, Menu, X, Zap, } from 'lucide-react';
 import { ImageWithFallback } from '../../components/ui/ImageWithFallback';
 import FloatingLines from '../../../components/FloatingLines';
 import ThemeToggleButton from '../../components/ThemeToggleButton';
-import { useAuth } from '../../hooks/useAuth';
-import { resolveMediaUrl } from '../../lib/mediaUrl';
 export default function LandingPage() {
-  const { user, isBootstrapping } = useAuth();
   const [activeSection, setActiveSection] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const howItWorksRef = useRef(null);
   const servicesRef = useRef(null);
   const aboutRef = useRef(null);
-
-  const normalizedRole = String(user?.role || 'client').toLowerCase();
-  const profilePath = user?.isAuthenticated
-    ? normalizedRole === 'vendor'
-      ? '/vendor/profile'
-      : normalizedRole === 'client'
-        ? '/client/user-profile'
-        : '/admin/dashboard'
-    : '/login';
-  const profileAvatar = resolveMediaUrl(user?.profilePictureUrl);
-  const profileLabel = user?.isAuthenticated
-    ? (String(user?.fullName || '').trim() || 'My Profile')
-    : 'Login';
 
 useEffect(() => {
   const handleScroll = () => {
@@ -340,21 +324,6 @@ useEffect(() => {
 
           <div className="flex items-center gap-2">
             <ThemeToggleButton className="h-10 w-10 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" />
-
-            {!isBootstrapping && (
-              <Link
-                to={profilePath}
-                aria-label={profileLabel}
-                title={profileLabel}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-indigo-200 bg-white text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-              >
-                {profileAvatar ? (
-                  <img src={profileAvatar} alt={profileLabel} className="h-full w-full object-cover" />
-                ) : (
-                  <User className="h-5 w-5" />
-                )}
-              </Link>
-            )}
 
             <button
               type="button"
