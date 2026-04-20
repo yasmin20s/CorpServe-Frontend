@@ -150,7 +150,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
     appShellClass: 'flex min-h-screen flex-col bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100',
     headerClass: 'h-16 fixed top-0 left-0 right-0 z-50 border-b border-indigo-200/90 bg-gradient-to-r from-[#f5f7ff]/95 via-[#eef0ff]/95 to-[#e7edff]/95 shadow-[0_10px_24px_rgba(79,70,229,0.14)] backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-indigo-500/30 dark:bg-gradient-to-r dark:from-[#111a33]/95 dark:via-[#162241]/95 dark:to-[#1f2d52]/95 dark:shadow-[0_10px_24px_rgba(2,6,23,0.5)] dark:supports-[backdrop-filter]:bg-slate-900/70',
     brandTitleClass: 'text-black dark:text-slate-100',
-    mobileMenuButtonClass: 'md:hidden gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
+    mobileMenuButtonClass: 'md:hidden h-10 w-10 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
     themeToggleButtonClass: 'h-10 w-10 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-white to-amber-100 text-amber-700 shadow-[0_6px_14px_rgba(251,191,36,0.22)] transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:from-amber-50 hover:to-yellow-100 hover:shadow-[0_10px_22px_rgba(245,158,11,0.3)] dark:border-amber-400/45 dark:bg-gradient-to-br dark:from-amber-500/25 dark:to-orange-500/15 dark:text-amber-200 dark:shadow-[0_10px_22px_rgba(245,158,11,0.25)] dark:hover:border-amber-300/60 dark:hover:from-amber-400/30 dark:hover:to-orange-400/20',
     notificationButtonClass: 'relative h-10 w-10 rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-100 text-indigo-700 shadow-[0_6px_14px_rgba(99,102,241,0.14)] transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:from-indigo-50 hover:to-violet-100 hover:shadow-[0_10px_22px_rgba(79,70,229,0.22)] dark:border-fuchsia-400/40 dark:bg-gradient-to-br dark:from-violet-500/24 dark:to-fuchsia-500/16 dark:text-violet-200 dark:shadow-[0_10px_22px_rgba(139,92,246,0.28)] dark:hover:border-fuchsia-300/60 dark:hover:from-violet-400/30 dark:hover:to-fuchsia-400/24',
     notificationBadgeClass: 'absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-fuchsia-600 px-1.5 text-[10px] font-bold text-white shadow-[0_6px_14px_rgba(192,38,211,0.35)]',
@@ -209,12 +209,13 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
             <a href="/" className="cs-brand-badge flex h-9 w-9 items-center justify-center rounded-lg transition-transform hover:scale-105">
               <span className="text-sm font-bold text-white">CS</span>
             </a>
-            <h1 className={`text-base sm:text-lg lg:text-xl font-semibold ${theme.brandTitleClass}`}>CorpServe</h1>
+            <h1 className={`hidden text-base sm:text-lg lg:text-xl font-semibold sm:block ${theme.brandTitleClass}`}>CorpServe</h1>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button type="button" variant="outline" size="sm" className={theme.mobileMenuButtonClass}>
-                  <Menu className="h-4 w-4" /> Menu
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56 border border-indigo-100 bg-white/95 md:hidden dark:border-slate-600 dark:bg-slate-900/95">
@@ -258,7 +259,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className={theme.profileTriggerClass}>
+                <Button variant="ghost" className={`${theme.profileTriggerClass} shrink-0`}>
                   <div className={theme.profileAvatarWrapClass}>
                     {headerAvatar ? (
                       <img src={headerAvatar} alt={displayName || 'Profile'} className="h-full w-full rounded-2xl object-cover" />
