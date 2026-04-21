@@ -9,12 +9,6 @@ import {
   FileStack,
   TrendingUp,
   Wallet,
-  Sparkles,
-  Search,
-  Bell,
-  ChevronUp,
-  BarChart3,
-  FileText,
   AlertTriangle,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -131,12 +125,6 @@ export default function VendorDashboard() {
     [dashboardData.activeContracts],
   );
 
-  const statusPillClass = {
-    'in-progress': 'bg-emerald-100 text-emerald-700',
-    'at-risk': 'bg-amber-100 text-amber-700',
-    active: 'bg-indigo-100 text-indigo-700',
-  };
-
   const upcomingDeadlines = useMemo(
     () =>
       (dashboardData.upcomingDeadlines ?? []).map((item) => {
@@ -148,11 +136,19 @@ export default function VendorDashboard() {
             : urgency === 'green'
               ? 'bg-emerald-500'
               : 'bg-sky-500';
+        const borderHex = urgency === 'red'
+          ? '#f43f5e'
+          : urgency === 'orange'
+            ? '#f59e0b'
+            : urgency === 'green'
+              ? '#10b981'
+              : '#0ea5e9';
         return {
           date: item.deadline ? new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--',
           title: item.requestTitle || 'Request',
           client: item.clientName || 'Client',
           tone,
+          borderHex,
         };
       }),
     [dashboardData.upcomingDeadlines],
@@ -179,7 +175,7 @@ export default function VendorDashboard() {
         {/* KPI Cards */}
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {/* Active Contracts */}
-          <Card className="h-full overflow-hidden rounded-2xl border-0 shadow-lg hover:shadow-2xl transition-all bg-gradient-to-br from-purple-50 to-indigo-50">
+          <Card className="h-full overflow-hidden rounded-2xl border border-purple-200/80 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-lg transition-all hover:shadow-2xl dark:border-purple-400/35 dark:from-[#1a1038] dark:to-[#13233e]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-700 text-white">
@@ -187,13 +183,13 @@ export default function VendorDashboard() {
                 </span>
                 <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-700">{activeContractsCount}</span>
               </div>
-              <p className="text-sm font-semibold text-slate-700 mb-2">Active Contracts</p>
-              <p className="text-xs text-emerald-600 font-bold">↑ 1 this week</p>
+              <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Active Contracts</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-300">↑ 1 this week</p>
             </CardContent>
           </Card>
 
           {/* Revenue */}
-          <Card className="h-full overflow-hidden rounded-2xl border-0 shadow-lg hover:shadow-2xl transition-all bg-gradient-to-br from-pink-50 to-rose-50">
+          <Card className="h-full overflow-hidden rounded-2xl border border-rose-200/80 bg-gradient-to-br from-pink-50 to-rose-50 shadow-lg transition-all hover:shadow-2xl dark:border-rose-400/35 dark:from-[#2a1030] dark:to-[#261730]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white">
@@ -201,13 +197,13 @@ export default function VendorDashboard() {
                 </span>
                 <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">{revenueThisMonthLabel}</span>
               </div>
-              <p className="text-sm font-semibold text-slate-700 mb-2">Revenue This Month</p>
-              <p className="text-xs text-emerald-600 font-bold">{Number(quickStats.revenuePercent || 0) >= 0 ? '↑' : ''}{quickStats.revenuePercent || 0}%</p>
+              <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Revenue This Month</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-300">{Number(quickStats.revenuePercent || 0) >= 0 ? '↑' : ''}{quickStats.revenuePercent || 0}%</p>
             </CardContent>
           </Card>
 
           {/* Rating */}
-          <Card className="h-full overflow-hidden rounded-2xl border-0 shadow-lg hover:shadow-2xl transition-all bg-gradient-to-br from-blue-50 to-sky-50">
+          <Card className="h-full overflow-hidden rounded-2xl border border-sky-200/80 bg-gradient-to-br from-blue-50 to-sky-50 shadow-lg transition-all hover:shadow-2xl dark:border-sky-400/35 dark:from-[#121f38] dark:to-[#132939]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 text-white">
@@ -215,39 +211,42 @@ export default function VendorDashboard() {
                 </span>
                 <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-600">{avgRating}</span>
               </div>
-              <p className="text-sm font-semibold text-slate-700 mb-2">Avg Rating</p>
-              <p className="text-xs text-slate-500">from {ratingsCount} ratings</p>
+              <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Avg Rating</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">from {ratingsCount} ratings</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Charts Section - Add Open Proposals back to KPI */}
         <div className="grid gap-5 xl:grid-cols-3">
-          <Card className="xl:col-span-2 overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-purple-50 shadow-lg">
+          <Card className="xl:col-span-2 overflow-hidden rounded-2xl border border-purple-200/80 bg-gradient-to-br from-white to-purple-50 shadow-lg dark:border-purple-400/35 dark:from-[#160f35] dark:to-[#1a1638]">
             <CardContent className="p-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-pink-700">Earnings Over Time</h3>
-                  <p className="text-xs text-slate-500">Billed vs received analysis</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Billed vs received analysis</p>
                 </div>
-                <div className="inline-flex rounded-full bg-gradient-to-r from-purple-100 to-pink-100 p-1">
+                <div className="inline-flex rounded-full bg-gradient-to-r from-purple-100 to-pink-100 p-1 dark:from-violet-500/18 dark:to-fuchsia-500/18">
                   <button type="button" className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 text-xs font-semibold text-white shadow-md">Monthly</button>
-                  <button type="button" className="rounded-full px-3 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition-all">Quarterly</button>
+                  <button type="button" className="rounded-full px-3 py-1 text-xs font-semibold text-purple-700 transition-all hover:bg-purple-100 dark:text-purple-200 dark:hover:bg-purple-500/22">Quarterly</button>
                 </div>
               </div>
 
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={momentumData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="month" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--muted-foreground)" />
+                  <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '2px solid #e2e8f0',
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
                       borderRadius: '12px',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                      boxShadow: '0 10px 30px rgba(2,6,23,0.2)',
+                      color: 'var(--card-foreground)',
                     }}
+                    labelStyle={{ color: 'var(--card-foreground)' }}
+                    itemStyle={{ color: 'var(--card-foreground)' }}
                   />
                   <Line type="monotone" dataKey="billed" stroke="#a855f7" strokeWidth={3} dot={false} />
                   <Line type="monotone" dataKey="received" stroke="#06b6d4" strokeWidth={3} dot={false} />
@@ -257,39 +256,39 @@ export default function VendorDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-pink-50 shadow-lg">
+          <Card className="overflow-hidden rounded-2xl border border-pink-200/80 bg-gradient-to-br from-white to-pink-50 shadow-lg dark:border-pink-400/35 dark:from-[#1e1137] dark:to-[#24112d]">
             <CardContent className="p-6">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-700 to-rose-600">Proposal Win Rate</h3>
-                <p className="text-xs text-slate-500">Performance metric</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Performance metric</p>
               </div>
               <div className="flex justify-center">
                 <div
                   className="relative grid h-48 w-48 place-items-center rounded-full shadow-lg"
                   style={{
-                    background: `conic-gradient(#a855f7 ${proposalWinRate}%, #f3e8ff ${proposalWinRate}% 100%)`,
+                    background: `conic-gradient(#a855f7 ${proposalWinRate}%, var(--muted) ${proposalWinRate}% 100%)`,
                   }}
                 >
-                  <div className="grid h-40 w-40 place-items-center rounded-full bg-white shadow-inner">
+                  <div className="grid h-40 w-40 place-items-center rounded-full border border-slate-200 bg-white shadow-inner dark:border-slate-700 dark:bg-slate-900/90">
                     <div className="text-center">
                       <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">{proposalWinRate}%</p>
-                      <p className="text-xs font-semibold text-slate-600 mt-1">Win Rate</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">Win Rate</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="mt-6 grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="text-2xl font-black text-slate-800">{submittedProposals}</p>
-                  <p className="text-xs font-semibold text-slate-500">Submitted</p>
+                  <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{submittedProposals}</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Submitted</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-emerald-600">{acceptedProposals}</p>
-                  <p className="text-xs font-semibold text-slate-500">Accepted</p>
+                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-300">{acceptedProposals}</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Accepted</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-rose-600">{rejectedProposals}</p>
-                  <p className="text-xs font-semibold text-slate-500">Rejected</p>
+                  <p className="text-2xl font-black text-rose-600 dark:text-rose-300">{rejectedProposals}</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Rejected</p>
                 </div>
               </div>
             </CardContent>
@@ -298,7 +297,7 @@ export default function VendorDashboard() {
 
         {/* Bottom Section - Contracts & Deadlines */}
         <div className="grid gap-5 xl:grid-cols-2">
-          <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-indigo-50 shadow-lg">
+          <Card className="overflow-hidden rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50 shadow-lg dark:border-indigo-400/35 dark:from-[#141e38] dark:to-[#171d3f]">
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-700 mb-5">Active Contracts</h3>
               <div className="space-y-3">
@@ -307,16 +306,16 @@ export default function VendorDashboard() {
                     No active contracts right now.
                   </div>
                 ) : null}
-                {activeContracts.map((item, idx) => {
+                {activeContracts.map((item) => {
                   const Icon = item.icon;
                   const statusColors = {
-                    'in-progress': 'bg-emerald-100 text-emerald-700 border-l-4 border-l-emerald-500',
-                    'at-risk': 'bg-amber-100 text-amber-700 border-l-4 border-l-amber-500',
-                    'active': 'bg-indigo-100 text-indigo-700 border-l-4 border-l-indigo-500',
+                    'in-progress': 'border-l-4 border-l-emerald-500 bg-emerald-100 text-emerald-700 dark:border-l-emerald-300 dark:bg-emerald-500/18 dark:text-emerald-200',
+                    'at-risk': 'border-l-4 border-l-amber-500 bg-amber-100 text-amber-700 dark:border-l-amber-300 dark:bg-amber-500/18 dark:text-amber-200',
+                    active: 'border-l-4 border-l-indigo-500 bg-indigo-100 text-indigo-700 dark:border-l-indigo-300 dark:bg-indigo-500/18 dark:text-indigo-200',
                   };
                   return (
                     <div key={item.label} className={`flex items-center gap-3 p-4 rounded-xl ${statusColors[item.status]} hover:shadow-md transition-all`}>
-                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-white/50">
+                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-white/50 dark:bg-slate-900/45">
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -324,8 +323,8 @@ export default function VendorDashboard() {
                         <p className="text-xs opacity-75 truncate">{item.amount}</p>
                       </div>
                       <div className="text-right">
-                        <div className="w-24 h-1 bg-white/40 rounded-full overflow-hidden mb-1">
-                          <div className="h-full bg-white rounded-full" style={{ width: item.value }} />
+                        <div className="mb-1 h-1 w-24 overflow-hidden rounded-full bg-white/40 dark:bg-slate-700/70">
+                          <div className="h-full rounded-full bg-white dark:bg-slate-200" style={{ width: item.value }} />
                         </div>
                         <p className="text-sm font-bold">{item.value}</p>
                       </div>
@@ -336,7 +335,7 @@ export default function VendorDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-blue-50 shadow-lg">
+          <Card className="overflow-hidden rounded-2xl border border-sky-200/80 bg-gradient-to-br from-white to-blue-50 shadow-lg dark:border-sky-400/35 dark:from-[#121f35] dark:to-[#13273a]">
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-cyan-600 mb-5">Upcoming Deadlines</h3>
               <div className="space-y-3">
@@ -346,12 +345,12 @@ export default function VendorDashboard() {
                   </div>
                 ) : null}
                 {upcomingDeadlines.map((deadline) => (
-                  <div key={`${deadline.date}-${deadline.title}`} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 hover:shadow-md transition-all border-l-4" style={{ borderColor: deadline.tone.replace('bg-', '') }}>
+                  <div key={`${deadline.date}-${deadline.title}`} className="flex items-start gap-3 rounded-xl border-l-4 bg-gradient-to-r from-slate-50 to-slate-100 p-4 transition-all hover:shadow-md dark:from-slate-900/80 dark:to-slate-800/70" style={{ borderColor: deadline.borderHex }}>
                     <span className={`mt-1 h-3 w-3 rounded-full ${deadline.tone} flex-shrink-0`} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{deadline.date}</p>
-                      <p className="font-semibold text-slate-800 truncate">{deadline.title}</p>
-                      <p className="text-xs text-slate-600 truncate">{deadline.client}</p>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{deadline.date}</p>
+                      <p className="truncate font-semibold text-slate-800 dark:text-slate-100">{deadline.title}</p>
+                      <p className="truncate text-xs text-slate-600 dark:text-slate-300">{deadline.client}</p>
                     </div>
                   </div>
                 ))}
