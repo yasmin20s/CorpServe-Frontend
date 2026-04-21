@@ -87,6 +87,11 @@ export default function VendorDashboard() {
   const activeContractsCount = Number(quickStats.activeContracts || 0);
   const avgRating = Number(quickStats.avgRating || 0).toFixed(1);
   const ratingsCount = Number(quickStats.totalRatingCount || 0);
+  const revenueThisMonthInThousands = Number(quickStats.revenueThisMonthEGP || 0) / 1000;
+  const revenueThisMonthLabel = `${revenueThisMonthInThousands.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}k`;
 
   const momentumData = useMemo(
     () =>
@@ -190,7 +195,7 @@ export default function VendorDashboard() {
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white">
                   <Wallet className="h-6 w-6" />
                 </span>
-                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">{Math.round(Number(quickStats.revenueThisMonthEGP || 0) / 1000)}k</span>
+                <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">{revenueThisMonthLabel}</span>
               </div>
               <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Revenue This Month</p>
               <p className="text-xs font-bold text-emerald-600 dark:text-emerald-300">{Number(quickStats.revenuePercent || 0) >= 0 ? '↑' : ''}{quickStats.revenuePercent || 0}%</p>
