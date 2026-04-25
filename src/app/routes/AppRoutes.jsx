@@ -27,7 +27,9 @@ const Signup = lazy(() => import('../pages/auth/Signup'));
 const VendorVerification = lazy(() => import('../pages/auth/VendorVerification'));
 
 const UserProfile = lazy(() => import('../pages/profile/UserProfile'));
+const ForbiddenPage = lazy(() => import('../pages/public/ForbiddenPage'));
 const LandingPage = lazy(() => import('../pages/public/LandingPage'));
+const NotFoundPage = lazy(() => import('../pages/public/NotFoundPage'));
 const Chat = lazy(() => import('../pages/shared/Chat'));
 const Notifications = lazy(() => import('../pages/shared/Notifications'));
 const PublicUserProfile = lazy(() => import('../pages/shared/PublicUserProfile'));
@@ -94,7 +96,7 @@ function RequireRole({ allowedRoles }) {
   const normalizedRole = (user?.role || '').toLowerCase();
 
   if (!allowedRoles.includes(normalizedRole)) {
-    return <Navigate to={getDashboardPathForRole(normalizedRole)} replace />;
+    return <Navigate to="/forbidden" replace />;
   }
 
   return <Outlet />;
@@ -221,6 +223,8 @@ export default function AppRoutes() {
         <Route path="/payment-failure" element={<Navigate to="/client/payments?payment_result=failure" replace />} />
 
         <Route element={<RequireAuth />}>
+          <Route path="/forbidden" element={<ForbiddenPage />} />
+
           <Route element={<RequireRole allowedRoles={['vendor']} />}>
             <Route path="/vendor-verification" element={<VendorVerification />} />
           </Route>
@@ -278,7 +282,7 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );
