@@ -340,6 +340,7 @@ export function AuthProvider({ children }) {
         success: true,
         message: `Login successful! Welcome ${nextUser.fullName || ''}`.trim(),
         redirectTo,
+        role: nextUser.role,
       };
     } catch (error) {
       const message = error instanceof ApiError ? error.message : 'Login failed. Please try again.';

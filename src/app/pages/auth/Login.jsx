@@ -25,6 +25,32 @@ export default function Login() {
     return true;
   };
 
+  const roleFromPath = (path) => {
+    const match = String(path || '').match(/^\/(admin|vendor|client)(?:\/|$)/i);
+    return match ? match[1].toLowerCase() : null;
+  };
+
+  const resolvePostLoginRedirect = ({ requestedRedirect, defaultRedirect, role }) => {
+    const safeRedirect = isSafeInternalRedirectPath(requestedRedirect) ? requestedRedirect : null;
+    const normalizedRole = String(role || '').toLowerCase();
+
+    // Keep vendor verification flow authoritative when needed.
+    if (defaultRedirect === '/vendor-verification') {
+      return defaultRedirect;
+    }
+
+    if (!safeRedirect || safeRedirect === '/forbidden') {
+      return defaultRedirect;
+    }
+
+    const requestedRole = roleFromPath(safeRedirect);
+    if (!requestedRole) {
+      return safeRedirect;
+    }
+
+    return requestedRole === normalizedRole ? safeRedirect : defaultRedirect;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuspendedMessage('');
@@ -39,9 +65,13 @@ export default function Login() {
 
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
-    const safeRedirect = isSafeInternalRedirectPath(redirect) ? redirect : null;
+    const redirectTo = resolvePostLoginRedirect({
+      requestedRedirect: redirect,
+      defaultRedirect: result.redirectTo,
+      role: result.role,
+    });
     toast.success(result.message);
-    navigate(safeRedirect || result.redirectTo);
+    navigate(redirectTo, { replace: true });
   };
 
   return (
