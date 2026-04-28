@@ -327,14 +327,6 @@ export default function Proposals() {
                             size="md"
                           />
                         </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
-                            {proposal.alignsWithRequest ? 'Accept' : (proposal.proposalType || proposal.ProposalType || 'Proposal')}
-                          </span>
-                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
-                            {proposal.proposalStatus}
-                          </span>
-                        </div>
                         <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
                           <CalendarClock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                           Created from {formatRequestCreatedAtLabel(pickProposalCreatedAt(proposal))}
