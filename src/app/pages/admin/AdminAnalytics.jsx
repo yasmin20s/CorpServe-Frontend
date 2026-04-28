@@ -38,6 +38,7 @@ const USER_GROWTH_SERIES = [
 ];
 const TIME_RANGES = ['7 Days', '30 Days', '90 Days', 'Custom'];
 const RANGE_KEY_BY_LABEL = { '7 Days': '7days', '30 Days': '30days', '90 Days': '90days', Custom: 'custom' };
+const ACTIVE_USERS_SUFFIX = { '7 Days': '7d', '30 Days': '30d', '90 Days': '90d' };
 const CATEGORY_COLORS = ['#9f7aea', '#f9a8d4', '#93c5fd', '#fde68a', '#c4b5fd'];
 
 const AXIS_TICK = { fill: 'var(--aa-axis)' };
@@ -99,6 +100,8 @@ export default function AdminAnalytics() {
     };
   }, [user?.token, activeRange, customRange.startDateUtc, customRange.endDateUtc]);
 
+  const activeUsersSuffix = ACTIVE_USERS_SUFFIX[activeRange] || (activeRange === 'Custom' && analytics?.dateRange?.daysCount ? `${analytics.dateRange.daysCount}d` : '');
+
   const METRICS = useMemo(() => ([
     {
       key: 'gmv',
@@ -110,8 +113,8 @@ export default function AdminAnalytics() {
     },
     {
       key: 'active',
-      label: 'Active Users (30d)',
-      value: `${Number(analytics?.overview?.activeUsers30Days || 0)}`,
+      label: `Active Users${activeUsersSuffix ? ` (${activeUsersSuffix})` : ''}`,
+      value: `${Number(analytics?.overview?.activeUsersCount || 0)}`,
       delta: null,
       icon: Users,
       tone: 'blue',
@@ -132,7 +135,7 @@ export default function AdminAnalytics() {
       icon: ShieldCheck,
       tone: 'violet',
     },
-  ]), [analytics]);
+  ]), [analytics, activeUsersSuffix]);
 
   const gmvData = useMemo(
     () => (analytics.platformGmvTrend || []).map((item) => ({ month: item.label, GMV: Number(item.gmvEGP || 0) / 1000000 })),
