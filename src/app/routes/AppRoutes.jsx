@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
 const ActiveRequests = lazy(() => import('../pages/client/ActiveRequests'));
+const ClientAnalytics = lazy(() => import('../pages/client/ClientAnalytics'));
 const ClientDashboard = lazy(() => import('../pages/client/ClientDashboard'));
 const CreateRequest = lazy(() => import('../pages/client/CreateRequest'));
 const MyRequests = lazy(() => import('../pages/client/MyRequests'));
@@ -232,6 +233,7 @@ export default function AppRoutes() {
           <Route element={<RequireRole allowedRoles={['client']} />}>
             <Route path="/client">
               <Route path="dashboard" element={<ClientDashboard />} />
+              <Route path="analytics" element={<ClientAnalytics />} />
               <Route path="create-request" element={<CreateRequest />} />
               <Route path="my-requests" element={<MyRequests />} />
               <Route path="proposals/:requestId" element={<Proposals />} />

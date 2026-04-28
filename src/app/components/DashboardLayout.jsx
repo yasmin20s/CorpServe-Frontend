@@ -108,9 +108,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
   }, [togglePanelRoute, userRole]);
 
   const normalizedRole = (userRole || '').toLowerCase();
-  const effectiveMenuItems = normalizedRole === 'vendor'
-    ? (dashboardMenusByRole.vendor ?? menuItems)
-    : menuItems;
+  const effectiveMenuItems = dashboardMenusByRole[normalizedRole] ?? menuItems;
   const sidebarMenuItems = effectiveMenuItems.filter((item) => !/\/chat\/?$/i.test(String(item?.path || '')));
   const isAdmin = userRole === 'admin';
   const roleLabel = userRole ? `${userRole.charAt(0).toUpperCase()}${userRole.slice(1)}` : 'User';
