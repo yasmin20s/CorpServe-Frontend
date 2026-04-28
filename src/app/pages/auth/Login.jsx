@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { ArrowLeft, Eye, EyeOff, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -13,6 +13,7 @@ export default function Login() {
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [suspendedMessage, setSuspendedMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -54,24 +55,29 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuspendedMessage('');
-    const result = await login(formData);
-    if (!result.success) {
-      if (result.message?.toLowerCase().includes('suspended')) {
-        setSuspendedMessage(result.message);
+    setIsLoading(true);
+    try {
+      const result = await login(formData);
+      if (!result.success) {
+        if (result.message?.toLowerCase().includes('suspended')) {
+          setSuspendedMessage(result.message);
+        }
+        toast.error(result.message);
+        return;
       }
-      toast.error(result.message);
-      return;
-    }
 
-    const params = new URLSearchParams(location.search);
-    const redirect = params.get('redirect');
-    const redirectTo = resolvePostLoginRedirect({
-      requestedRedirect: redirect,
-      defaultRedirect: result.redirectTo,
-      role: result.role,
-    });
-    toast.success(result.message);
-    navigate(redirectTo, { replace: true });
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      const redirectTo = resolvePostLoginRedirect({
+        requestedRedirect: redirect,
+        defaultRedirect: result.redirectTo,
+        role: result.role,
+      });
+      toast.success(result.message);
+      navigate(redirectTo, { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -158,6 +164,7 @@ export default function Login() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -179,6 +186,7 @@ export default function Login() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
@@ -194,9 +202,17 @@ export default function Login() {
               <div className="pt-1">
                 <Button
                   type="submit"
-                  className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-base font-bold text-white shadow-lg shadow-violet-500/25 hover:from-blue-700 hover:to-violet-700 dark:shadow-violet-900/45"
+                  disabled={isLoading}
+                  className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-base font-bold text-white shadow-lg shadow-violet-500/25 hover:from-blue-700 hover:to-violet-700 disabled:cursor-not-allowed disabled:opacity-70 dark:shadow-violet-900/45"
                 >
-                  Sign In
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    'Sign In'
+                  )}
                 </Button>
               </div>
 
