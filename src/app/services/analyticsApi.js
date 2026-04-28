@@ -171,7 +171,7 @@ function normalizeAdminAnalytics(raw = {}) {
     overview: {
       gmvEGP: toNumber(pick(overview, 'gmvEGP', 'GmvEGP')),
       gmvChangePercent: toNumber(pick(overview, 'gmvChangePercent', 'GmvChangePercent')),
-      activeUsers30Days: toNumber(pick(overview, 'activeUsers30Days', 'ActiveUsers30Days')),
+      activeUsersCount: toNumber(pick(overview, 'activeUsersCount', 'ActiveUsersCount', 'activeUsers30Days', 'ActiveUsers30Days')),
       avgTimeToMatchHours: toNumber(pick(overview, 'avgTimeToMatchHours', 'AvgTimeToMatchHours')),
       slaCompliancePercent: toNumber(pick(overview, 'slaCompliancePercent', 'SlaCompliancePercent')),
     },
