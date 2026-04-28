@@ -85,6 +85,16 @@ function getPendingInvoiceId(payment) {
   return 'N/A';
 }
 
+function isLikelyIdentifier(value, fallbackId = '') {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  const fallback = String(fallbackId || '').trim();
+  if (fallback && text.toLowerCase() === fallback.toLowerCase()) return true;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(text)) return true;
+  if (/^\d{8,}$/.test(text)) return true;
+  return false;
+}
+
 export default function Payments() {
     const { user } = useAuth();
     const location = useLocation();
@@ -250,6 +260,19 @@ export default function Payments() {
       } finally {
         setLoadingId('');
       }
+    };
+
+    const resolveRatingVendorName = (target) => {
+      const directName = target?.vendorName;
+      if (directName && !isLikelyIdentifier(directName, target?.vendorId)) return String(directName).trim();
+
+      const requestId = String(target?.requestId || '');
+      if (!requestId) return 'Vendor';
+      const fromHistory = historyPayments.find((item) => String(item?.requestId || '') === requestId)?.vendorName;
+      if (fromHistory && !isLikelyIdentifier(fromHistory, target?.vendorId)) return String(fromHistory).trim();
+      const fromPending = pendingPayments.find((item) => String(item?.requestId || '') === requestId)?.vendorName;
+      if (fromPending && !isLikelyIdentifier(fromPending, target?.vendorId)) return String(fromPending).trim();
+      return 'Vendor';
     };
     return (<DashboardLayout menuItems={menuItems} userRole="client">
       <div className="space-y-5">
@@ -432,7 +455,7 @@ export default function Payments() {
             <div className="space-y-4">
               <div className="rounded-lg border bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800">
                 <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{ratingTarget?.requestTitle || 'Completed request'}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Vendor: {ratingTarget?.vendorName || '-'}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Vendor: {resolveRatingVendorName(ratingTarget)}</p>
               </div>
               <div className="space-y-2">
                 <Label>Rating (1-5)</Label>

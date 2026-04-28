@@ -254,7 +254,11 @@ export default function AdminDashboard() {
 
   const quickStats = dashboardData.adminQuickStats ?? EMPTY_DASHBOARD_DATA.adminQuickStats;
   const platformActivityData = useMemo(
-    () => dashboardData.platformActivities ?? [],
+    () =>
+      (dashboardData.platformActivities ?? []).map((item) => ({
+        ...item,
+        xLabel: item.monthLabel || item.day || '',
+      })),
     [dashboardData.platformActivities],
   );
   const userDistributionData = useMemo(() => {
@@ -338,7 +342,7 @@ export default function AdminDashboard() {
 
     return (
       <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-900/95">
-        <p className="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">Day {label}</p>
+        <p className="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">{label}</p>
         <div className="space-y-1">
           {rows.map((row) => (
             <div key={row.key} className="flex items-center justify-between gap-4">
@@ -500,7 +504,7 @@ export default function AdminDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} strokeDasharray="4 4" stroke="#e2e8f0" />
-                  <XAxis dataKey="day" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={10} />
+                  <XAxis dataKey="xLabel" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={10} />
                   <YAxis domain={[0, 40]} stroke="#94a3b8" tickLine={false} axisLine={false} width={28} />
                   <Tooltip content={renderPlatformActivityTooltip} />
                   <Area type="monotone" dataKey="requests" fill="url(#activityRequestsFill)" stroke="none" legendType="none" />

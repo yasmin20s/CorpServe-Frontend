@@ -30,6 +30,7 @@ function normalizeQuickStats(raw = {}) {
 function normalizePlatformActivity(raw = {}) {
   return {
     day: String(toNumber(pick(raw, 'day', 'Day')) || ''),
+    monthLabel: String(pick(raw, 'monthLabel', 'MonthLabel') ?? ''),
     requests: toNumber(pick(raw, 'requests', 'Requests')),
     signups: toNumber(pick(raw, 'signups', 'Signups')),
     completed: toNumber(pick(raw, 'completed', 'Completed')),

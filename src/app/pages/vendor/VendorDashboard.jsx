@@ -227,8 +227,6 @@ export default function VendorDashboard() {
                   <p className="text-xs text-slate-500 dark:text-slate-400">Billed vs received analysis</p>
                 </div>
                 <div className="inline-flex rounded-full bg-gradient-to-r from-purple-100 to-pink-100 p-1 dark:from-violet-500/18 dark:to-fuchsia-500/18">
-                  <button type="button" className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 text-xs font-semibold text-white shadow-md">Monthly</button>
-                  <button type="button" className="rounded-full px-3 py-1 text-xs font-semibold text-purple-700 transition-all hover:bg-purple-100 dark:text-purple-200 dark:hover:bg-purple-500/22">Quarterly</button>
                 </div>
               </div>
 

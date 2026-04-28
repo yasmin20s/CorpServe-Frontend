@@ -1,19 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import {
-  LayoutDashboard,
-  Users,
-  Briefcase,
-  FileText,
-  DollarSign,
-  TrendingUp,
-  UserCheck,
-  CalendarDays,
-  BarChart3,
-  Timer,
-  ShieldCheck,
-  AlertTriangle,
-} from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, CalendarDays, BarChart3, Timer, ShieldCheck } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -29,6 +16,11 @@ import {
   ResponsiveContainer,
   LabelList,
 } from 'recharts';
+import { useAuth } from '../../hooks/useAuth';
+import { toast } from '../../lib/toast';
+import AnalyticsRangeDialog from '../../components/AnalyticsRangeDialog';
+import { getAdminAnalyticsApi } from '../../services/analyticsApi';
+
 const menuItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Vendor Approvals', path: '/admin/vendor-approvals', icon: <UserCheck className="w-5 h-5"/> },
@@ -39,121 +31,14 @@ const menuItems = [
     { label: 'Payments Monitor', path: '/admin/payments-monitor', icon: <DollarSign className="w-5 h-5"/> },
     { label: 'Analytics', path: '/admin/analytics', icon: <TrendingUp className="w-5 h-5"/> },
 ];
-const TIME_RANGES = ['7 Days', '30 Days', '90 Days', 'Custom'];
-
-const METRICS = [
-  {
-    key: 'gmv',
-    label: 'GMV',
-    value: '1,847,000 EGP',
-    delta: '+31%',
-    icon: BarChart3,
-    tone: 'purple',
-    showAlert: false,
-  },
-  {
-    key: 'active',
-    label: 'Active Users (30d)',
-    value: '847',
-    delta: null,
-    icon: Users,
-    tone: 'blue',
-    showAlert: false,
-  },
-  {
-    key: 'match',
-    label: 'Avg Time to Match',
-    value: '3.2 hrs',
-    delta: null,
-    icon: Timer,
-    tone: 'amber',
-    showAlert: false,
-  },
-  {
-    key: 'sla',
-    label: 'SLA Compliance',
-    value: '94%',
-    delta: null,
-    icon: ShieldCheck,
-    tone: 'violet',
-    showAlert: false,
-  },
-];
-
-const gmvData = [
-  { month: 'May', GMV: 0.45 },
-  { month: 'Jun', GMV: 0.92 },
-  { month: 'Jul', GMV: 0.96 },
-  { month: 'Aug', GMV: 1.8 },
-  { month: 'Sep', GMV: 1.05 },
-  { month: 'Oct', GMV: 1.65 },
-  { month: 'Nov', GMV: 1.88 },
-  { month: 'Dec', GMV: 1.72 },
-  { month: 'Jan', GMV: 0.86 },
-  { month: 'Feb', GMV: 1.74 },
-  { month: 'Mar', GMV: 1.35 },
-  { month: 'Apr', GMV: 1.9 },
-];
-
-const serviceCategories = [
-  { name: 'IT', value: 34, color: '#9f7aea' },
-  { name: 'Legal', value: 24, color: '#f9a8d4' },
-  { name: 'Logistics', value: 16, color: '#93c5fd' },
-  { name: 'HR', value: 20, color: '#fde68a' },
-  { name: 'Other', value: 6, color: '#c4b5fd' },
-];
-
-const userGrowth = [
-  { month: 'Nov', clients: 280, vendors: 160, admins: 60 },
-  { month: 'Dec', clients: 320, vendors: 190, admins: 70 },
-  { month: 'Jan', clients: 360, vendors: 230, admins: 80 },
-  { month: 'Feb', clients: 420, vendors: 260, admins: 85 },
-  { month: 'Mar', clients: 460, vendors: 290, admins: 92 },
-  { month: 'Apr', clients: 520, vendors: 310, admins: 100 },
-];
-
 const USER_GROWTH_SERIES = [
   { key: 'clients', label: 'Clients', color: '#8b5cf6' },
   { key: 'vendors', label: 'Vendors', color: '#60a5fa' },
   { key: 'admins', label: 'Admins', color: '#f472b6' },
 ];
-
-const revenueSplit = [
-  { name: 'Vendor Payout', value: 87.6, color: '#8b5cf6' },
-  { name: 'Platform Fee', value: 12.4, color: '#facc15' },
-];
-
-const topVendors = [
-  { name: 'TechVision LLC', value: 1847 },
-  { name: 'Nile Legal Grp', value: 827 },
-  { name: 'Delta Consult', value: 768 },
-  { name: 'SkyBuild Co.', value: 545 },
-  { name: 'OmniHR Solutions', value: 537 },
-];
-
-const riskFlags = [
-  {
-    type: 'SLA Breach Risk',
-    entity: 'TechVision LLC',
-    description: 'Emirates SLA breach risk',
-    severity: 'High',
-    detected: '30/07/2023',
-  },
-  {
-    type: 'Payment Overdue',
-    entity: 'Nile Legal Grp',
-    description: 'Past-due payment overdue',
-    severity: 'Medium',
-    detected: '30/07/2023',
-  },
-  {
-    type: 'Vendor Inactive',
-    entity: 'Delta Consult',
-    description: 'Vendor inactive 21 days',
-    severity: 'Low',
-    detected: '06/07/2023',
-  },
-];
+const TIME_RANGES = ['7 Days', '30 Days', '90 Days', 'Custom'];
+const RANGE_KEY_BY_LABEL = { '7 Days': '7days', '30 Days': '30days', '90 Days': '90days', Custom: 'custom' };
+const CATEGORY_COLORS = ['#9f7aea', '#f9a8d4', '#93c5fd', '#fde68a', '#c4b5fd'];
 
 const AXIS_TICK = { fill: 'var(--aa-axis)' };
 const CHART_TOOLTIP_STYLE = {
@@ -168,7 +53,133 @@ const formatPercent = (value, name) => [`${value}%`, name];
 const formatMillions = (value) => `${value}M`;
 const formatRevenue = (value) => `${value}k EGP`;
 export default function AdminAnalytics() {
+  const { user } = useAuth();
   const [activeRange, setActiveRange] = useState('30 Days');
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [customRange, setCustomRange] = useState({ startDateUtc: null, endDateUtc: null });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRangeSubmitting, setIsRangeSubmitting] = useState(false);
+  const [analytics, setAnalytics] = useState({
+    overview: {},
+    platformGmvTrend: [],
+    topServiceCategories: [],
+    userGrowth: [],
+    revenueSplit: {},
+    topVendorsByRevenue: [],
+    anomalyRiskFlags: { flags: [], activeFlagsCount: 0 },
+  });
+
+  useEffect(() => {
+    if (!user?.token) return;
+    let cancelled = false;
+
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const rangeKey = RANGE_KEY_BY_LABEL[activeRange] || '30days';
+        const payload = await getAdminAnalyticsApi({
+          token: user.token,
+          rangeKey,
+          startDateUtc: rangeKey === 'custom' ? customRange.startDateUtc : undefined,
+          endDateUtc: rangeKey === 'custom' ? customRange.endDateUtc : undefined,
+        });
+        if (!cancelled) setAnalytics(payload);
+      } catch (error) {
+        if (!cancelled) toast.error(error?.message || 'Failed to load admin analytics.');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    const selectedRangeKey = RANGE_KEY_BY_LABEL[activeRange] || '30days';
+    if (selectedRangeKey === 'custom' && (!customRange.startDateUtc || !customRange.endDateUtc)) return;
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.token, activeRange, customRange.startDateUtc, customRange.endDateUtc]);
+
+  const METRICS = useMemo(() => ([
+    {
+      key: 'gmv',
+      label: 'GMV',
+      value: `${Number(analytics?.overview?.gmvEGP || 0).toLocaleString()} EGP`,
+      delta: `${Number(analytics?.overview?.gmvChangePercent || 0) >= 0 ? '+' : ''}${Number(analytics?.overview?.gmvChangePercent || 0).toFixed(1)}%`,
+      icon: BarChart3,
+      tone: 'purple',
+    },
+    {
+      key: 'active',
+      label: 'Active Users (30d)',
+      value: `${Number(analytics?.overview?.activeUsers30Days || 0)}`,
+      delta: null,
+      icon: Users,
+      tone: 'blue',
+    },
+    {
+      key: 'match',
+      label: 'Avg Time to Match',
+      value: `${Number(analytics?.overview?.avgTimeToMatchHours || 0).toFixed(1)} hrs`,
+      delta: null,
+      icon: Timer,
+      tone: 'amber',
+    },
+    {
+      key: 'sla',
+      label: 'SLA Compliance',
+      value: `${Number(analytics?.overview?.slaCompliancePercent || 0).toFixed(1)}%`,
+      delta: null,
+      icon: ShieldCheck,
+      tone: 'violet',
+    },
+  ]), [analytics]);
+
+  const gmvData = useMemo(
+    () => (analytics.platformGmvTrend || []).map((item) => ({ month: item.label, GMV: Number(item.gmvEGP || 0) / 1000000 })),
+    [analytics.platformGmvTrend],
+  );
+  const serviceCategories = useMemo(
+    () => (analytics.topServiceCategories || []).map((item, idx) => ({ name: item.categoryName, value: Number(item.percentage || 0), color: CATEGORY_COLORS[idx % CATEGORY_COLORS.length] })),
+    [analytics.topServiceCategories],
+  );
+  const userGrowth = useMemo(
+    () => (analytics.userGrowth || []).map((item) => ({ month: item.label, clients: Number(item.clientsCount || 0), vendors: Number(item.vendorsCount || 0), admins: Number(item.adminsCount || 0) })),
+    [analytics.userGrowth],
+  );
+  const revenueSplit = useMemo(() => ([
+    { name: 'Vendor Payout', value: Number(analytics?.revenueSplit?.vendorPayoutPercent || 0), color: '#8b5cf6' },
+    { name: 'Platform Fee', value: Number(analytics?.revenueSplit?.platformFeePercent || 0), color: '#facc15' },
+  ]), [analytics?.revenueSplit]);
+  const topVendors = useMemo(
+    () => (analytics.topVendorsByRevenue || []).map((item) => ({ name: item.vendorName || 'Vendor', value: Math.round(Number(item.revenueEGP || 0) / 1000) })),
+    [analytics.topVendorsByRevenue],
+  );
+  const riskFlags = useMemo(
+    () => (analytics?.anomalyRiskFlags?.flags || []).map((flag) => ({
+      type: flag.type,
+      entity: flag.entity,
+      description: flag.description,
+      severity: flag.severity,
+      detected: flag.detectedAtUtc ? new Date(flag.detectedAtUtc).toLocaleDateString('en-GB') : '-',
+    })),
+    [analytics?.anomalyRiskFlags?.flags],
+  );
+
+  const handleRangeClick = (label) => {
+    if (label === 'Custom') {
+      setIsCustomOpen(true);
+      return;
+    }
+    setActiveRange(label);
+  };
+
+  const handleApplyCustomRange = async ({ startDateUtc, endDateUtc }) => {
+    setIsRangeSubmitting(true);
+    setCustomRange({ startDateUtc, endDateUtc });
+    setActiveRange('Custom');
+    setIsCustomOpen(false);
+    setIsRangeSubmitting(false);
+  };
 
   const renderUserGrowthTooltip = ({ active, label, payload }) => {
     if (!active || !payload || payload.length === 0) {
@@ -245,7 +256,7 @@ export default function AdminAnalytics() {
                 key={label}
                 type="button"
                 className={`aa-tab ${activeRange === label ? 'aa-tab-active' : ''}`}
-                onClick={() => setActiveRange(label)}
+                onClick={() => handleRangeClick(label)}
                 aria-pressed={activeRange === label}
               >
                 {label}
@@ -253,6 +264,11 @@ export default function AdminAnalytics() {
             ))}
           </div>
         </div>
+        {isLoading ? (
+          <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/65 dark:text-slate-300">
+            Loading analytics...
+          </div>
+        ) : null}
 
         <div className="aa-metric-grid">
           {METRICS.map((metric) => {
@@ -269,11 +285,6 @@ export default function AdminAnalytics() {
                     {metric.delta && <span className="aa-metric-delta">{metric.delta}</span>}
                   </div>
                 </div>
-                {metric.showAlert && (
-                  <div className="aa-metric-alert">
-                    <AlertTriangle className="h-4 w-4" />
-                  </div>
-                )}
               </div>
             );
           })}
@@ -285,7 +296,7 @@ export default function AdminAnalytics() {
               <h2>Platform GMV Over Time</h2>
               <p>Revenue trend over the year</p>
             </div>
-            <span className="aa-pill">YTD : 1.8M EGP</span>
+              <span className="aa-pill">YTD : {(Number(analytics?.overview?.gmvEGP || 0) / 1000000).toFixed(2)}M EGP</span>
           </div>
           <div className="aa-chart">
             <ResponsiveContainer width="100%" height="100%">
@@ -436,7 +447,7 @@ export default function AdminAnalytics() {
           <div className="aa-card">
             <div className="aa-card-header aa-card-header-row">
               <h3>Anomaly & Risk Flags</h3>
-              <span className="aa-pill aa-pill-soft">3 Active Flags</span>
+              <span className="aa-pill aa-pill-soft">{Number(analytics?.anomalyRiskFlags?.activeFlagsCount || 0)} Active Flags</span>
             </div>
             <div className="aa-table">
               <table>
@@ -468,6 +479,14 @@ export default function AdminAnalytics() {
             </div>
           </div>
         </div>
+        <AnalyticsRangeDialog
+          open={isCustomOpen}
+          onOpenChange={setIsCustomOpen}
+          initialStartDateUtc={customRange.startDateUtc}
+          initialEndDateUtc={customRange.endDateUtc}
+          onApply={handleApplyCustomRange}
+          isSubmitting={isRangeSubmitting}
+        />
       </div>
     </DashboardLayout>
   );
