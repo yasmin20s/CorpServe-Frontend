@@ -325,6 +325,15 @@ export default function ClientAnalytics() {
               <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 30px rgba(2,6,23,0.2)',
+                        color: 'var(--card-foreground)',
+                      }}
+                    />
                     <Pie
                       data={requestStatusData}
                       dataKey="value"
@@ -370,6 +379,16 @@ export default function ClientAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="range" tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 30px rgba(2,6,23,0.2)',
+                      color: 'var(--card-foreground)',
+                    }}
+                    cursor={{ fill: 'var(--muted)', opacity: 0.2 }}
+                  />
                   <Bar dataKey="value" fill="#6d72de" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

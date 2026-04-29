@@ -87,13 +87,13 @@ export default function Completed() {
               <CardContent className="relative space-y-5 p-6">
                 <Badge className="w-fit border border-white/25 bg-white/10 text-violet-100">Completed Work Hub</Badge>
                 <div>
-                  <h1 className="text-3xl font-black tracking-tight text-[#d8deff]">Completed Requests</h1>
+                  <h1 className="text-2xl font-black tracking-tight text-[#d8deff] sm:text-3xl">Completed Requests</h1>
                   <p className="mt-2 text-sm text-indigo-100/90">
                     A focused summary of delivered tasks, earnings, and client satisfaction.
                   </p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
                   <div className="rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur-sm">
                     <p className="text-xs uppercase tracking-wide text-indigo-100">Total Earned</p>
                     <p className="mt-1 text-2xl font-black">{formatCurrency(totalEarnings)}</p>
@@ -142,7 +142,7 @@ export default function Completed() {
               </Card>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
               {completed.map((project) => (
                 <Card key={project.id} className="relative overflow-hidden border border-indigo-200 bg-white shadow-[0_14px_34px_rgba(79,70,229,0.14)] dark:border-indigo-400/30 dark:bg-slate-900/88 dark:shadow-none">
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600" />
@@ -169,7 +169,7 @@ export default function Completed() {
                   </CardHeader>
 
                   <CardContent className="space-y-4 pt-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/14">
                         <p className="text-xs uppercase tracking-wide text-indigo-700">Amount</p>
                         <p className="mt-1 inline-flex items-center gap-1 font-bold text-slate-900 dark:text-slate-100">
