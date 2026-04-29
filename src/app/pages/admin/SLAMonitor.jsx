@@ -15,6 +15,7 @@ import {
   UserCheck,
   Eye,
   AlertTriangle,
+  Activity,
   Sparkles,
   ArrowUpRight,
   Clock3,
@@ -232,58 +233,123 @@ export default function SLAMonitor() {
 
   return (
     <DashboardLayout menuItems={menuItems} userRole="admin">
-      <div className="space-y-4 lg:space-y-7">
-        <Card className="group relative overflow-hidden border-indigo-400/80 bg-gradient-to-br from-indigo-200 via-blue-100 to-violet-200 shadow-[0_20px_48px_rgba(79,70,229,0.2)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_32px_64px_rgba(79,70,229,0.28)] dark:border-indigo-400/25 dark:bg-gradient-to-br dark:from-[#1a2745] dark:via-[#233861] dark:to-[#2b4a75] dark:shadow-[0_18px_40px_rgba(2,6,23,0.5)] dark:hover:shadow-[0_20px_44px_rgba(2,6,23,0.56)]">
-          <CardContent className="p-4 sm:p-6 lg:p-8">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-violet-500" />
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="space-y-6">
+        <Card className="group relative overflow-hidden border-indigo-300/80 bg-gradient-to-br from-indigo-100 via-blue-50 to-violet-100 shadow-[0_18px_45px_rgba(79,70,229,0.16)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_30px_60px_rgba(79,70,229,0.25)] dark:border-indigo-400/25 dark:bg-gradient-to-br dark:from-[#1a2745] dark:via-[#233861] dark:to-[#2b4a75] dark:shadow-[0_18px_40px_rgba(2,6,23,0.5)] dark:hover:shadow-[0_20px_44px_rgba(2,6,23,0.56)]">
+          <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:linear-gradient(to_right,rgba(79,70,229,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(79,70,229,0.1)_1px,transparent_1px)] [background-size:28px_28px]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-cyan-500 to-violet-500" />
+          <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-indigo-300/35 blur-3xl dark:bg-indigo-500/16" />
+          <div className="pointer-events-none absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl dark:bg-cyan-500/14" />
+          <CardContent className="relative p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-indigo-700 sm:text-xs dark:border-indigo-400/30 dark:bg-slate-900/78 dark:text-indigo-200">
-                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  SLA Timeline
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Admin Control Room
+                </p>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
+                  SLA <span className="bg-gradient-to-r from-indigo-700 to-violet-700 bg-clip-text text-transparent">Monitor</span>
+                </h1>
+                <p className="mt-1 text-sm text-indigo-900/80 sm:text-base dark:text-indigo-200/85">Creative, high-contrast oversight for all platform agreements.</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {hero.inProgressCount} Active
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-rose-700">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {hero.breachedCount} Breached
+                  </span>
                 </div>
-                <h1 className="text-2xl font-bold text-slate-900 sm:text-4xl dark:text-slate-100">SLA Monitor</h1>
-                <p className="mt-1 text-sm text-slate-700 sm:text-base dark:text-slate-200/90">Timeline layout for tracking agreement health, deadline proximity, and response urgency.</p>
               </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 sm:gap-3">
-                  <div className="rounded-xl border border-indigo-200 bg-white/90 px-3 py-2.5 dark:border-indigo-400/35 dark:bg-slate-900/70">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-200">Total</p>
-                    <p className="mt-1 text-xl font-bold text-slate-900 dark:text-slate-100">{hero.totalSlaContracts}</p>
-                  </div>
-                  <div className="rounded-xl border border-indigo-400 bg-indigo-200/85 px-3 py-2.5 dark:border-indigo-400/30 dark:bg-indigo-500/18">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">In progress</p>
-                    <p className="mt-1 text-xl font-bold text-indigo-900 dark:text-indigo-100">{hero.inProgressCount}</p>
-                  </div>
-                  <div className="rounded-xl border border-rose-400 bg-rose-200/85 px-3 py-2.5 dark:border-rose-400/30 dark:bg-rose-500/18">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-800 dark:text-rose-200">Breached</p>
-                    <p className="mt-1 text-xl font-bold text-rose-900 dark:text-rose-100">{hero.breachedCount}</p>
-                  </div>
-                  <div className="rounded-xl border border-sky-400 bg-sky-200/85 px-3 py-2.5 dark:border-sky-400/30 dark:bg-sky-500/18">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-200">Delayed</p>
-                    <p className="mt-1 text-xl font-bold text-sky-900 dark:text-sky-100">{hero.delayedCount}</p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-400 bg-emerald-200/85 px-3 py-2.5 dark:border-emerald-400/30 dark:bg-emerald-500/18">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-200">Completed</p>
-                    <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">{hero.completedCount}</p>
-                  </div>
+              <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-white/85 px-3 py-2 text-xs font-semibold text-indigo-700 shadow-sm transition-all duration-300 group-hover:translate-x-0.5 dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200 dark:shadow-none">
+                  <Activity className="h-4 w-4 animate-pulse" />
+                  <span>Live Database</span>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:hover:bg-indigo-500/16"
+                  className="flex items-center h-10 rounded-2xl border border-indigo-200 bg-white/85 px-4 font-semibold text-indigo-700 shadow-sm hover:bg-white dark:border-indigo-400/30 dark:bg-slate-800/70 dark:text-indigo-200"
                   onClick={() => loadSlas({ silent: true })}
                   disabled={isRefreshing || !user?.token}
                 >
                   <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  Refresh
+                  Refresh Data
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card className="group relative overflow-hidden border-indigo-200 bg-white/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none dark:hover:shadow-none">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-600 dark:text-indigo-200">Total</p>
+                  <p className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">{hero.totalSlaContracts}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-indigo-500">Platform overview</p>
+                </div>
+                <span className="rounded-xl border border-indigo-200 bg-indigo-50 p-2 text-indigo-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200">
+                  <LayoutDashboard className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="group relative overflow-hidden border-emerald-200 bg-emerald-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-400/25 dark:bg-emerald-500/24 dark:shadow-none dark:hover:shadow-none">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-green-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">In Progress</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-900 dark:text-emerald-100">{hero.inProgressCount}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-200">Healthy SLAs</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-emerald-600/90 dark:text-emerald-200/85">Whole platform data</p>
+                </div>
+                <span className="rounded-xl border border-emerald-200 bg-white/80 p-2 text-emerald-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-emerald-400/35 dark:bg-slate-800/70 dark:text-emerald-200">
+                  <UserCheck className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-rose-200 bg-rose-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-rose-400/25 dark:bg-rose-500/24 dark:shadow-none dark:hover:shadow-none">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 to-red-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-rose-700">Breached</p>
+                  <p className="mt-1 text-2xl font-black text-rose-900 dark:text-rose-100">{hero.breachedCount}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-rose-700 dark:text-rose-200">Needs review</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-rose-600/90 dark:text-rose-200/85">Whole platform data</p>
+                </div>
+                <span className="rounded-xl border border-rose-200 bg-white/80 p-2 text-rose-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-rose-400/35 dark:bg-slate-800/70 dark:text-rose-200">
+                  <AlertTriangle className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-sky-200 bg-sky-50/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-sky-400/25 dark:bg-sky-500/24 dark:shadow-none dark:hover:shadow-none">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 to-blue-500" />
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-700">Delayed</p>
+                  <p className="mt-1 text-2xl font-black text-sky-900 dark:text-sky-100">{hero.delayedCount}</p>
+                  <p className="mt-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-200">At risk SLAs</p>
+                  <p className="mt-1 text-[10px] font-normal normal-case tracking-normal text-sky-600/90 dark:text-sky-200/85">Whole platform data</p>
+                </div>
+                <span className="rounded-xl border border-sky-200 bg-white/80 p-2 text-sky-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 dark:border-sky-400/35 dark:bg-slate-800/70 dark:text-sky-200">
+                  <Eye className="h-4 w-4" />
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/20 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/96 dark:to-slate-800 dark:shadow-none">
           <CardContent className="p-3.5 sm:p-5">
