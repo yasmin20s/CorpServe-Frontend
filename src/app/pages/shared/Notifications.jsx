@@ -24,6 +24,8 @@ import {
   DollarSign,
   UserCheck,
   TriangleAlert,
+  Info,
+  UserPen,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSignalREvent } from '../../context/SignalRContext';
@@ -62,6 +64,8 @@ const TITLE_NEW_PROPOSAL = 'New proposal received';
 const TITLE_SLA_CREATED = 'SLA created';
 const TITLE_SLA_COMPLETED = 'SLA completed';
 const PAYMENT_TITLE_DUE = 'payment due';
+
+const TITLE_COMPLETE_PROFILE = 'Complete your profile';
 
 const PAYMENT_COMPLETED_TITLES = new Set([
   'payment completed',
@@ -254,7 +258,7 @@ function resolveNotificationNavigatePath(navigateUrl, role, notificationTitle) {
   }
 
   if (path === '/profile' || path === '/profile/') {
-    return `/${r}/profile`;
+    return r === 'client' ? '/client/user-profile' : `/${r}/profile`;
   }
 
   if (/^\/payments?\b/i.test(path) || /\/invoice\b/i.test(path)) {
@@ -286,6 +290,10 @@ function getNotificationTarget(n, role) {
   const r = (role || 'client').toLowerCase();
   const t = normalizeNotificationTitle(n.title);
   const requestId = extractRequestId(n);
+
+  if (t === TITLE_COMPLETE_PROFILE) {
+    return { path: r === 'client' ? '/client/user-profile' : `/${r}/profile` };
+  }
 
   if (isVendorRatingNotification(n, r)) {
     return { path: '/vendor/completed' };
@@ -328,6 +336,7 @@ function getNotificationTarget(n, role) {
 function getNotificationVisual(n) {
   const t = normalizeNotificationTitle(n.title);
   const cat = getDisplayCategory(n.relatedEntityType);
+  if (t === TITLE_COMPLETE_PROFILE) return 'profileInfo';
   if (cat === 'payment') return 'payment';
   if (t === TITLE_NEW_PROPOSAL) return 'newProposal';
   if (COMPLETED_SLA_TITLES.has(t)) return 'completed';
@@ -374,6 +383,12 @@ const VISUAL_STYLES = {
     icon: 'clock',
     newPill: 'violet',
   },
+  profileInfo: {
+    card: 'bg-blue-50/90 border-blue-200/85 shadow-blue-100/20 dark:bg-blue-500/10 dark:border-blue-400/35 dark:shadow-none',
+    iconWrap: 'bg-blue-100 text-blue-600 dark:bg-blue-500/18 dark:text-blue-200',
+    icon: 'info',
+    newPill: 'indigo',
+  },
   system: {
     card: 'bg-[#F8FAFC] border-slate-200 shadow-slate-100/20 dark:bg-slate-900 dark:border-slate-700 dark:shadow-none',
     iconWrap: 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-100',
@@ -414,6 +429,10 @@ function renderNotificationIcon(kind) {
       return <FileStack size={26} strokeWidth={2.5} />;
     case 'activity':
       return <Activity size={26} strokeWidth={2.5} />;
+    case 'info':
+      return <Info size={26} strokeWidth={2.5} />;
+    case 'userPen':
+      return <UserPen size={26} strokeWidth={2.5} />;
     case 'clock':
     default:
       return <Clock size={26} strokeWidth={2.5} />;
@@ -550,6 +569,16 @@ function getNotificationAction(
       text: isVendor ? 'View active requests' : 'Review proposal',
       icon: <FileText size={16} />,
       className: violetBtn,
+    };
+  }
+
+  if (vis === 'profileInfo') {
+    return {
+      ...target,
+      text: 'Edit profile',
+      icon: <UserPen size={16} />,
+      className:
+        'bg-blue-50 text-blue-800 border-2 border-blue-200 hover:bg-blue-100/80 dark:bg-blue-500/18 dark:text-blue-200 dark:border-blue-400/35 dark:hover:bg-blue-500/28',
     };
   }
 

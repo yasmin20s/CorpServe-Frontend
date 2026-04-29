@@ -390,7 +390,7 @@ export default function ClientDashboard() {
                 <Sparkles className="h-3 w-3" />
                 Client Dashboard
               </p>
-              <h1 className="mt-2 text-[2.1rem] font-black leading-[0.95] text-slate-900 dark:text-slate-100 sm:text-[2.55rem]">
+              <h1 className="mt-2 text-[1.5rem] font-black leading-[0.95] text-slate-900 dark:text-slate-100 sm:text-[2.55rem]">
                 Welcome, <span className="bg-gradient-to-r from-slate-700 via-indigo-600 to-slate-700 bg-clip-text text-transparent dark:from-cyan-200 dark:via-violet-300 dark:to-sky-200">{clientName}</span>
               </h1>
               <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300 sm:text-[15px]">
@@ -430,7 +430,7 @@ export default function ClientDashboard() {
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-300">{item.title}</p>
-                      <p className="mt-0.5 text-[2rem] font-black leading-none text-slate-900 dark:text-slate-100">{item.value}</p>
+                      <p className="mt-0.5 text-[1.4rem] font-black leading-none text-slate-900 dark:text-slate-100 sm:text-[2rem]">{item.value}</p>
                       <p className={`mt-1 text-xs font-semibold ${item.subtitleTone}`}>{item.subtitle}</p>
                     </div>
                   </div>
@@ -596,7 +596,7 @@ export default function ClientDashboard() {
                 <CardTitle className="w-fit bg-gradient-to-r from-cyan-700 via-blue-600 to-violet-600 bg-clip-text text-xl font-black tracking-tight text-transparent dark:from-cyan-300 dark:via-blue-300 dark:to-violet-300">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {quickActions.map((action, index) => {
                     const Icon = action.icon;
                     const actionTone = [

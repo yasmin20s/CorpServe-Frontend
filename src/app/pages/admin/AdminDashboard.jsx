@@ -254,7 +254,11 @@ export default function AdminDashboard() {
 
   const quickStats = dashboardData.adminQuickStats ?? EMPTY_DASHBOARD_DATA.adminQuickStats;
   const platformActivityData = useMemo(
-    () => dashboardData.platformActivities ?? [],
+    () =>
+      (dashboardData.platformActivities ?? []).map((item) => ({
+        ...item,
+        xLabel: item.monthLabel || item.day || '',
+      })),
     [dashboardData.platformActivities],
   );
   const userDistributionData = useMemo(() => {
@@ -338,7 +342,7 @@ export default function AdminDashboard() {
 
     return (
       <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-900/95">
-        <p className="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">Day {label}</p>
+        <p className="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">{label}</p>
         <div className="space-y-1">
           {rows.map((row) => (
             <div key={row.key} className="flex items-center justify-between gap-4">
@@ -406,7 +410,7 @@ export default function AdminDashboard() {
                 <LayoutDashboard className="h-3.5 w-3.5" />
                 Admin Dashboard
               </Badge>
-              <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl">
                 Welcome{' '}
                 <span className="bg-gradient-to-r from-[#b9a0ea] via-[#c995ea] to-[#7fdbef] bg-clip-text text-transparent">
                   {displayName}
@@ -484,7 +488,7 @@ export default function AdminDashboard() {
             })}
         </motion.section>
 
-        <motion.div variants={cardStagger} className="grid gap-4 xl:grid-cols-[1.7fr_1.25fr_1.25fr]" initial="hidden" animate="show">
+        <motion.div variants={cardStagger} className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-[1.7fr_1.25fr_1.25fr]" initial="hidden" animate="show">
           <motion.div variants={cardReveal}>
           <Card className="rounded-2xl border border-slate-200/85 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)] dark:border-slate-700/70 dark:bg-slate-900">
             <CardHeader className="pb-2">
@@ -500,7 +504,7 @@ export default function AdminDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} strokeDasharray="4 4" stroke="#e2e8f0" />
-                  <XAxis dataKey="day" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={10} />
+                  <XAxis dataKey="xLabel" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={10} />
                   <YAxis domain={[0, 40]} stroke="#94a3b8" tickLine={false} axisLine={false} width={28} />
                   <Tooltip content={renderPlatformActivityTooltip} />
                   <Area type="monotone" dataKey="requests" fill="url(#activityRequestsFill)" stroke="none" legendType="none" />

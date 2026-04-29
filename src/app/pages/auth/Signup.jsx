@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
-import { ArrowLeft, Briefcase, Eye, EyeOff, Sparkles, UserRound } from 'lucide-react';
+import { ArrowLeft, Briefcase, Eye, EyeOff, Loader2, Sparkles, UserRound } from 'lucide-react';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getCategoriesApi } from '../../services/categoriesApi';
@@ -26,6 +26,7 @@ export default function Signup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadCategories = async () => {
     setLoadingCategories(true);
@@ -82,21 +83,26 @@ export default function Signup() {
       return;
     }
 
-    const result = await signup({
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      confirmPassword: formData.confirmPassword,
-      role: formData.role === 'vendor' ? 'Vendor' : 'Client',
-      categoryIds: formData.role === 'vendor' ? [formData.categoryId] : [],
-    });
-    if (!result.success) {
-      toast.error(result.message);
-      return;
+    setIsSubmitting(true);
+    try {
+      const result = await signup({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        role: formData.role === 'vendor' ? 'Vendor' : 'Client',
+        categoryIds: formData.role === 'vendor' ? [formData.categoryId] : [],
+      });
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      navigate(result.redirectTo);
+    } finally {
+      setIsSubmitting(false);
     }
-    toast.success(result.message);
-    navigate(result.redirectTo);
   };
 
   return (
@@ -182,6 +188,7 @@ export default function Signup() {
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="h-11 rounded-xl border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 sm:text-base"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -197,6 +204,7 @@ export default function Signup() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="h-11 rounded-xl border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 sm:text-base"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -217,6 +225,7 @@ export default function Signup() {
                     className="h-11 rounded-xl border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 sm:text-base"
                     maxLength={11}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -235,6 +244,7 @@ export default function Signup() {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="h-11 rounded-xl border-slate-200 bg-white px-3.5 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 sm:text-base"
                       required
+                      disabled={isSubmitting}
                     />
                     <button
                       type="button"
@@ -260,6 +270,7 @@ export default function Signup() {
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                       className="h-11 rounded-xl border-slate-200 bg-white px-3.5 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 sm:text-base"
                       required
+                      disabled={isSubmitting}
                     />
                     <button
                       type="button"
@@ -284,7 +295,7 @@ export default function Signup() {
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                     className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100 dark:focus:border-violet-400 dark:focus:ring-violet-500/25 dark:[color-scheme:dark] sm:text-base"
                     required={formData.role === 'vendor'}
-                    disabled={loadingCategories}
+                    disabled={loadingCategories || isSubmitting}
                   >
                     <option value="">
                       {loadingCategories
@@ -356,9 +367,17 @@ export default function Signup() {
 
               <Button
                 type="submit"
-                className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-base font-bold text-white shadow-lg shadow-violet-500/25 hover:from-blue-700 hover:to-violet-700 dark:shadow-violet-900/45"
+                disabled={isSubmitting}
+                className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-base font-bold text-white shadow-lg shadow-violet-500/25 hover:from-blue-700 hover:to-violet-700 disabled:cursor-not-allowed disabled:opacity-70 dark:shadow-violet-900/45"
               >
-                Create Account
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Creating account...
+                  </span>
+                ) : (
+                  'Create Account'
+                )}
               </Button>
 
               <div className="border-t border-slate-200 pt-4 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300 sm:text-base">

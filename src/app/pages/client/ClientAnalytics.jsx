@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -17,90 +17,10 @@ import {
   YAxis,
 } from 'recharts';
 import { Activity, CircleDollarSign, MessageSquare, Sparkles, Star } from 'lucide-react';
-
-const kpiCards = [
-  {
-    title: 'Total Requests',
-    value: '42',
-    delta: '+8 vs prev period',
-    deltaColor: 'text-emerald-500 dark:text-emerald-300',
-    sparkline: [6, 7, 8, 6, 9, 8, 10, 12],
-    borderTone: 'border-slate-200/90 dark:border-cyan-400/55',
-    cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
-  },
-  {
-    title: 'Avg Response Time',
-    value: '1.4 days',
-    delta: '-0.3 improvement',
-    deltaColor: 'text-emerald-500 dark:text-emerald-300',
-    sparkline: [8, 8, 8, 7, 6.5, 6, 6, 6],
-    borderTone: 'border-slate-200/90 dark:border-violet-400/55',
-    cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
-  },
-  {
-    title: 'Total Spent',
-    value: '148,200 EGP',
-    delta: '+23%',
-    deltaColor: 'text-emerald-500 dark:text-emerald-300',
-    sparkline: [5, 5.5, 6, 7, 6.8, 8.2, 9.1, 11],
-    borderTone: 'border-slate-200/90 dark:border-sky-400/55',
-    cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
-  },
-  {
-    title: 'Service Success Rate',
-    value: '91%',
-    delta: '+4%',
-    deltaColor: 'text-emerald-500 dark:text-emerald-300',
-    sparkline: [8, 8.1, 8.2, 8.4, 8.5, 8.7, 8.8, 8.9],
-    borderTone: 'border-slate-200/90 dark:border-indigo-400/55',
-    cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
-  },
-];
-
-const monthlySpendingData = [
-  { month: 'Jan', value: 8000 },
-  { month: 'Feb', value: 12000 },
-  { month: 'Mar', value: 9000 },
-  { month: 'Apr', value: 15000 },
-  { month: 'May', value: 11000 },
-  { month: 'Jun', value: 18000 },
-  { month: 'Jul', value: 14000 },
-  { month: 'Aug', value: 22000 },
-  { month: 'Sep', value: 19000 },
-  { month: 'Oct', value: 28000 },
-  { month: 'Nov', value: 24000 },
-  { month: 'Dec', value: 32000 },
-];
-
-const spendingByCategoryData = [
-  { category: 'IT', value: 58000 },
-  { category: 'Legal', value: 32000 },
-  { category: 'HR', value: 24000 },
-  { category: 'Logistics', value: 18000 },
-  { category: 'Financial', value: 11000 },
-  { category: 'Other', value: 5000 },
-];
-
-const requestStatusData = [
-  { name: 'Completed', value: 54, color: '#22c55e' },
-  { name: 'Active', value: 21, color: '#3b82f6' },
-  { name: 'Pending', value: 16, color: '#f59e0b' },
-];
-
-const vendorResponseTimeData = [
-  { range: '<1hr', value: 8 },
-  { range: '1-4hr', value: 18 },
-  { range: '4-12hr', value: 11 },
-  { range: '12-24hr', value: 4 },
-  { range: '>24hr', value: 1 },
-];
-
-const topVendors = [
-  { name: 'TechVision LLC', services: 5, rating: 4.9, amount: '38,000 EGP' },
-  { name: 'Nile Legal Grp', services: 3, rating: 4.7, amount: '24,500 EGP' },
-  { name: 'Delta Consult', services: 4, rating: 4.5, amount: '19,200 EGP' },
-  { name: 'SkyBuild Co.', services: 2, rating: 4.8, amount: '14,000 EGP' },
-];
+import { useAuth } from '../../hooks/useAuth';
+import { toast } from '../../lib/toast';
+import AnalyticsRangeDialog from '../../components/AnalyticsRangeDialog';
+import { getClientAnalyticsApi } from '../../services/analyticsApi';
 
 const rangeOptions = [
   { value: '7days', label: 'Last 7 Days' },
@@ -122,13 +42,141 @@ function Sparkline({ values }) {
   );
 }
 
+function formatResponseTimeFromDays(valueInDays) {
+  const days = Number(valueInDays || 0);
+  if (!Number.isFinite(days) || days <= 0) return '0.0 hrs';
+  if (days >= 1) return `${days.toFixed(2)} days`;
+  return `${(days * 24).toFixed(1)} hrs`;
+}
+
 export default function ClientAnalytics() {
+  const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('30days');
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [customRange, setCustomRange] = useState({ startDateUtc: null, endDateUtc: null });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRangeSubmitting, setIsRangeSubmitting] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    overview: {},
+    spendingTrend: [],
+    spendingByCategory: [],
+    requestStatusBreakdown: [],
+    vendorResponseTime: [],
+    topVendorsUsed: [],
+  });
   const menuItems = useDashboardMenu('client');
+
+  useEffect(() => {
+    if (!user?.token) return;
+    let cancelled = false;
+
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const payload = await getClientAnalyticsApi({
+          token: user.token,
+          rangeKey: timeRange,
+          startDateUtc: timeRange === 'custom' ? customRange.startDateUtc : undefined,
+          endDateUtc: timeRange === 'custom' ? customRange.endDateUtc : undefined,
+        });
+        if (!cancelled) setDashboardData(payload);
+      } catch (error) {
+        if (!cancelled) toast.error(error?.message || 'Failed to load analytics.');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    if (timeRange === 'custom' && (!customRange.startDateUtc || !customRange.endDateUtc)) return;
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.token, timeRange, customRange.startDateUtc, customRange.endDateUtc]);
+
+  const handleRangeClick = (value) => {
+    if (value === 'custom') {
+      setIsCustomOpen(true);
+      return;
+    }
+    setTimeRange(value);
+  };
+
+  const handleApplyCustomRange = async ({ startDateUtc, endDateUtc }) => {
+    setIsRangeSubmitting(true);
+    setCustomRange({ startDateUtc, endDateUtc });
+    setTimeRange('custom');
+    setIsCustomOpen(false);
+    setIsRangeSubmitting(false);
+  };
+
+  const overview = dashboardData?.overview || {};
+  const monthlySpendingData = (dashboardData?.spendingTrend || []).map((point) => ({
+    month: point.label,
+    value: Number(point.amountEGP || 0),
+  }));
+  const spendingByCategoryData = (dashboardData?.spendingByCategory || []).map((item) => ({
+    category: item.categoryName || 'Other',
+    value: Number(item.amountEGP || 0),
+  }));
+  const requestStatusData = (dashboardData?.requestStatusBreakdown || []).map((item, idx) => ({
+    name: item.status || 'Unknown',
+    value: Number(item.percentage || 0),
+    color: ['#22c55e', '#3b82f6', '#f59e0b', '#a855f7'][idx % 4],
+  }));
+  const vendorResponseTimeData = (dashboardData?.vendorResponseTime || []).map((item) => ({
+    range: item.bucket,
+    value: Number(item.count || 0),
+  }));
+  const topVendors = (dashboardData?.topVendorsUsed || []).map((item) => ({
+    name: item.vendorName || 'Vendor',
+    services: Number(item.servicesCount || 0),
+    rating: Number(item.averageRating || 0),
+    amount: `${Number(item.totalSpentEGP || 0).toLocaleString()} EGP`,
+  }));
+
+  const kpiCards = [
+    {
+      title: 'Total Requests',
+      value: String(Number(overview.totalRequests || 0)),
+      delta: `${Number(overview.totalRequestsChange || 0) >= 0 ? '+' : ''}${Number(overview.totalRequestsChange || 0)} vs prev period`,
+      deltaColor: 'text-emerald-500 dark:text-emerald-300',
+      sparkline: monthlySpendingData.slice(-8).map((x) => Number(x.value || 0)),
+      borderTone: 'border-slate-200/90 dark:border-cyan-400/55',
+      cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
+    },
+    {
+      title: 'Avg Response Time',
+      value: formatResponseTimeFromDays(overview.avgResponseTimeDays),
+      delta: `${Number(overview.avgResponseTimeChangeDays || 0) >= 0 ? '+' : ''}${formatResponseTimeFromDays(Math.abs(Number(overview.avgResponseTimeChangeDays || 0)))}`,
+      deltaColor: 'text-emerald-500 dark:text-emerald-300',
+      sparkline: vendorResponseTimeData.map((x) => Number(x.value || 0)),
+      borderTone: 'border-slate-200/90 dark:border-violet-400/55',
+      cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
+    },
+    {
+      title: 'Total Spent',
+      value: `${Number(overview.totalSpentEGP || 0).toLocaleString()} EGP`,
+      delta: `${Number(overview.totalSpentChangePercent || 0) >= 0 ? '+' : ''}${Number(overview.totalSpentChangePercent || 0).toFixed(1)}%`,
+      deltaColor: 'text-emerald-500 dark:text-emerald-300',
+      sparkline: monthlySpendingData.slice(-8).map((x) => Number(x.value || 0)),
+      borderTone: 'border-slate-200/90 dark:border-sky-400/55',
+      cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
+    },
+    {
+      title: 'Service Success Rate',
+      value: `${Number(overview.serviceSuccessRatePercent || 0).toFixed(1)}%`,
+      delta: `${Number(overview.serviceSuccessRateChangePercent || 0) >= 0 ? '+' : ''}${Number(overview.serviceSuccessRateChangePercent || 0).toFixed(1)}%`,
+      deltaColor: 'text-emerald-500 dark:text-emerald-300',
+      sparkline: requestStatusData.map((x) => Number(x.value || 0)),
+      borderTone: 'border-slate-200/90 dark:border-indigo-400/55',
+      cardTone: 'bg-gradient-to-br from-white to-slate-50/92 dark:from-[#1a0d42] dark:to-[#170936]',
+    },
+  ];
 
   const requestStatusTotal = useMemo(
     () => requestStatusData.reduce((acc, item) => acc + item.value, 0),
-    [],
+    [requestStatusData],
   );
 
   return (
@@ -148,13 +196,13 @@ export default function ClientAnalytics() {
             <div>
               <p className="inline-flex items-center gap-1 rounded-full border border-sky-300/45 bg-gradient-to-r from-sky-500/78 to-indigo-500/78 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-sm dark:border-cyan-300/35 dark:from-cyan-500/72 dark:to-violet-500/72">
                 <Sparkles className="h-3 w-3" />
-                Client Analytics
+                Analytics
               </p>
               <h1 className="mt-2 bg-gradient-to-r from-slate-800 via-indigo-600 to-slate-800 bg-clip-text text-[2.1rem] font-black leading-[0.95] text-transparent dark:from-cyan-200 dark:via-violet-300 dark:to-sky-200 sm:text-[2.45rem]">
                 Performance & Spend Insights
               </h1>
               <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300 sm:text-[15px]">
-                Same analytics data, now aligned with the client dashboard visual language.
+                Live analytics synced with backend date-range filters.
               </p>
             </div>
 
@@ -179,7 +227,7 @@ export default function ClientAnalytics() {
             <button
               key={option.value}
               type="button"
-              onClick={() => setTimeRange(option.value)}
+              onClick={() => handleRangeClick(option.value)}
               className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
                 timeRange === option.value
                   ? 'bg-gradient-to-r from-sky-500 to-violet-600 text-white'
@@ -190,6 +238,11 @@ export default function ClientAnalytics() {
             </button>
           ))}
         </div>
+        {isLoading ? (
+          <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/65 dark:text-slate-300">
+            Loading analytics...
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           {kpiCards.map((card, index) => (
@@ -211,7 +264,7 @@ export default function ClientAnalytics() {
         <div className="grid gap-3.5 xl:grid-cols-[1.58fr_1fr]">
           <Card className="cs-card-rise cd-fast-rise border-slate-200/80 bg-gradient-to-br from-white via-slate-50/92 to-slate-100/60 shadow-sm dark:border-violet-400/35 dark:bg-gradient-to-br dark:from-[#170936] dark:via-[#1a0d42] dark:to-[#12082e] dark:shadow-[0_0_0_1px_rgba(167,139,250,0.2)]">
             <CardHeader className="pb-1">
-              <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Monthly Spending Trend</CardTitle>
+              <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Spending Trend</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
               <ResponsiveContainer width="100%" height={260}>
@@ -291,7 +344,7 @@ export default function ClientAnalytics() {
                       paddingAngle={2}
                       stroke="none"
                     >
-                      {requestStatusData.map((entry) => (
+                    {requestStatusData.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
@@ -371,6 +424,14 @@ export default function ClientAnalytics() {
           </Card>
         </div>
       </div>
+      <AnalyticsRangeDialog
+        open={isCustomOpen}
+        onOpenChange={setIsCustomOpen}
+        initialStartDateUtc={customRange.startDateUtc}
+        initialEndDateUtc={customRange.endDateUtc}
+        onApply={handleApplyCustomRange}
+        isSubmitting={isRangeSubmitting}
+      />
     </DashboardLayout>
   );
 }
