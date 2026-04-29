@@ -117,7 +117,7 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
     ? '/client/user-profile'
     : normalizedRole === 'vendor'
       ? '/vendor/profile'
-      : null;
+      : '/admin/profile';
   const profileSettingsPath = `/${roleBasePath}/profile-settings`;
   const displayName = !isBootstrapping && user?.fullName?.trim() ? user.fullName.trim() : '';
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Lock, Save, SlidersHorizontal, User } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Camera, Eye, EyeOff, Lock, Save, SlidersHorizontal, User } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -11,10 +11,13 @@ import { useAuth } from '../../hooks/useAuth';
 import {
   changeCurrentUserPasswordApi,
   getCurrentUserProfileApi,
+  getMyDetailedProfileApi,
   getUserPreferencesApi,
+  upsertUserProfileApi,
   updateCurrentUserApi,
   updateUserPreferencesApi,
 } from '../../services/userProfileApi';
+import { resolveMediaUrl } from '../../lib/mediaUrl';
 
 export default function UserProfile() {
   const role = useRoleFromPath();
@@ -44,6 +47,9 @@ export default function UserProfile() {
     emailNotification: true,
     systemNotification: true,
   });
+  const [profilePictureUrl, setProfilePictureUrl] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const photoInputRef = useRef(null);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -54,9 +60,10 @@ export default function UserProfile() {
 
       setIsProfileLoading(true);
       try {
-        const [profile, preferences] = await Promise.all([
+        const [profile, preferences, profileDetails] = await Promise.all([
           getCurrentUserProfileApi(user.token),
           getUserPreferencesApi(user.token),
+          getMyDetailedProfileApi(user.token),
         ]);
 
         const nextFullName = profile?.fullName || '';
@@ -79,6 +86,7 @@ export default function UserProfile() {
           emailNotification: nextEmailNotification,
           systemNotification: nextSystemNotification,
         });
+        setProfilePictureUrl(resolveMediaUrl(profileDetails?.profilePictureUrl || profile?.profilePictureUrl) || '');
       } catch (error) {
         toast.error(error.message || 'Failed to load profile data.');
       } finally {
@@ -213,6 +221,43 @@ export default function UserProfile() {
     }
   };
 
+  const openPhotoPicker = () => {
+    photoInputRef.current?.click();
+  };
+
+  const handlePhotoSelected = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.token) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file only.');
+      event.target.value = '';
+      return;
+    }
+
+    const maxSizeInBytes = 3 * 1024 * 1024;
+    if (file.size > maxSizeInBytes) {
+      toast.error('Image size must be 3MB or less.');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      await upsertUserProfileApi({ profilePicture: file, token: user.token });
+      const refreshed = await getMyDetailedProfileApi(user.token);
+      const nextPictureUrl = resolveMediaUrl(refreshed?.profilePictureUrl);
+      setProfilePictureUrl(nextPictureUrl || '');
+      updateAuthenticatedUser({ profilePictureUrl: nextPictureUrl || '' });
+      toast.success('Profile photo updated successfully.');
+    } catch (error) {
+      toast.error(error.message || 'Failed to upload profile photo.');
+    } finally {
+      setIsUploadingPhoto(false);
+      event.target.value = '';
+    }
+  };
+
   return (
     <DashboardLayout menuItems={menuItems} userRole={role}>
       <div className="w-full pb-8">
@@ -238,6 +283,27 @@ export default function UserProfile() {
                 <User className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />
                 Personal Information
               </h2>
+              <div className="mb-4 flex items-center gap-3">
+                <div className="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-600 dark:bg-slate-800">
+                  {profilePictureUrl ? (
+                    <img src={profilePictureUrl} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-500 dark:text-slate-300">
+                      <User className="h-6 w-6" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={openPhotoPicker}
+                  disabled={isUploadingPhoto || isProfileLoading}
+                  className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-indigo-400/35 dark:bg-indigo-500/16 dark:text-indigo-200 dark:hover:bg-indigo-500/24"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                  {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoSelected} />
+              </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <Label htmlFor="fullName" className="font-medium text-gray-700 dark:text-slate-200">
