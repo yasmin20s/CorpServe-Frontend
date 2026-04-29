@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import { Link } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
@@ -258,7 +259,7 @@ export default function VendorAnalytics() {
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600">4.8</span>
+                        <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600">{Number(analytics?.ratingsDistribution?.averageRating || 0).toFixed(1)}</span>
                         <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mt-1">Avg Rating</span>
                       </div>
                     </div>
@@ -267,11 +268,11 @@ export default function VendorAnalytics() {
                         <div className="flex justify-around">
                           <div>
                             <p className="text-sm font-bold text-slate-600 dark:text-slate-300">⭐ 5 Stars</p>
-                            <p className="text-lg font-black text-purple-600 dark:text-purple-300">18</p>
+                            <p className="text-lg font-black text-purple-600 dark:text-purple-300">{Number(analytics?.ratingsDistribution?.starsBreakdown?.find(s => Number(s.stars) === 5)?.count || 0)}</p>
                           </div>
                           <div>
                             <p className="text-sm font-bold text-slate-600 dark:text-slate-300">✓ Total</p>
-                            <p className="text-lg font-black text-pink-600 dark:text-pink-300">27</p>
+                            <p className="text-lg font-black text-pink-600 dark:text-pink-300">{Number(analytics?.ratingsDistribution?.totalRatingsCount || 0)}</p>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-purple-200 dark:border-purple-900/50 text-xs text-slate-600 dark:text-slate-300 font-semibold">
@@ -290,7 +291,9 @@ export default function VendorAnalytics() {
                       {Number(analytics?.ratingsDistribution?.totalRatingsCount || 0)} Ratings
                     </span>
                   </div>
-                  {ratingDistribution.map((item) => (
+                  {ratingDistribution.length === 0 ? (
+                    <EmptyChartMessage message="No rating data available for this period." />
+                  ) : ratingDistribution.map((item) => (
                     <div key={item.stars} className="flex items-center gap-3">
                       <span className="text-sm font-bold text-slate-700 w-4">{item.stars}★</span>
                       <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
@@ -360,11 +363,11 @@ export default function VendorAnalytics() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-black text-slate-900 dark:text-white">62%</span>
+                    <span className="text-3xl font-black text-slate-900 dark:text-white">{Number(analytics?.clientRetention?.repeatClientsPercent || 0).toFixed(0)}%</span>
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase mt-1">Repeat</span>
                   </div>
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300 mt-6 font-semibold text-center">Total clients served: <span className="text-blue-700 dark:text-blue-400 font-bold">18</span></p>
+                <p className="text-sm text-slate-700 dark:text-slate-300 mt-6 font-semibold text-center">Total clients served: <span className="text-blue-700 dark:text-blue-400 font-bold">{Number(analytics?.clientRetention?.totalClientsServed || 0)}</span></p>
               </div>
             </div>
 
@@ -374,6 +377,9 @@ export default function VendorAnalytics() {
                 <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Accepted Proposals</h3>
               </div>
               <div className="h-44">
+                {acceptedProposalsData.length === 0 ? (
+                  <EmptyChartMessage message="No accepted proposals data available." />
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={acceptedProposalsData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -387,6 +393,7 @@ export default function VendorAnalytics() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
           </div>
@@ -398,7 +405,9 @@ export default function VendorAnalytics() {
                 <h3 className="text-base font-bold text-slate-900 uppercase tracking-wide dark:text-slate-100">Top Performing Contracts</h3>
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-              {topContracts.map((row, idx) => (
+              {topContracts.length === 0 ? (
+                <EmptyChartMessage message="No contract data available for this period." />
+              ) : topContracts.map((row, idx) => (
                 <div key={idx} className="flex flex-col gap-3 p-3 sm:p-4 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:shadow-md transition-all dark:from-[#071026] dark:to-[#071428] dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
