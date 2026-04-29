@@ -41,25 +41,25 @@ const PAGE_SIZE = 5;
 
 const statusStyles = {
   active: {
-    badge: 'border-indigo-400 bg-indigo-200 text-indigo-950 dark:border-indigo-400/35 dark:bg-indigo-500/24 dark:text-indigo-100',
-    progress: 'bg-indigo-700',
-    accent: 'from-indigo-600/85 via-sky-500/60 to-indigo-500/40',
+    badge: 'border-blue-400 bg-blue-200 text-blue-950 dark:border-blue-400/35 dark:bg-blue-500/24 dark:text-blue-100',
+    progress: 'bg-blue-700',
+    accent: 'from-blue-600/85 via-cyan-500/60 to-blue-500/40',
   },
   pending: {
-    badge: 'border-sky-400 bg-sky-200 text-sky-950 dark:border-sky-400/35 dark:bg-sky-500/24 dark:text-sky-100',
-    progress: 'bg-sky-700',
-    accent: 'from-sky-600/85 via-indigo-500/60 to-sky-500/40',
+    badge: 'border-amber-400 bg-amber-200 text-amber-950 dark:border-amber-400/35 dark:bg-amber-500/24 dark:text-amber-100',
+    progress: 'bg-amber-700',
+    accent: 'from-amber-600/85 via-orange-500/60 to-amber-500/40',
   },
   completed: {
     badge: 'border-emerald-400 bg-emerald-200 text-emerald-950 dark:border-emerald-400/35 dark:bg-emerald-500/24 dark:text-emerald-100',
     progress: 'bg-emerald-700',
-    accent: 'from-emerald-600/85 via-green-500/60 to-emerald-500/40',
+    accent: 'from-emerald-600/85 via-teal-500/60 to-emerald-500/40',
   },
 };
 
 /** Keys match backend SLAStatus enum names (case-insensitive → normalized). */
 const slaStyles = {
-  inprogress: 'border-indigo-400 bg-indigo-200 text-indigo-950 dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:text-indigo-100',
+  inprogress: 'border-blue-400 bg-blue-200 text-blue-950 dark:border-blue-400/30 dark:bg-blue-500/18 dark:text-blue-100',
   delayed: 'border-rose-400 bg-rose-200 text-rose-950 dark:border-rose-400/30 dark:bg-rose-500/18 dark:text-rose-100',
   completed: 'border-emerald-400 bg-emerald-200 text-emerald-950 dark:border-emerald-400/30 dark:bg-emerald-500/18 dark:text-emerald-100',
 };
@@ -130,6 +130,37 @@ function formatBudgetRange(budgetMin, budgetMax) {
   return `Up to ${formatMoneyEGP(max)}`;
 }
 
+  function requestRowTone(status, slaKey) {
+    const normalizedStatus = String(status || '').toLowerCase();
+  
+    // Based on SLA status - takes priority for visual feedback
+    if (slaKey === 'completed') {
+      return {
+        wrapper: 'border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-white to-cyan-50/60 dark:border-emerald-400/25 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:via-slate-900 dark:to-cyan-500/10',
+        stripe: 'from-emerald-500 to-cyan-500',
+      };
+    }
+  
+    if (slaKey === 'delayed') {
+      return {
+        wrapper: 'border-rose-200/80 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60 dark:border-rose-400/25 dark:bg-gradient-to-r dark:from-rose-500/10 dark:via-slate-900 dark:to-pink-500/10',
+        stripe: 'from-rose-500 to-pink-500',
+      };
+    }
+  
+    if (slaKey === 'inprogress' || normalizedStatus === 'active') {
+      return {
+        wrapper: 'border-amber-200/80 bg-gradient-to-r from-amber-50/70 via-white to-orange-50/60 dark:border-amber-400/25 dark:bg-gradient-to-r dark:from-amber-500/10 dark:via-slate-900 dark:to-orange-500/10',
+        stripe: 'from-amber-500 to-orange-500',
+      };
+    }
+  
+    // Default (pending or other)
+    return {
+      wrapper: 'border-indigo-100 bg-gradient-to-r from-white via-indigo-50/20 to-violet-50/25 dark:border-indigo-400/20 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/95 dark:to-indigo-500/10',
+      stripe: 'from-indigo-500 to-violet-500',
+    };
+  }
 export default function RequestsMonitor() {
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
@@ -280,89 +311,100 @@ export default function RequestsMonitor() {
 
   return (
     <DashboardLayout menuItems={menuItems} userRole="admin">
-      <div className="space-y-4 lg:space-y-8">
-        <div className="cs-glow-sweep group relative overflow-hidden rounded-[1rem] border border-indigo-400/80 bg-gradient-to-br from-indigo-200 via-blue-100 to-violet-200 p-3.5 shadow-[0_20px_48px_rgba(79,70,229,0.2)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_32px_64px_rgba(79,70,229,0.28)] sm:rounded-[1.75rem] sm:p-7 lg:rounded-[2rem] lg:p-9 dark:border-indigo-400/25 dark:bg-gradient-to-br dark:from-[#1a2745] dark:via-[#233861] dark:to-[#2b4a75] dark:shadow-[0_18px_40px_rgba(2,6,23,0.5)] dark:hover:shadow-[0_20px_44px_rgba(2,6,23,0.56)]">
-          <div className="cs-glow-orb absolute -left-10 top-4 h-44 w-44 rounded-full bg-indigo-600/35 blur-3xl dark:bg-indigo-500/24" />
-          <div className="cs-glow-orb-delayed absolute -right-10 bottom-0 h-52 w-52 rounded-full bg-sky-600/30 blur-3xl dark:bg-sky-500/22" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-violet-500" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-3xl">
-                <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-white/80 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-indigo-700 sm:mb-4 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-xs sm:tracking-[0.18em] dark:border-indigo-400/30 dark:bg-slate-900/78 dark:text-indigo-200">
-                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Wide Monitor View
+      <div className="space-y-3 lg:space-y-6">
+        <div className="relative overflow-hidden rounded-xl border border-violet-100 bg-[#f3edff] px-6 py-7 dark:border-violet-500/20 dark:bg-slate-900/60">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-violet-500 to-blue-500" />
+          <div className="absolute right-6 top-6 h-2.5 w-2.5 rounded-full bg-violet-400" />
+          
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between px-2">
+            <div className="flex-1">
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-[#6d28d9] shadow-sm dark:bg-violet-900/40 dark:text-violet-200">
+                <Sparkles className="h-4 w-4 text-yellow-500" />
+                DASHBOARD
               </div>
-              <h1 className="text-[1.7rem] font-bold leading-tight text-slate-950 sm:text-4xl lg:text-[2.75rem] dark:text-slate-100">Requests Monitor</h1>
-              <p className="mt-1.5 text-[13px] text-slate-700 sm:mt-3 sm:text-base lg:text-lg dark:text-slate-300">Larger layout, cleaner hierarchy, and wider cards so every request detail is readable at a glance.</p>
+              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                Requests Monitor
+              </h1>
+              <p className="mt-2 max-w-xl text-[14px] text-violet-700/80 dark:text-violet-300">
+                Track request flow, SLA status, and proposal updates from one cinematic dashboard.
+              </p>
+              
+              <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="flex min-w-[140px] flex-col rounded-lg border border-violet-200/60 bg-white/60 px-4 py-2 shadow-sm backdrop-blur-md dark:border-violet-400/20 dark:bg-slate-900/40">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-300">Total Budget</span>
+                  <span className="mt-0.5 text-lg font-extrabold text-slate-900 dark:text-slate-100">{formatBudgetRange(metrics.totalBudgetMin, metrics.totalBudgetMax)}</span>
+                </div>
+                <div className="flex min-w-[140px] flex-col rounded-lg border border-indigo-200/60 bg-indigo-50/50 px-4 py-2 shadow-sm backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-900/20">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">Avg Progress</span>
+                  <span className="mt-0.5 text-lg font-extrabold text-indigo-700 dark:text-indigo-200">{metrics.avgProgress}%</span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:max-w-lg">
-              <div className="grid w-full gap-2.5 sm:grid-cols-2 sm:gap-4">
-                <div className="rounded-lg border border-indigo-200 bg-white/90 p-3 shadow-sm sm:rounded-2xl sm:p-5 dark:border-indigo-400/35 dark:bg-slate-900/70 dark:shadow-none">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">Total Budget</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900 sm:mt-2 sm:text-3xl dark:text-slate-100">{formatBudgetRange(metrics.totalBudgetMin, metrics.totalBudgetMax)}</p>
-                  <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-300/80">Whole platform data</p>
-                </div>
-                <div className="rounded-lg border border-indigo-400 bg-indigo-200/85 p-3 shadow-sm sm:rounded-2xl sm:p-5 dark:border-indigo-400/30 dark:bg-indigo-500/18 dark:shadow-none">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">Avg Progress</p>
-                  <p className="mt-1 text-lg font-bold text-indigo-950 sm:mt-2 sm:text-3xl dark:text-indigo-100">{metrics.avgProgress}%</p>
-                  <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-300/80">Whole platform data</p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-10 shrink-0 border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-900/80 dark:text-indigo-200 dark:hover:bg-indigo-500/16"
-                onClick={() => loadRequests({ silent: true })}
-                disabled={isRefreshing || !user?.token}
-              >
-                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
+            <Button
+              type="button"
+              className="mt-2 h-10 shrink-0 rounded-lg bg-[#7c3aed] px-5 font-semibold text-white shadow-sm transition-colors hover:bg-[#6d28d9] dark:bg-violet-600 dark:hover:bg-violet-500 md:mt-0"
+              onClick={() => loadRequests({ silent: true })}
+              disabled={isRefreshing || !user?.token}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
           </div>
         </div>
 
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="border-indigo-400 bg-gradient-to-br from-indigo-200/85 to-white shadow-sm dark:border-indigo-400/30 dark:bg-gradient-to-br dark:from-indigo-500/24 dark:to-slate-800 dark:shadow-none">
-            <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-indigo-900 sm:text-sm dark:text-indigo-100">Active Requests</p>
-              <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.activeRequests}</p>
-              <p className="mt-1 text-[10px] text-indigo-800/80 dark:text-indigo-200/80">Whole platform data</p>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-[0_16px_40px_rgba(99,102,241,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-100">Active Requests</p>
+                <Sparkles className="h-4 w-4 text-indigo-100" />
+              </div>
+              <p className="text-xl font-bold tabular-nums">{metrics.activeRequests}</p>
+              <p className="mt-1.5 text-[11px] text-indigo-100">Based on all active items</p>
             </CardContent>
           </Card>
-          <Card className="border-sky-400 bg-gradient-to-br from-sky-200/85 to-white shadow-sm dark:border-sky-400/30 dark:bg-gradient-to-br dark:from-sky-500/24 dark:to-slate-800 dark:shadow-none">
-            <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-sky-900 sm:text-sm dark:text-sky-100">Pending Requests</p>
-              <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.pendingRequests}</p>
-              <p className="mt-1 text-[10px] text-sky-800/80 dark:text-sky-200/80">Whole platform data</p>
+          <Card className="border-0 bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-[0_14px_34px_rgba(59,130,246,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-blue-100">Pending Requests</p>
+                <Clock3 className="h-4 w-4 text-blue-100" />
+              </div>
+              <p className="text-xl font-bold tabular-nums">{metrics.pendingRequests}</p>
+              <p className="mt-1.5 text-[11px] text-blue-100">Requests waiting for action</p>
             </CardContent>
           </Card>
-          <Card className="border-rose-400 bg-gradient-to-br from-rose-200/85 to-white shadow-sm dark:border-rose-400/30 dark:bg-gradient-to-br dark:from-rose-500/24 dark:to-slate-800 dark:shadow-none">
-            <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-rose-900 sm:text-sm dark:text-rose-100">SLA Delayed</p>
-              <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.delayedSla}</p>
-              <p className="mt-1 text-[10px] text-rose-800/80 dark:text-rose-200/80">Whole platform data</p>
+          <Card className="border-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white shadow-[0_14px_34px_rgba(16,185,129,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-100">SLA Delayed</p>
+                <AlertTriangle className="h-4 w-4 text-emerald-100" />
+              </div>
+              <p className="text-xl font-bold tabular-nums">{metrics.delayedSla}</p>
+              <p className="mt-1.5 text-[11px] text-emerald-100">Needs close attention</p>
             </CardContent>
           </Card>
-          <Card className="border-emerald-400 bg-gradient-to-br from-emerald-200/85 to-white shadow-sm dark:border-emerald-400/30 dark:bg-gradient-to-br dark:from-emerald-500/24 dark:to-slate-800 dark:shadow-none">
-            <CardContent className="p-3.5 sm:p-6">
-              <p className="text-xs font-semibold text-emerald-900 sm:text-sm dark:text-emerald-100">All Requests</p>
-              <p className="mt-1 text-2xl font-bold text-slate-900 sm:mt-2 sm:text-4xl dark:text-slate-100">{metrics.allTracked}</p>
-              <p className="mt-1 text-[10px] text-emerald-800/80 dark:text-emerald-200/80">Whole platform data</p>
+          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white shadow-[0_14px_34px_rgba(249,115,22,0.35)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-amber-100">All Requests</p>
+                <FileText className="h-4 w-4 text-amber-100" />
+              </div>
+              <p className="text-xl font-bold tabular-nums">{metrics.allTracked}</p>
+              <p className="mt-1.5 text-[11px] text-amber-100">Whole platform data</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
-          <CardContent className="p-3.5 sm:p-6 lg:p-7">
-            <div className="mb-4 flex items-center justify-between sm:mb-5">
-              <h2 className="text-base font-semibold text-slate-900 sm:text-xl dark:text-slate-100">Filters</h2>
-              <span className="rounded-full border border-indigo-400 bg-indigo-200 px-3 py-1 text-xs font-semibold text-indigo-950 dark:border-indigo-400/35 dark:bg-indigo-500/20 dark:text-indigo-100">Live</span>
+        <Card className="border-indigo-100 bg-gradient-to-r from-white via-indigo-50/35 to-sky-50/40 shadow-sm dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-900/95 dark:to-indigo-500/10">
+          <CardContent className="p-3.5 sm:p-5 lg:p-6">
+            <div className="mb-3 flex items-center justify-between sm:mb-4">
+              <h2 className="text-sm font-semibold text-slate-900 sm:text-base dark:text-slate-100">Filters</h2>
+              <span className="rounded-full border border-violet-400 bg-violet-200 px-2.5 py-1 text-[11px] font-semibold text-violet-950 dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100">Live</span>
             </div>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-3 lg:grid-cols-3">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="h-10 text-xs sm:h-12 sm:text-base"><SelectValue placeholder="All Categories" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs sm:h-10 sm:text-sm"><SelectValue placeholder="All Categories" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((c) => (
@@ -371,7 +413,7 @@ export default function RequestsMonitor() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-10 text-xs sm:h-12 sm:text-base"><SelectValue placeholder="All Status" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs sm:h-10 sm:text-sm"><SelectValue placeholder="All Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
@@ -379,7 +421,7 @@ export default function RequestsMonitor() {
                 </SelectContent>
               </Select>
               <Select value={slaFilter} onValueChange={setSlaFilter}>
-                <SelectTrigger className="h-10 text-xs sm:h-12 sm:text-base"><SelectValue placeholder="SLA status" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs sm:h-10 sm:text-sm"><SelectValue placeholder="SLA status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All SLA statuses</SelectItem>
                   <SelectItem value="1">In progress</SelectItem>
@@ -399,20 +441,21 @@ export default function RequestsMonitor() {
           {requests.map((request, index) => {
             const statusConfig = statusStyles[request.status] || statusStyles.pending;
             const slaClass = request.slaKey ? slaStyles[request.slaKey] : null;
+           const rowTone = requestRowTone(request.status, request.slaKey);
 
             return (
               <Card
                 key={request.id}
-                className="cs-card-rise group relative overflow-hidden border-indigo-300 bg-white shadow-[0_10px_24px_rgba(79,70,229,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-[0_14px_30px_rgba(79,70,229,0.2)] dark:border-slate-700 dark:bg-slate-900/88 dark:shadow-none dark:hover:border-indigo-400/35 dark:hover:shadow-none"
+                 className={`cs-card-rise group relative overflow-hidden rounded-xl border p-3 transition-all duration-300 hover:shadow-lg sm:p-4 ${rowTone.wrapper}`}
                 style={{ animationDelay: `${160 + index * 110}ms` }}
               >
-                <div className={`cs-glow-orb pointer-events-none absolute -left-12 top-0 h-full w-52 bg-gradient-to-br ${statusConfig.accent} blur-2xl`} />
-                <CardContent className="relative p-3 sm:p-6 lg:p-7">
-                  <div className="mb-3 flex flex-col gap-2.5 sm:mb-5 sm:gap-4 xl:flex-row xl:items-start xl:justify-between">
+                 <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${rowTone.stripe}`} />
+                <CardContent className="relative p-2.5 sm:p-4 lg:p-5">
+                  <div className="mb-3 flex flex-col gap-2 sm:mb-4 xl:flex-row xl:items-start xl:justify-between">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-slate-900 sm:text-2xl lg:text-[1.7rem] dark:text-slate-100">{request.title}</h3>
-                      <p className="mt-1 max-w-3xl text-xs text-slate-600 sm:text-base dark:text-slate-300">{request.description}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 sm:text-base dark:text-slate-400">
+                      <h3 className="text-base font-semibold text-slate-900 sm:text-xl dark:text-slate-100">{request.title}</h3>
+                      <p className="mt-1 max-w-3xl text-[13px] text-slate-600 sm:text-sm dark:text-slate-300">{request.description}</p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-slate-600 sm:text-sm dark:text-slate-400">
                         <span className="font-medium text-slate-500 dark:text-slate-200">Client:</span>
                         <UserAvatar
                           userId={request.clientId}
@@ -422,21 +465,21 @@ export default function RequestsMonitor() {
                         />
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-1 sm:gap-2.5">
-                      <Badge variant="outline" className="border-indigo-400 bg-indigo-200 px-2 py-0.5 text-[11px] text-indigo-950 sm:px-3 sm:py-1 sm:text-sm dark:border-indigo-400/35 dark:bg-indigo-500/20 dark:text-indigo-100">{request.category || '—'}</Badge>
-                      <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${statusConfig.badge}`}>{request.status}</Badge>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge variant="outline" className="border-violet-400 bg-violet-200 px-2 py-0.5 text-[10px] text-violet-950 sm:text-xs dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100">{request.category || '—'}</Badge>
+                      <Badge className={`border px-2 py-0.5 text-[10px] sm:text-xs ${statusConfig.badge}`}>{request.status}</Badge>
                       {request.hasSla ? (
-                        <Badge className={`border px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-sm ${slaClass || 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200'}`}>
+                        <Badge className={`border px-2 py-0.5 text-[10px] sm:text-xs ${slaClass || 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200'}`}>
                           SLA: {request.slaLabel}
                         </Badge>
                       ) : null}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 sm:rounded-2xl sm:p-4 dark:border-emerald-400/25 dark:bg-emerald-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-200">Vendor</p>
-                      <div className="mt-1 sm:mt-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 dark:border-emerald-400/25 dark:bg-emerald-500/14">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700 dark:text-emerald-200">Vendor</p>
+                      <div className="mt-1">
                         <UserAvatar
                           userId={request.vendorId}
                           name={request.vendor || 'Unassigned vendor'}
@@ -445,59 +488,59 @@ export default function RequestsMonitor() {
                         />
                       </div>
                     </div>
-                    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 sm:rounded-2xl sm:p-4 dark:border-indigo-400/25 dark:bg-indigo-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Client budget</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg dark:text-slate-100">{request.budget}</p>
+                    <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-2.5 dark:border-cyan-400/25 dark:bg-cyan-500/14">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-cyan-700 dark:text-cyan-200">Client budget</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{request.budget}</p>
                     </div>
-                    <div className="rounded-lg border border-sky-200 bg-sky-50 p-2.5 sm:rounded-2xl sm:p-4 dark:border-sky-400/25 dark:bg-sky-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-200">Deadline</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-900 sm:mt-2 sm:text-lg dark:text-slate-100">{request.deadline}</p>
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5 dark:border-blue-400/25 dark:bg-blue-500/14">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-700 dark:text-blue-200">Deadline</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{request.deadline}</p>
                     </div>
-                    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 sm:rounded-2xl sm:p-4 dark:border-indigo-400/25 dark:bg-indigo-500/14">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Status Snapshot</p>
-                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 sm:mt-2 sm:gap-2 sm:text-base dark:text-slate-100">
-                        {request.status === 'active' ? <CheckCircle2 className="h-4 w-4 text-emerald-700 sm:h-5 sm:w-5" /> : <Clock3 className="h-4 w-4 text-sky-700 sm:h-5 sm:w-5" />}
+                    <div className="rounded-lg border border-violet-200 bg-violet-50 p-2.5 dark:border-violet-400/25 dark:bg-violet-500/14">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-700 dark:text-violet-200">Status Snapshot</p>
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 dark:text-slate-100">
+                        {request.status === 'active' ? <CheckCircle2 className="h-4 w-4 text-emerald-700" /> : <Clock3 className="h-4 w-4 text-blue-700" />}
                         {request.status === 'active' ? 'In Progress' : request.status === 'completed' ? 'Completed' : 'Waiting Assignment'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-2.5 rounded-lg border border-indigo-200 bg-gradient-to-r from-indigo-50 to-sky-50 p-2.5 sm:mt-5 sm:rounded-2xl sm:p-4 dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-indigo-500/12 dark:to-sky-500/12">
-                    <div className="mb-1.5 flex items-center justify-between sm:mb-2">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Execution Progress</p>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-indigo-700 sm:px-3 sm:py-1 sm:text-sm dark:border-indigo-400/30 dark:bg-slate-900/80 dark:text-indigo-100">
+                  <div className="mt-2 rounded-lg border border-indigo-200 bg-gradient-to-r from-indigo-50 to-sky-50 p-2.5 dark:border-indigo-400/25 dark:bg-gradient-to-r dark:from-indigo-500/12 dark:to-sky-500/12">
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-200">Execution Progress</p>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:border-indigo-400/30 dark:bg-slate-900/80 dark:text-indigo-100">
                         {request.progress}%
-                        <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <ArrowUpRight className="h-3 w-3" />
                       </span>
                     </div>
-                    <Progress value={request.progress} className="h-3 bg-indigo-100 sm:h-3.5" indicatorClassName={statusConfig.progress} />
+                    <Progress value={request.progress} className="h-2.5 bg-indigo-100" indicatorClassName={statusConfig.progress} />
                     {request.slaKey === 'delayed' && (
-                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-rose-700 sm:mt-3 sm:gap-2 sm:text-sm">
-                        <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-rose-700">
+                        <AlertTriangle className="h-3.5 w-3.5" />
                         Attention: SLA is in delayed status.
                       </p>
                     )}
                   </div>
 
-                  <div className="mt-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 p-2.5 sm:mt-5 sm:rounded-2xl sm:p-4 dark:border-indigo-400/25 dark:bg-indigo-500/14">
-                    <div className="mb-2 flex items-center justify-between sm:mb-3">
-                      <h4 className="text-sm font-semibold uppercase tracking-widest text-indigo-700 dark:text-indigo-100">Proposals</h4>
-                      <Badge variant="outline" className="border-indigo-400 bg-indigo-200 text-xs text-indigo-950 sm:text-sm dark:border-indigo-400/35 dark:bg-indigo-500/20 dark:text-indigo-100">
+                  <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50/70 p-2.5 dark:border-violet-400/25 dark:bg-violet-500/14">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-[11px] font-semibold uppercase tracking-widest text-violet-700 dark:text-violet-100">Proposals</h4>
+                      <Badge variant="outline" className="border-violet-400 bg-violet-200 text-[10px] text-violet-950 dark:border-violet-400/35 dark:bg-violet-500/20 dark:text-violet-100">
                         {request.proposals.length} proposal(s)
                       </Badge>
                     </div>
-                    <div className="grid gap-2 sm:gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                       {request.proposals.map((proposal) => (
-                        <div key={proposal.id} className="rounded-md border border-indigo-200 bg-white p-2 sm:rounded-xl sm:p-3 dark:border-indigo-400/25 dark:bg-slate-800/74">
+                        <div key={proposal.id} className="rounded-md border border-indigo-200 bg-white p-2 dark:border-indigo-400/25 dark:bg-slate-800/74">
                           <UserAvatar
                             userId={proposal.vendorId}
                             name={proposal.vendorName}
                             profilePictureUrl={undefined}
                             size="xs"
                           />
-                          <p className="mt-1 text-xs text-slate-600 sm:text-sm dark:text-slate-300">Proposed price: {proposal.price}</p>
-                          <p className="text-xs text-slate-600 sm:text-sm dark:text-slate-300">ETA: {proposal.eta}</p>
-                          <Badge variant="outline" className="mt-1.5 border-indigo-200 bg-indigo-50 text-[11px] text-indigo-700 sm:mt-2 sm:text-xs dark:border-indigo-400/30 dark:bg-indigo-500/16 dark:text-indigo-100">{proposal.status}</Badge>
+                          <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">Proposed price: {proposal.price}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-300">ETA: {proposal.eta}</p>
+                          <Badge variant="outline" className="mt-1.5 border-indigo-200 bg-indigo-50 text-[10px] text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/16 dark:text-indigo-100">{proposal.status}</Badge>
                         </div>
                       ))}
                     </div>
@@ -517,9 +560,9 @@ export default function RequestsMonitor() {
         </div>
 
         {!isLoading && totalCount > 0 ? (
-          <Card className="border-indigo-200 bg-white/90 shadow-sm dark:border-indigo-400/25 dark:bg-slate-800/78 dark:shadow-none">
+          <Card className="border-indigo-100 bg-gradient-to-b from-white to-indigo-50/20 shadow-sm dark:border-indigo-400/25 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-900/95">
             <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700 dark:text-indigo-200">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-700 dark:text-violet-200">
                 Page {currentPage} of {totalPages} · {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -527,7 +570,7 @@ export default function RequestsMonitor() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="border-indigo-200 text-indigo-800 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
+                  className="border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-400/35 dark:bg-slate-800/70 dark:text-violet-200 dark:hover:bg-violet-500/18"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || isRefreshing}
                 >
@@ -537,7 +580,7 @@ export default function RequestsMonitor() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="border-indigo-200 text-indigo-800 hover:bg-indigo-50 dark:border-indigo-400/35 dark:bg-slate-800/70 dark:text-indigo-200 dark:hover:bg-indigo-500/18"
+                  className="border-violet-200 text-violet-800 hover:bg-violet-50 dark:border-violet-400/35 dark:bg-slate-800/70 dark:text-violet-200 dark:hover:bg-violet-500/18"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || isRefreshing}
                 >
