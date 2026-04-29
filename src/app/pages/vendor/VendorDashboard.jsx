@@ -165,7 +165,7 @@ export default function VendorDashboard() {
           <div className="absolute right-0 top-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/20 blur-3xl" />
           <div className="absolute left-1/2 bottom-0 -ml-32 -mb-20 h-80 w-80 rounded-full bg-purple-400/20 blur-3xl" />
           <div className="relative z-10">
-            <h1 className="text-4xl font-black sm:text-5xl">Vendor Dashboard</h1>
+            <h1 className="text-2xl font-black sm:text-4xl md:text-5xl">Vendor Dashboard</h1>
             <p className="mt-2 text-lg text-white/90">Your performance hub at a glance</p>
             {errorMessage ? <p className="mt-2 text-sm text-rose-100">{errorMessage}</p> : null}
             {isLoading ? <p className="mt-2 text-sm text-white/80">Loading dashboard data...</p> : null}
@@ -173,7 +173,7 @@ export default function VendorDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {/* Active Contracts */}
           <Card className="h-full overflow-hidden rounded-2xl border border-purple-200/80 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-lg transition-all hover:shadow-2xl dark:border-purple-400/35 dark:from-[#1a1038] dark:to-[#13233e]">
             <CardContent className="p-6">
@@ -218,7 +218,7 @@ export default function VendorDashboard() {
         </div>
 
         {/* Charts Section - Add Open Proposals back to KPI */}
-        <div className="grid gap-5 xl:grid-cols-3">
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 xl:grid-cols-3">
           <Card className="xl:col-span-2 overflow-hidden rounded-2xl border border-purple-200/80 bg-gradient-to-br from-white to-purple-50 shadow-lg dark:border-purple-400/35 dark:from-[#160f35] dark:to-[#1a1638]">
             <CardContent className="p-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -230,7 +230,7 @@ export default function VendorDashboard() {
                 </div>
               </div>
 
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={momentumData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="month" stroke="var(--muted-foreground)" />
@@ -275,17 +275,17 @@ export default function VendorDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+              <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 text-center">
                 <div>
-                  <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{submittedProposals}</p>
+                  <p className="text-xl font-black text-slate-800 dark:text-slate-100 sm:text-2xl">{submittedProposals}</p>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Submitted</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-300">{acceptedProposals}</p>
+                  <p className="text-xl font-black text-emerald-600 dark:text-emerald-300 sm:text-2xl">{acceptedProposals}</p>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Accepted</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-rose-600 dark:text-rose-300">{rejectedProposals}</p>
+                  <p className="text-xl font-black text-rose-600 dark:text-rose-300 sm:text-2xl">{rejectedProposals}</p>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Rejected</p>
                 </div>
               </div>
@@ -294,7 +294,7 @@ export default function VendorDashboard() {
         </div>
 
         {/* Bottom Section - Contracts & Deadlines */}
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 xl:grid-cols-2">
           <Card className="overflow-hidden rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-white to-indigo-50 shadow-lg dark:border-indigo-400/35 dark:from-[#141e38] dark:to-[#171d3f]">
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-indigo-700 mb-5">Active Contracts</h3>

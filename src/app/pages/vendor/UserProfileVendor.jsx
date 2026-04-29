@@ -674,12 +674,23 @@ export default function UserProfileVendor() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
-                        <FileText className="h-3.5 w-3.5 text-pink-500 dark:text-pink-300" /> Description
-                      </label>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
+                          <FileText className="h-3.5 w-3.5 text-pink-500 dark:text-pink-300" /> Description
+                        </label>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          Max 500 words | {draftValues.description.length} characters
+                        </span>
+                      </div>
                       <Textarea
                         value={draftValues.description}
-                        onChange={(e) => setDraftValues((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) => {
+                          const text = e.target.value;
+                          const words = text.trim().split(/\\s+/).filter(Boolean);
+                          if (words.length <= 500) {
+                            setDraftValues((prev) => ({ ...prev, description: text }));
+                          }
+                        }}
                         rows={4}
                         placeholder="Add your company description"
                         className="bg-white dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
