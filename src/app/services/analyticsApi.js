@@ -145,6 +145,7 @@ function normalizeVendorAnalytics(raw = {}) {
       ? contracts.map((item) => ({
         clientId: String(pick(item, 'clientId', 'ClientId') ?? ''),
         clientName: String(pick(item, 'clientName', 'ClientName') ?? ''),
+        clientProfileUrl: String(pick(item, 'clientProfileUrl', 'ClientProfileUrl') ?? ''),
         service: String(pick(item, 'service', 'Service') ?? ''),
         valueEGP: toNumber(pick(item, 'valueEGP', 'ValueEGP')),
         deliveredAtUtc: pick(item, 'deliveredAtUtc', 'DeliveredAtUtc') ?? null,

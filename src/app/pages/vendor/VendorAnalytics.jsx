@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Card, CardContent } from '../../components/ui/card';
 import {
@@ -111,6 +112,7 @@ export default function VendorAnalytics() {
   const topContracts = useMemo(
     () => (analytics.topPerformingContracts || []).map((row) => ({
       client: row.clientName,
+      clientProfileUrl: row.clientProfileUrl || (row.clientId ? `/vendor/user/${row.clientId}` : ''),
       service: row.service,
       value: Number(row.valueEGP || 0),
       delivered: row.deliveredAtUtc ? new Date(row.deliveredAtUtc).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '-',
@@ -356,7 +358,15 @@ export default function VendorAnalytics() {
                       {row.client.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate dark:text-slate-100">{row.client}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate dark:text-slate-100">
+                        {row.clientProfileUrl ? (
+                          <Link to={row.clientProfileUrl} className="hover:text-violet-600 dark:hover:text-violet-300">
+                            {row.client}
+                          </Link>
+                        ) : (
+                          row.client
+                        )}
+                      </p>
                       <p className="text-xs text-slate-600 dark:text-slate-300">{row.service}</p>
                     </div>
                   </div>
