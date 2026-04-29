@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import DashboardLayout from '../../components/DashboardLayout';
 import { LayoutDashboard, Users, Briefcase, FileText, DollarSign, TrendingUp, UserCheck, CalendarDays, BarChart3, Timer, ShieldCheck } from 'lucide-react';
 import {
@@ -302,6 +303,9 @@ export default function AdminAnalytics() {
               <span className="aa-pill">YTD : {(Number(analytics?.overview?.gmvEGP || 0) / 1000000).toFixed(2)}M EGP</span>
           </div>
           <div className="aa-chart">
+            {gmvData.length === 0 ? (
+              <EmptyChartMessage message="No GMV data available for this period." />
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={gmvData} margin={{ top: 12, right: 20, left: 0, bottom: 0 }}>
                 <defs>
@@ -317,6 +321,7 @@ export default function AdminAnalytics() {
                 <Area type="monotone" dataKey="GMV" stroke="#8b5cf6" fill="url(#gmvFill)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -326,6 +331,9 @@ export default function AdminAnalytics() {
               <h3>Top Service Categories</h3>
             </div>
             <div className="aa-chart-sm">
+              {serviceCategories.length === 0 ? (
+                <EmptyChartMessage message="No service category data available." />
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -345,6 +353,7 @@ export default function AdminAnalytics() {
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={formatPercent} />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -358,6 +367,9 @@ export default function AdminAnalytics() {
               </div>
             </div>
             <div className="aa-chart-sm">
+              {userGrowth.length === 0 ? (
+                <EmptyChartMessage message="No user growth data available." />
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={userGrowth} margin={{ top: 6, right: 12, left: 0, bottom: 0 }}>
                   <defs>
@@ -383,6 +395,7 @@ export default function AdminAnalytics() {
                   <Area type="monotone" dataKey="admins" stroke="#f472b6" fill="url(#adminsFill)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -400,7 +413,7 @@ export default function AdminAnalytics() {
                   </Pie>
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={formatPercent} />
                   <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" className="aa-donut-value">
-                    12.4%
+                    {Number(analytics?.revenueSplit?.platformFeePercent || 0).toFixed(1)}%
                   </text>
                   <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" className="aa-donut-label">
                     Platform
@@ -411,11 +424,11 @@ export default function AdminAnalytics() {
             <div className="aa-revenue">
               <div>
                 <span>Vendor Payout</span>
-                <strong>87.6%</strong>
+                <strong>{Number(analytics?.revenueSplit?.vendorPayoutPercent || 0).toFixed(1)}%</strong>
               </div>
               <div>
                 <span>Platform Fee</span>
-                <strong>12.4%</strong>
+                <strong>{Number(analytics?.revenueSplit?.platformFeePercent || 0).toFixed(1)}%</strong>
               </div>
             </div>
           </div>
@@ -427,6 +440,9 @@ export default function AdminAnalytics() {
               <h3>Top Vendors by Revenue</h3>
             </div>
             <div className="aa-chart-sm aa-chart-bars">
+              {topVendors.length === 0 ? (
+                <EmptyChartMessage message="No vendor revenue data available." />
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topVendors} layout="vertical" margin={{ top: 5, right: 20, left: 40, bottom: 5 }}>
                   <defs>
@@ -444,6 +460,7 @@ export default function AdminAnalytics() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -464,7 +481,9 @@ export default function AdminAnalytics() {
                   </tr>
                 </thead>
                 <tbody>
-                  {riskFlags.map((flag) => (
+                  {riskFlags.length === 0 ? (
+                    <tr><td colSpan="5"><EmptyChartMessage message="No anomaly or risk flags detected." /></td></tr>
+                  ) : riskFlags.map((flag) => (
                     <tr key={flag.type}>
                       <td className="aa-table-strong">{flag.type}</td>
                       <td>{flag.entity}</td>

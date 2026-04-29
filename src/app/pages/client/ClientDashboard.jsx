@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/DashboardLayout';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -446,6 +447,9 @@ export default function ClientDashboard() {
               <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Request Activity</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
+              {requestActivityData.length === 0 ? (
+                <EmptyChartMessage message="No request activity data available." />
+              ) : (
               <ResponsiveContainer width="100%" height={210}>
                 <ComposedChart data={requestActivityData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                   <defs>
@@ -472,6 +476,7 @@ export default function ClientDashboard() {
                   </Line>
                 </ComposedChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -480,6 +485,10 @@ export default function ClientDashboard() {
               <CardTitle className="w-fit bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-blue-300 dark:via-cyan-300 dark:to-indigo-300">Requests by Category</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
+              {categoryData.length === 0 ? (
+                <EmptyChartMessage message="No category data available." />
+              ) : (
+              <>
               <div className="relative h-[190px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -514,6 +523,8 @@ export default function ClientDashboard() {
                   </span>
                 ))}
               </div>
+              </>
+              )}
             </CardContent>
           </Card>
         </div>

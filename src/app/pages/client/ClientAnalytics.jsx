@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useDashboardMenu } from '../../hooks/useDashboardMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -267,6 +268,9 @@ export default function ClientAnalytics() {
               <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Spending Trend</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
+              {monthlySpendingData.length === 0 ? (
+                <EmptyChartMessage message="No spending data available for this period." />
+              ) : (
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={monthlySpendingData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -290,6 +294,7 @@ export default function ClientAnalytics() {
                   <Line type="monotone" dataKey="value" stroke="#7f5cff" strokeWidth={3} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -298,6 +303,9 @@ export default function ClientAnalytics() {
               <CardTitle className="w-fit bg-gradient-to-r from-blue-700 via-cyan-600 to-indigo-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-blue-300 dark:via-cyan-300 dark:to-indigo-300">Spending by Category</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
+              {spendingByCategoryData.length === 0 ? (
+                <EmptyChartMessage message="No category spending data available." />
+              ) : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={spendingByCategoryData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -312,6 +320,7 @@ export default function ClientAnalytics() {
                   <Bar dataKey="value" fill="#6d3fd8" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -322,6 +331,10 @@ export default function ClientAnalytics() {
               <CardTitle className="w-fit bg-gradient-to-r from-violet-700 via-indigo-600 to-sky-600 bg-clip-text text-[1.75rem] font-black leading-none text-transparent dark:from-violet-300 dark:via-indigo-300 dark:to-sky-300">Request Status</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
+              {requestStatusData.length === 0 ? (
+                <EmptyChartMessage message="No request status data available." />
+              ) : (
+              <>
               <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -366,6 +379,8 @@ export default function ClientAnalytics() {
                   </div>
                 ))}
               </div>
+              </>
+              )}
             </CardContent>
           </Card>
 
@@ -374,6 +389,9 @@ export default function ClientAnalytics() {
               <CardTitle className="w-fit bg-gradient-to-r from-cyan-700 via-blue-600 to-violet-600 bg-clip-text text-xl font-black tracking-tight text-transparent dark:from-cyan-300 dark:via-blue-300 dark:to-violet-300">Vendor Response Time</CardTitle>
             </CardHeader>
             <CardContent className="pt-1">
+              {vendorResponseTimeData.length === 0 ? (
+                <EmptyChartMessage message="No vendor response time data available." />
+              ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={vendorResponseTimeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -392,6 +410,7 @@ export default function ClientAnalytics() {
                   <Bar dataKey="value" fill="#6d72de" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -400,7 +419,9 @@ export default function ClientAnalytics() {
               <CardTitle className="w-fit bg-gradient-to-r from-fuchsia-700 via-violet-600 to-indigo-600 bg-clip-text text-xl font-black tracking-tight text-transparent dark:from-fuchsia-300 dark:via-violet-300 dark:to-indigo-300">Top Vendors Used</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-2">
-              {topVendors.map((vendor, index) => (
+              {topVendors.length === 0 ? (
+                <EmptyChartMessage message="No vendor data available for this period." />
+              ) : topVendors.map((vendor, index) => (
                 <div key={vendor.name} className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="mt-1 grid h-9 w-9 place-items-center rounded-full bg-gradient-to-r from-sky-500 to-violet-600 text-sm font-bold text-white">

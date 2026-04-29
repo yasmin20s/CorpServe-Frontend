@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/DashboardLayout';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import DarkVeil from '../../components/backgrounds/DarkVeil';
@@ -495,6 +496,9 @@ export default function AdminDashboard() {
               <CardTitle className="w-fit bg-gradient-to-r from-indigo-700 via-violet-600 to-blue-600 bg-clip-text text-[1.95rem] font-black text-transparent dark:from-indigo-300 dark:via-violet-300 dark:to-blue-300">Platform Activity</CardTitle>
             </CardHeader>
             <CardContent>
+              {platformActivityData.length === 0 ? (
+                <EmptyChartMessage message="No platform activity data available." />
+              ) : (
               <ResponsiveContainer width="100%" height={250}>
                 <ComposedChart data={platformActivityData} margin={{ top: 6, right: 5, left: -18, bottom: 0 }}>
                   <defs>
@@ -513,6 +517,7 @@ export default function AdminDashboard() {
                   <Line type="monotone" dataKey="completed" stroke={ACTIVITY_COLORS.completed} strokeWidth={2.2} dot={false} name="Completed" />
                 </ComposedChart>
               </ResponsiveContainer>
+              )}
               <div className="mt-1.5 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#6f76de]" />Requests</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#3b82f6]" />Signups</span>
@@ -577,7 +582,9 @@ export default function AdminDashboard() {
               <CardTitle className="w-fit bg-gradient-to-r from-violet-700 via-indigo-600 to-sky-600 bg-clip-text text-[1.7rem] font-black text-transparent dark:from-violet-300 dark:via-indigo-300 dark:to-sky-300">Service Categories</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3.5 pt-2">
-              {serviceCategoriesData.map((item) => (
+              {serviceCategoriesData.length === 0 ? (
+                <EmptyChartMessage message="No service category data available." />
+              ) : serviceCategoriesData.map((item) => (
                 <div key={item.name}>
                   <div className="mb-1.5 flex items-center justify-between text-base text-slate-600 dark:text-slate-300">
                     <span>{item.name}</span>

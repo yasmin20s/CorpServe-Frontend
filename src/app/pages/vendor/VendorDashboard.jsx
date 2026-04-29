@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/DashboardLayout';
+import EmptyChartMessage from '../../components/EmptyChartMessage';
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '../../components/ui/card';
 import {
@@ -230,6 +231,9 @@ export default function VendorDashboard() {
                 </div>
               </div>
 
+              {momentumData.length === 0 ? (
+                <EmptyChartMessage message="No earnings data available yet." />
+              ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={momentumData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -251,6 +255,7 @@ export default function VendorDashboard() {
                   <Line type="monotone" dataKey="target" stroke="#cbd5e1" strokeWidth={2} dot={false} strokeDasharray="4 4" />
                 </LineChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
