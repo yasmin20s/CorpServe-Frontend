@@ -410,7 +410,7 @@ export default function AdminDashboard() {
                 <LayoutDashboard className="h-3.5 w-3.5" />
                 Admin Dashboard
               </Badge>
-              <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl">
                 Welcome{' '}
                 <span className="bg-gradient-to-r from-[#b9a0ea] via-[#c995ea] to-[#7fdbef] bg-clip-text text-transparent">
                   {displayName}
@@ -488,7 +488,7 @@ export default function AdminDashboard() {
             })}
         </motion.section>
 
-        <motion.div variants={cardStagger} className="grid gap-4 xl:grid-cols-[1.7fr_1.25fr_1.25fr]" initial="hidden" animate="show">
+        <motion.div variants={cardStagger} className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-[1.7fr_1.25fr_1.25fr]" initial="hidden" animate="show">
           <motion.div variants={cardReveal}>
           <Card className="rounded-2xl border border-slate-200/85 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)] dark:border-slate-700/70 dark:bg-slate-900">
             <CardHeader className="pb-2">

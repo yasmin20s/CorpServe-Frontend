@@ -2,6 +2,7 @@
 @import './tailwind.css';
 @import './theme.css';
 @import './profileDesign.css';
+@import './responsive.css';
 
 @keyframes csGlowFloat {
 	0% {
