@@ -1,13 +1,8 @@
 /**
- * Company label from API — never mirror the person's full name in the company slot.
- * If the stored company equals full name (common bad data / legacy), treat as unset.
+ * Company label from API — returns the stored company name as-is.
  */
 export function getDisplayCompanyName(companyName, fullName) {
-  const c = String(companyName ?? '').trim();
-  if (!c) return '';
-  const f = String(fullName ?? '').trim();
-  if (f && c.toLowerCase() === f.toLowerCase()) return '';
-  return c;
+  return String(companyName ?? '').trim();
 }
 
 /** @param {unknown} n */
