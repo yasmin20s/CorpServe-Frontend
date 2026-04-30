@@ -41,15 +41,15 @@ export default function AppFooter() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex min-h-6 items-start gap-2 leading-6">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>contact@corpserve.com</span>
+                <span>corpserve.b2b@gmail.com</span>
               </li>
               <li className="flex min-h-6 items-start gap-2 leading-6">
                 <Phone className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+20 112 977 3714</span>
               </li>
               <li className="flex min-h-6 items-start gap-2 leading-6">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>123 Business Ave, Suite 100, NY 10001</span>
+                <span>92 El Tahrir Street, Dokki, Giza, Egypt</span>
               </li>
             </ul>
           </div>
