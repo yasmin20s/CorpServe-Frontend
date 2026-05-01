@@ -259,6 +259,7 @@ export default function RequestsMonitor() {
             id: p.proposalId,
             vendorId: p.vendorId,
             vendorName: p.vendorName,
+            vendorProfilePictureUrl: p.vendorProfilePictureUrl,
             price: formatMoneyEGP(p.proposedPrice),
             eta: proposalEta(p.proposedDeadline),
             status: String(p.proposalStatus || '').toLowerCase(),
@@ -535,7 +536,7 @@ export default function RequestsMonitor() {
                           <UserAvatar
                             userId={proposal.vendorId}
                             name={proposal.vendorName}
-                            profilePictureUrl={undefined}
+                            profilePictureUrl={proposal.vendorProfilePictureUrl}
                             size="xs"
                           />
                           <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">Proposed price: {proposal.price}</p>

@@ -65,6 +65,7 @@ function normalizeAdminProposal(raw) {
     proposalId: String(pick(raw, 'proposalId', 'ProposalId') ?? ''),
     vendorId: String(pick(raw, 'vendorId', 'VendorId') ?? ''),
     vendorName: String(pick(raw, 'vendorName', 'VendorName') ?? ''),
+    vendorProfilePictureUrl: pick(raw, 'vendorProfilePictureUrl', 'VendorProfilePictureUrl'),
     proposalStatus: String(pick(raw, 'proposalStatus', 'ProposalStatus') ?? ''),
     proposalType: String(pick(raw, 'proposalType', 'ProposalType') ?? ''),
     proposedPrice: pick(raw, 'proposedPrice', 'ProposedPrice'),

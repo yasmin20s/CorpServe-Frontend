@@ -13,12 +13,12 @@ export function toLocalDateKey(value) {
   return `${y}-${m}-${day}`;
 }
 
-/** Vendor proposes delivery on or before the client's expected deadline. */
+/** Vendor proposes delivery exactly on the client's expected deadline. */
 export function proposedDeliveryMeetsClientDeadline(proposedDeadline, clientDeadlineRaw) {
   const p = toLocalDateKey(proposedDeadline);
   const c = toLocalDateKey(clientDeadlineRaw);
   if (!p || !c) return false;
-  return p <= c;
+  return p === c;
 }
 
 export function priceInClientBudgetRange(proposedPrice, budgetMin, budgetMax) {

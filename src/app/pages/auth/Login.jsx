@@ -83,7 +83,7 @@ export default function Login() {
   return (
     <div className="min-h-dvh bg-[radial-gradient(circle_at_top,_#eef2ff_0%,_#f8fafc_48%,_#f1f5f9_100%)] dark:bg-[radial-gradient(circle_at_top,_#111827_0%,_#0b1220_50%,_#020617_100%)] lg:grid lg:h-dvh lg:grid-cols-[minmax(360px,0.95fr)_minmax(520px,1fr)] [@media(max-height:820px)]:lg:grid-cols-[minmax(320px,0.9fr)_minmax(500px,1fr)]">
       <section className="relative hidden h-dvh overflow-hidden lg:block">
-        <img src="/login-meeting.jpg" alt="Team meeting" className="h-full w-full object-cover" />
+        <img src="/pexels-pavel-danilyuk-5520322.jpg" alt="Team meeting" className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-[rgba(90,120,208,0.62)] via-[rgba(47,48,52,0.58)] to-[rgba(109,79,186,0.62)]" />
         <div className="absolute inset-0 bg-[rgba(24,32,70,0.22)]" />
 

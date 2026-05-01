@@ -41,7 +41,7 @@ export default function AppFooter() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex min-h-6 items-start gap-2 leading-6">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>corpserve.b2b@gmail.com</span>
+                <a href="mailto:corpserve.b2b@gmail.com" className="hover:text-violet-400 transition-colors">corpserve.b2b@gmail.com</a>
               </li>
               <li className="flex min-h-6 items-start gap-2 leading-6">
                 <Phone className="mt-0.5 h-5 w-5 shrink-0" />
