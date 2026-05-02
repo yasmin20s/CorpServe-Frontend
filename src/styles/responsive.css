@@ -13,7 +13,8 @@ html {
 	text-size-adjust: 100%;
 }
 
-img, video, svg {
+/* Exclude .lucide: global height:auto collapses small chevrons inside calendar nav buttons */
+img, video, svg:not(.lucide) {
 	max-width: 100%;
 	height: auto;
 }

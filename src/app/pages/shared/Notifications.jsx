@@ -61,6 +61,9 @@ const REQUEST_ACTIVE_WORK_TITLES = new Set([
 
 const TITLE_NEW_PROPOSAL = 'New proposal received';
 
+/** Matches CorpServe.Services.RatingService vendor notification title */
+const TITLE_NEW_VENDOR_RATING = 'New vendor rating';
+
 const TITLE_SLA_CREATED = 'SLA created';
 const TITLE_SLA_COMPLETED = 'SLA completed';
 const PAYMENT_TITLE_DUE = 'payment due';
@@ -134,16 +137,12 @@ function paymentCorrelationKeys(n) {
 function isVendorRatingNotification(n, role) {
   if ((role || '').toLowerCase() !== 'vendor') return false;
 
-  const title = normalizeNotificationTitleLower(n?.title);
-  const message = String(n?.message || '').toLowerCase();
-  const haystack = `${title} ${message}`;
+  const entity = String(n?.relatedEntityType ?? '').trim().toUpperCase();
+  if (entity === 'RATING') return true;
 
-  return (
-    haystack.includes('rating') ||
-    haystack.includes('rated') ||
-    haystack.includes('feedback') ||
-    haystack.includes('review')
-  );
+  const title = normalizeNotificationTitleLower(n?.title);
+  if (!title) return false;
+  return title === TITLE_NEW_VENDOR_RATING.toLowerCase();
 }
 
 function extractRequestId(n) {
@@ -164,6 +163,11 @@ function pathForRequestNotification(role, title) {
   }
 
   if (REQUEST_ACTIVE_WORK_TITLES.has(t)) {
+    if (r === 'client') return '/client/active-requests';
+    if (r === 'vendor') return '/vendor/active-requests';
+  }
+
+  if (t === TITLE_SLA_CREATED) {
     if (r === 'client') return '/client/active-requests';
     if (r === 'vendor') return '/vendor/active-requests';
   }
