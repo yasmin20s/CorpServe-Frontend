@@ -27,8 +27,8 @@ export default function ForgotPassword() {
     <div className="min-h-dvh bg-[#f4f5f8] px-4 py-4 sm:px-6 sm:py-5 lg:flex lg:h-dvh lg:flex-col lg:justify-center lg:overflow-y-auto lg:px-8 lg:py-4 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold text-white sm:h-11 sm:w-11 sm:text-xl">
-            CS
+          <div className="flex h-16 w-16 items-center justify-center">
+            <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-black sm:text-2xl">CorpServe</h1>
         </div>

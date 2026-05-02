@@ -11,9 +11,9 @@ export default function AppFooter() {
               <a
                 href="/"
                 aria-label="Go to home"
-                className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105"
+                className="flex h-10 w-10 items-center justify-center transition-transform hover:scale-105"
               >
-                <span className="text-xl font-bold text-white">CS</span>
+                <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
               </a>
               <h4 className="text-xl font-bold text-white">CorpServe</h4>
             </div>

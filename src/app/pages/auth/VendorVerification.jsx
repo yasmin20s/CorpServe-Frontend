@@ -215,8 +215,8 @@ export default function VendorVerification() {
     <div className="min-h-dvh bg-gradient-to-br from-[#f6f4ff] via-[#fff3fb] to-[#eef8ff] px-4 pb-8 pt-5 dark:bg-gradient-to-b dark:from-[#242042] dark:via-[#322b57] dark:to-[#463366] sm:px-6 sm:pb-10 sm:pt-6 lg:px-8 lg:pb-12 lg:pt-5 xl:px-10">
       <div className="mx-auto flex w-full max-w-[1140px] items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="cs-brand-badge flex h-12 w-12 items-center justify-center rounded-xl text-2xl font-bold text-white sm:h-[52px] sm:w-[52px] sm:text-2xl">
-            CS
+          <div className="flex h-[52px] w-[52px] items-center justify-center">
+            <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-black dark:text-slate-100 sm:text-3xl">CorpServe</h1>
         </div>
