@@ -15,6 +15,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorDashboardApi } from '../../services/dashboardApi';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
     { label: 'Available Requests', path: '/vendor/available-requests', icon: <Briefcase className="w-5 h-5"/> },
@@ -118,7 +119,7 @@ export default function VendorDashboard() {
         return {
           label: item.requestTitle || 'Request',
           value: `${percent}%`,
-          amount: `${item.clientName || 'Client'} · ${item.deadline ? new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}`,
+          amount: `${item.clientName || 'Client'} · ${item.deadline ? formatDeadlineDate(item.deadline) : '-'}`,
           status,
           icon: status === 'at-risk' ? AlertTriangle : status === 'in-progress' ? Activity : Briefcase,
         };
@@ -145,7 +146,7 @@ export default function VendorDashboard() {
               ? '#10b981'
               : '#0ea5e9';
         return {
-          date: item.deadline ? new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--',
+          date: item.deadline ? formatDeadlineDate(item.deadline) : '--',
           title: item.requestTitle || 'Request',
           client: item.clientName || 'Client',
           tone,

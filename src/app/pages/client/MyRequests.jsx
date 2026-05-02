@@ -27,6 +27,7 @@ import { getProposalCountApi } from '../../services/proposalsApi';
 import { useSignalREvent } from '../../context/SignalRContext';
 import { normalizeRequestDocuments, toAbsoluteFileUrl } from '../../lib/requestDocuments';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 import UserAvatar from '../../components/UserAvatar';
 
 function formatCurrency(value) {
@@ -309,14 +310,14 @@ export default function MyRequests() {
             rawBudgetMin: Number(request.budgetMin || 0),
             rawBudgetMax: Number(request.budgetMax || 0),
             expectedDeadline: request.expectedDeadline
-              ? new Date(request.expectedDeadline).toLocaleDateString()
+              ? formatDeadlineDate(request.expectedDeadline)
               : '-',
             rawExpectedDeadline: request.expectedDeadline || '',
             progress: request.progressPercentage || 0,
             createdAt: formatRequestCreatedAtLabel(request.createdAt ?? request.CreatedAt),
             aiEstimatedCost: formatCurrency(ai.estimatedCost),
             aiEstimatedDeadline: ai.estimatedTime
-              ? new Date(ai.estimatedTime).toLocaleDateString()
+              ? formatDeadlineDate(ai.estimatedTime)
               : '-',
             aiConfidence: Number(ai.confidence ?? 0),
             proposalsCount: Number.isFinite(fallbackCount) ? fallbackCount : 0,

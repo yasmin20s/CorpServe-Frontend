@@ -25,6 +25,7 @@ import UserAvatar from '../../components/UserAvatar';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorSubmittedProposalsApi } from '../../services/proposalsApi';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const menuItems = [
   { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -86,13 +87,6 @@ function pickClientName(item) {
 
 function formatCurrency(value) {
   return `EGP ${Math.round(Number(value || 0)).toLocaleString()}`;
-}
-
-function formatDate(value) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return String(value);
-  return parsed.toLocaleDateString('en-GB');
 }
 
 function formatHoursAgo(value) {
@@ -497,7 +491,7 @@ export default function VendorMyProposals() {
                         <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 ring-1 ring-violet-200 dark:bg-violet-500/20 dark:ring-violet-400/35">
                           <CalendarClock className="h-3.5 w-3.5 text-violet-700 [stroke-width:2.4] dark:text-violet-200" />
                         </span>
-                        {formatDate(proposal.proposedDeadline)}
+                        {formatDeadlineDate(proposal.proposedDeadline)}
                       </p>
                     </div>
                     <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 dark:border-blue-300/40 dark:bg-blue-400/22">

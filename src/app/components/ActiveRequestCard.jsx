@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { formatRemainingDisplayForUi } from '../lib/activeRequestBadges';
+import { formatDeadlineDate } from '../lib/formatDeadlineDate';
 import UserAvatar from './UserAvatar';
 import {
   CalendarClock,
@@ -29,12 +30,6 @@ const taskBadgeClass = {
   Delayed: 'border-red-200 bg-red-50 text-red-800 dark:border-red-400/35 dark:bg-red-500/16 dark:text-red-200',
   Completed: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-400/35 dark:bg-emerald-500/16 dark:text-emerald-200',
 };
-
-function formatDate(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString('en-GB');
-}
 
 function formatPrice(value) {
   return `EGP ${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -124,7 +119,7 @@ export default function ActiveRequestCard({
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Deadline</p>
             <p className="inline-flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">
               <CalendarClock className="h-5 w-5 shrink-0 text-violet-600" aria-hidden />
-              {formatDate(request.deadline)}
+              {formatDeadlineDate(request.deadline)}
             </p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/76">

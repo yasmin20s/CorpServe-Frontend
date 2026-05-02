@@ -45,6 +45,7 @@ import {
 import { toast } from '../../lib/toast';
 import UserAvatar from '../../components/UserAvatar';
 import ReasonDialog from '../../components/ReasonDialog';
+import DeadlineCalendarPicker from '../../components/DeadlineCalendarPicker';
 import { useAuth } from '../../hooks/useAuth';
 import { getVendorRequestsApi } from '../../services/vendorRequestsApi';
 import { vendorAcceptProposalApi, vendorNegotiateProposalApi, vendorRejectProposalApi } from '../../services/proposalsApi';
@@ -58,6 +59,7 @@ import {
   proposedDeliveryMeetsClientDeadline,
 } from '../../lib/proposalFit';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import { calendarDateToIsoUtc, formatDeadlineDate, parseDdMmYyyy } from '../../lib/formatDeadlineDate';
 
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -87,12 +89,6 @@ const proposalSteps = [
 
 function formatCurrency(value) {
   return `EGP ${Number(value || 0).toLocaleString()}`;
-}
-
-function formatDate(value) {
-  if (!value) return '-';
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
 }
 
 function vendorRequestPostedLabel(request) {
@@ -183,13 +179,18 @@ export default function AvailableRequests() {
       toast.error('Please enter a valid price');
       return;
     }
+    const proposedDeadlineDate = parseDdMmYyyy(proposal.deadline);
+    if (!proposedDeadlineDate) {
+      toast.error('Enter a valid proposed deadline as dd/mm/yyyy');
+      return;
+    }
 
     setSubmittingForId(request.requestId);
     try {
       const payload = {
         requestId: request.requestId,
         proposedPrice,
-        proposedDeadline: new Date(proposal.deadline).toISOString(),
+        proposedDeadline: calendarDateToIsoUtc(proposedDeadlineDate),
         message: proposal.message || undefined,
         token: user.token,
       };
@@ -400,7 +401,7 @@ export default function AvailableRequests() {
                         <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">Deadline</p>
                         <p className="inline-flex items-center gap-1 font-semibold text-slate-900">
                           <CalendarClock className="h-4 w-4 text-amber-600" />
-                          {formatDate(request.deadline)}
+                          {formatDeadlineDate(request.deadline)}
                         </p>
                       </div>
                     </div>
@@ -465,7 +466,7 @@ export default function AvailableRequests() {
                                 </div>
                                 <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 sm:text-sm">
                                   <CalendarClock className="h-4 w-4 text-amber-600" />
-                                  Deadline: {formatDate(request.deadline)}
+                                  Deadline: {formatDeadlineDate(request.deadline)}
                                 </div>
                               </div>
                             </div>
@@ -482,12 +483,13 @@ export default function AvailableRequests() {
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label>Proposed Deadline</Label>
-                                <Input
-                                  type="date"
+                                <Label htmlFor={`vendor-proposal-deadline-${request.requestId}`}>Proposed Deadline</Label>
+                                <DeadlineCalendarPicker
+                                  id={`vendor-proposal-deadline-${request.requestId}`}
                                   value={proposal.deadline}
-                                  onChange={(e) => setProposal({ ...proposal, deadline: e.target.value })}
-                                  className="border-violet-200 bg-white"
+                                  onChange={(deadline) => setProposal({ ...proposal, deadline })}
+                                  placeholder="dd/mm/yyyy"
+                                  triggerClassName="!h-auto rounded-md border border-violet-200 bg-white px-3 py-2 text-sm shadow-none dark:border-slate-600 dark:bg-slate-900"
                                 />
                               </div>
                             </div>
@@ -547,7 +549,7 @@ export default function AvailableRequests() {
                               </div>
                               <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                                 <CalendarClock className="h-4 w-4 text-amber-600" />
-                                Deadline: {formatDate(request.deadline)}
+                                Deadline: {formatDeadlineDate(request.deadline)}
                               </div>
                             </div>
                             <div className="rounded-xl border border-slate-200 bg-white p-4">

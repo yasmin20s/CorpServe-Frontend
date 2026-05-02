@@ -20,6 +20,7 @@ import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { useSignalREvent } from '../../context/SignalRContext';
 import { pickProposalCreatedAt, priceInClientBudgetRange, proposedDeliveryMeetsClientDeadline } from '../../lib/proposalFit';
 import { formatRequestCreatedAtLabel } from '../../lib/relativeTime';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 import UserAvatar from '../../components/UserAvatar';
 
 const menuItems = [
@@ -193,12 +194,6 @@ export default function Proposals() {
     }
   };
 
-  const formatDeadline = (value) => {
-    if (!value) return '-';
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
-  };
-
   return (<DashboardLayout menuItems={menuItems} userRole="client">
     <div className="relative space-y-7 overflow-hidden">
       <style>{`
@@ -296,7 +291,7 @@ export default function Proposals() {
             </div>
             <p className="text-center text-xs font-semibold uppercase tracking-wide text-blue-700">Client Budget Window</p>
             <p className="mt-1 text-center text-lg font-black text-slate-900">{formatCurrency(clientBudgetMin)} - {formatCurrency(clientBudgetMax)}</p>
-            <p className="mt-3 text-center text-xs text-slate-600">Target deadline: <span className="font-bold text-violet-700">{formatDeadline(clientDeadline)}</span></p>
+            <p className="mt-3 text-center text-xs text-slate-600">Target deadline: <span className="font-bold text-violet-700">{formatDeadlineDate(clientDeadline)}</span></p>
           </CardContent>
         </Card>
       </section>
@@ -311,7 +306,7 @@ export default function Proposals() {
         <Card className="proposal-lift-in border border-violet-200 bg-white/85 shadow-sm" style={{ '--enter-delay': '230ms' }}>
           <CardContent className="p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-600">Deadline Target</p>
-            <p className="mt-1 text-xl font-black text-slate-900">{formatDeadline(clientDeadline)}</p>
+            <p className="mt-1 text-xl font-black text-slate-900">{formatDeadlineDate(clientDeadline)}</p>
           </CardContent>
         </Card>
         <Card className="proposal-lift-in border border-yellow-300 bg-white/90 shadow-sm" style={{ '--enter-delay': '280ms' }}>
@@ -389,11 +384,11 @@ export default function Proposals() {
                     </div>
                     <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-violet-600">Client Deadline</p>
-                      <p className="mt-1 text-sm font-bold text-slate-900">{formatDeadline(clientDeadline)}</p>
+                      <p className="mt-1 text-sm font-bold text-slate-900">{formatDeadlineDate(clientDeadline)}</p>
                     </div>
                     <div className="rounded-xl border border-yellow-200 bg-yellow-50/70 p-3">
                       <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-yellow-700">Vendor Delivery</p>
-                      <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900"><CalendarDays className="h-4 w-4" /> {formatDeadline(proposal.proposedDeadline)}</p>
+                      <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900"><CalendarDays className="h-4 w-4" /> {formatDeadlineDate(proposal.proposedDeadline)}</p>
                     </div>
                   </div>
 
@@ -500,7 +495,7 @@ export default function Proposals() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Deadline</p>
-                <p className="font-medium">{slaData ? formatDeadline(slaData.deadline) : '-'}</p>
+                <p className="font-medium">{slaData ? formatDeadlineDate(slaData.deadline) : '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">SLA Status</p>

@@ -25,6 +25,7 @@ import { toast } from '../../lib/toast';
 import { getCategoriesApi } from '../../services/categoriesApi';
 import { getAdminRequestsApi } from '../../services/adminMonitorApi';
 import UserAvatar from '../../components/UserAvatar';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -83,13 +84,6 @@ function mapRequestStatusUi(raw) {
 function formatMoneyEGP(n) {
   if (n == null || Number.isNaN(Number(n))) return '—';
   return `EGP ${Number(n).toLocaleString()}`;
-}
-
-function formatDateShort(v) {
-  if (!v) return '—';
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toISOString().slice(0, 10);
 }
 
 function proposalEta(proposedDeadline) {
@@ -254,7 +248,7 @@ export default function RequestsMonitor() {
           slaLabel: formatSlaStatusLabel(slaRaw),
           progress: r.progress,
           budget: formatBudgetRange(r.budgetMin, r.budgetMax),
-          deadline: formatDateShort(r.deadline),
+          deadline: formatDeadlineDate(r.deadline),
           proposals: r.proposals.map((p) => ({
             id: p.proposalId,
             vendorId: p.vendorId,
