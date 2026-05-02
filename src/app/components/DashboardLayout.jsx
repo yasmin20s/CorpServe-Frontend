@@ -204,8 +204,8 @@ export default function DashboardLayout({ children, menuItems, userRole }) {
       <header className={theme.headerClass}>
         <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <a href="/" className="cs-brand-badge flex h-9 w-9 items-center justify-center rounded-lg transition-transform hover:scale-105">
-              <span className="text-sm font-bold text-white">CS</span>
+            <a href="/" className="flex h-9 w-9 items-center justify-center transition-transform hover:scale-105">
+              <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
             </a>
             <h1 className={`hidden text-base sm:text-lg lg:text-xl font-semibold sm:block ${theme.brandTitleClass}`}>CorpServe</h1>
             

@@ -91,8 +91,8 @@ export default function Login() {
 
         <div className="absolute inset-x-0 top-0 p-6 xl:p-8 [@media(max-height:820px)]:p-4">
           <div className="flex items-center gap-4 text-white">
-            <div className="cs-brand-badge flex h-11 w-11 items-center justify-center rounded-xl text-lg font-bold text-white ring-1 ring-white/30">
-              CS
+            <div className="flex h-16 w-16 items-center justify-center">
+              <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white xl:text-4xl [@media(max-height:820px)]:text-2xl">CorpServe</h1>
           </div>

@@ -301,9 +301,9 @@ export default function LandingPage() {
           <a
             href="/"
             aria-label="Go to home"
-            className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105"
+            className="flex h-10 w-10 items-center justify-center transition-transform hover:scale-105"
           >
-            <span className="text-sm font-bold text-white">CS</span>
+            <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
           </a>
           <h1 className="text-2xl font-bold text-black dark:text-white">CorpServe</h1>
         </div>
@@ -656,9 +656,9 @@ export default function LandingPage() {
               <a
                 href="/"
                 aria-label="Go to home"
-                className="cs-brand-badge flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105"
+                className="flex h-10 w-10 items-center justify-center transition-transform hover:scale-105"
               >
-                <span className="text-white text-xl font-bold">CS</span>
+                <img src="/logo2.png" alt="CorpServe Logo" className="h-full w-full object-contain" />
               </a>
               <h4 className="text-xl font-bold text-white">CorpServe</h4>
             </div>
