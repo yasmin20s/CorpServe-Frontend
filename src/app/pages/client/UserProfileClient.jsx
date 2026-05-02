@@ -29,6 +29,7 @@ import {
   getDisplayCompanyName,
 } from '../../components/profile';
 import { PROFILE_UPDATED_REALTIME_EVENT } from '../../context/SignalRContext';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const PROFILE_PIC_EVENT = 'corpserve:client-profile-picture-from-api';
 
@@ -79,12 +80,6 @@ function statTextTone(index) {
   return tones[index % tones.length];
 }
 
-function formatRequestDate(value) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '-';
-  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function normalizeStatusLabel(rawStatus) {
   const raw = String(rawStatus ?? '').trim().toLowerCase();
@@ -500,7 +495,7 @@ export default function UserProfileClient() {
               {recentRequests.map((request) => {
                 const requestId = pick(request, 'requestId', 'RequestId') ?? request?.id;
                 const title = pick(request, 'requestTitle', 'RequestTitle') || `Request #${requestId ?? '-'}`;
-                const date = formatRequestDate(pick(request, 'createdAt', 'CreatedAt'));
+                const date = formatDeadlineDate(pick(request, 'createdAt', 'CreatedAt'));
                 const statusLabel = normalizeStatusLabel(
                   pick(request, 'requestStatusLabel', 'RequestStatusLabel', 'statusLabel', 'StatusLabel', 'requestStatus', 'RequestStatus', 'status', 'Status'),
                 );

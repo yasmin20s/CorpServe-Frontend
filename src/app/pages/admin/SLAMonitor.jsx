@@ -26,6 +26,7 @@ import { toast } from '../../lib/toast';
 import { getCategoriesApi } from '../../services/categoriesApi';
 import { getAdminSlasApi } from '../../services/adminMonitorApi';
 import UserAvatar from '../../components/UserAvatar';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -85,13 +86,6 @@ function pick(obj, ...keys) {
 function formatMoneyEGP(n) {
   if (n == null || Number.isNaN(Number(n))) return '—';
   return `EGP ${Number(n).toLocaleString()}`;
-}
-
-function formatDateShort(v) {
-  if (!v) return '—';
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toISOString().slice(0, 10);
 }
 
 /** Matches CorpServe.Domain.Entities.ProposalModule.SLAStatus int values */
@@ -197,8 +191,8 @@ export default function SLAMonitor() {
         vendorProfilePictureUrl: c.vendorProfilePictureUrl,
         category: c.categoryName,
         price: formatMoneyEGP(c.price),
-        createdAt: formatDateShort(c.createdAt),
-        deadline: formatDateShort(c.deadline),
+        createdAt: formatDeadlineDate(c.createdAt),
+        deadline: formatDeadlineDate(c.deadline),
         contractStatus: c.contractStatus || 'in-progress',
         slaStatus: c.slaUiStatus || 'active',
         warningLevel: c.warningLevelUi || 'none',

@@ -1,10 +1,20 @@
+import { parseDdMmYyyy } from './formatDeadlineDate';
+
 /**
  * Local calendar YYYY-MM-DD — avoids UTC day-shift when comparing date inputs to API DateTimes.
+ * Accepts yyyy-mm-dd, dd/mm/yyyy, or parseable ISO strings.
  */
 export function toLocalDateKey(value) {
   if (value == null || value === '') return '';
   const s = String(value).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const fromDmY = parseDdMmYyyy(s);
+  if (fromDmY) {
+    const y = fromDmY.getFullYear();
+    const m = String(fromDmY.getMonth() + 1).padStart(2, '0');
+    const day = String(fromDmY.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return '';
   const y = d.getFullYear();

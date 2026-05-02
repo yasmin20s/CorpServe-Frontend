@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { format } from 'date-fns';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 import {
   Activity,
   CheckCircle2,
@@ -260,7 +261,7 @@ export default function ClientDashboard() {
         category: request.requestCategory,
         status: request.statusDisplay || request.status || 'Pending',
         budget: toBudgetLabel(request.budgetMin, request.budgetMax),
-        date: formatDateMMMDay(request.deadline),
+        date: formatDeadlineDate(request.deadline),
       })),
     [dashboardData.recentRequests],
   );

@@ -44,6 +44,7 @@ import {
   getDisplayCompanyName,
 } from '../../components/profile';
 import { PROFILE_UPDATED_REALTIME_EVENT } from '../../context/SignalRContext';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const PROFILE_PIC_EVENT = 'corpserve:vendor-profile-picture-from-api';
 
@@ -71,12 +72,6 @@ function isAllowedSampleFile(file) {
   return /\.(png|jpe?g|webp|gif|pdf|doc|docx)$/i.test(name);
 }
 
-function formatDate(value) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '-';
-  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function getSampleFileKind(file) {
   const mime = String(file?.type || '').toLowerCase();
@@ -969,7 +964,7 @@ export default function UserProfileVendor() {
                     </span>
                     <h3 className="mt-0.5 text-base font-medium tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">{request?.title || 'Request'}</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                      {request?.client || 'Client'} • {formatDate(request?.date)}
+                      {request?.client || 'Client'} • {formatDeadlineDate(request?.date)}
                     </p>
                   </div>
 

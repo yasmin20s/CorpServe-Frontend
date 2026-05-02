@@ -12,6 +12,8 @@ import { toast } from '../../lib/toast';
 import { useAuth } from '../../hooks/useAuth';
 import { getCategoriesApi } from '../../services/categoriesApi';
 import { createRequestApi, generateRequestEstimateApi } from '../../services/requestsApi';
+import { calendarDateToIsoUtc, formatDeadlineDate, parseDdMmYyyy } from '../../lib/formatDeadlineDate';
+import DeadlineCalendarPicker from '../../components/DeadlineCalendarPicker';
 const menuItems = [
     { label: 'Dashboard', path: '/client/dashboard', icon: <LayoutDashboard size={20}/> },
     { label: 'Create Request', path: '/client/create-request', icon: <PlusCircle size={20}/> },
@@ -98,7 +100,7 @@ export default function CreateRequest() {
         const estimatedDate = new Date(aiEstimate.estimatedTime);
         return {
             cost: `EGP ${Number(aiEstimate.estimatedCost || 0).toLocaleString()}`,
-            time: Number.isNaN(estimatedDate.getTime()) ? '-' : estimatedDate.toLocaleDateString(),
+            time: Number.isNaN(estimatedDate.getTime()) ? '-' : formatDeadlineDate(estimatedDate),
             confidence: aiEstimate.confidence ?? 0,
         };
     }, [aiEstimate]);
@@ -112,8 +114,9 @@ export default function CreateRequest() {
             toast.error('Please select category first');
             return;
         }
-        if (!formData.deadline) {
-            toast.error('Please select deadline first');
+        const deadlineDate = parseDdMmYyyy(formData.deadline);
+        if (!deadlineDate) {
+            toast.error('Enter a valid deadline as dd/mm/yyyy');
             return;
         }
         if (!user?.token) {
@@ -128,7 +131,7 @@ export default function CreateRequest() {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
                 categoryId: formData.category,
-                expectedDeadline: new Date(formData.deadline).toISOString(),
+                expectedDeadline: calendarDateToIsoUtc(deadlineDate),
                 budgetMin: Number(formData.budgetMin),
                 budgetMax: Number(formData.budgetMax),
                 token: user.token,
@@ -194,6 +197,11 @@ export default function CreateRequest() {
             toast.error('Please select a category');
             return;
         }
+        const deadlineDate = parseDdMmYyyy(formData.deadline);
+        if (!deadlineDate) {
+            toast.error('Enter a valid deadline as dd/mm/yyyy');
+            return;
+        }
 
         setIsSubmitting(true);
         setAiEstimateError(null);
@@ -203,7 +211,7 @@ export default function CreateRequest() {
                 title: formData.title.trim(),
                 description: formData.description.trim(),
                 categoryId: formData.category,
-                expectedDeadline: new Date(formData.deadline).toISOString(),
+                expectedDeadline: calendarDateToIsoUtc(deadlineDate),
                 budgetMin: Number(formData.budgetMin),
                 budgetMax: Number(formData.budgetMax),
                 estimatedCost: aiEstimate?.estimatedCost,
@@ -275,9 +283,9 @@ export default function CreateRequest() {
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Category</Label>
+                                        <Label className="text-sm font-semibold leading-none text-[#1e293b] dark:text-slate-200">Category</Label>
                                         <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
-                                            <SelectTrigger className="rounded-xl border-none bg-[#f1f3f7] py-6 text-gray-500 dark:bg-slate-950/65 dark:text-slate-100">
+                                            <SelectTrigger className="!h-auto rounded-xl border-none bg-[#f1f3f7] py-6 text-sm text-gray-500 dark:bg-slate-950/65 dark:text-slate-100">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl border-none shadow-lg dark:bg-slate-900 dark:text-slate-100">
@@ -286,8 +294,15 @@ export default function CreateRequest() {
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="font-semibold text-[#1e293b] dark:text-slate-200">Deadline</Label>
-                                        <Input type="date" className="rounded-xl border-none bg-[#f1f3f7] py-6 text-gray-500 dark:bg-slate-950/65 dark:text-slate-100" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} required/>
+                                        <Label htmlFor="create-request-deadline" className="text-sm font-semibold leading-none text-[#1e293b] dark:text-slate-200">
+                                            Deadline
+                                        </Label>
+                                        <DeadlineCalendarPicker
+                                            id="create-request-deadline"
+                                            value={formData.deadline}
+                                            onChange={(deadline) => setFormData({ ...formData, deadline })}
+                                            placeholder="dd/mm/yyyy"
+                                        />
                                     </div>
                                 </div>
 

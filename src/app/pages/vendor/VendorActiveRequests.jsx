@@ -34,6 +34,7 @@ import { resolveSlaDialogStatus } from '../../lib/activeRequestBadges';
 import { updateRequestProgressApi } from '../../services/vendorRequestsApi';
 import { getChatRoomByRequestApi } from '../../services/chatApi';
 import { useSignalREvent } from '../../context/SignalRContext';
+import { formatDeadlineDate } from '../../lib/formatDeadlineDate';
 
 const menuItems = [
     { label: 'Dashboard', path: '/vendor/dashboard', icon: <LayoutDashboard className="w-5 h-5"/> },
@@ -46,12 +47,6 @@ const menuItems = [
 ];
 
 const ITEMS_PER_PAGE = 3;
-
-function formatDate(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString('en-GB');
-}
 
 function formatPrice(value) {
   return `EGP ${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -386,7 +381,7 @@ export default function VendorActiveRequests() {
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                   <CalendarClock className="h-4 w-4 text-indigo-600" />
-                  Deadline: {formatDate(slaData.deadline)}
+                  Deadline: {formatDeadlineDate(slaData.deadline)}
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                   <Wallet className="h-4 w-4 text-emerald-600" />

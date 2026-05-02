@@ -1,4 +1,5 @@
 import { parseApiDateTime } from './formatRelativeTime';
+import { formatDeadlineDate } from './formatDeadlineDate';
 
 /**
  * Relative label from a Date or ISO string (fallback when API sends raw datetime).
@@ -38,7 +39,7 @@ export function formatRelativeTimeAgo(value) {
 }
 
 /**
- * Use backend relative text when provided; otherwise format ISO/datetime strings.
+ * Request/proposal "created at" in local calendar date as dd/MM/yyyy (API ISO / Date).
  */
 export function formatRequestCreatedAtLabel(value) {
   const str = (value ?? '').toString().trim();
@@ -46,12 +47,12 @@ export function formatRequestCreatedAtLabel(value) {
 
   const parsed = parseApiDateTime(str);
   if (parsed && !Number.isNaN(parsed.getTime())) {
-    return formatRelativeTimeAgo(parsed);
+    return formatDeadlineDate(parsed);
   }
 
   const fuzzy = new Date(str);
   if (!Number.isNaN(fuzzy.getTime()) && (str.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(str))) {
-    return formatRelativeTimeAgo(fuzzy);
+    return formatDeadlineDate(fuzzy);
   }
 
   return str;
