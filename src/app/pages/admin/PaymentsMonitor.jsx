@@ -417,7 +417,7 @@ export default function PaymentsMonitor() {
                           <UserAvatar
                             userId={payment.clientId}
                             name={payment.clientName || 'N/A'}
-                            profilePictureUrl={undefined}
+                            profilePictureUrl={payment.clientPhoto || undefined}
                             size="xs"
                           />
                         </div>
@@ -428,7 +428,7 @@ export default function PaymentsMonitor() {
                           <UserAvatar
                             userId={payment.vendorId}
                             name={payment.vendorName || 'N/A'}
-                            profilePictureUrl={undefined}
+                            profilePictureUrl={payment.vendorPhoto || undefined}
                             size="xs"
                           />
                         </div>
