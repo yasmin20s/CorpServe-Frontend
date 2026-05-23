@@ -30,6 +30,8 @@ function normalizePaymentItem(raw) {
     vendorId: String(pick(raw, 'vendorId', 'VendorId') ?? ''),
     clientName: pick(raw, 'clientName', 'ClientName') ?? '',
     vendorName: pick(raw, 'vendorName', 'VendorName') ?? '',
+    clientPhoto: pick(raw, 'clientPhoto', 'ClientPhoto') ?? '',
+    vendorPhoto: pick(raw, 'vendorPhoto', 'VendorPhoto') ?? '',
   };
 }
 
