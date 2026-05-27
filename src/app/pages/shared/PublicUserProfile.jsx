@@ -45,6 +45,12 @@ function isImageDocType(documentType) {
   return t.startsWith('image/');
 }
 
+function isImageDocument(documentType, fileName) {
+  if (isImageDocType(documentType)) return true;
+  const n = String(fileName || '').toLowerCase();
+  return /\.(png|jpe?g|webp|gif|bmp|svg|avif)$/i.test(n);
+}
+
 /** Client-style stat chips (matches UserProfileClient) */
 function statToneClient(label) {
   const key = String(label).toLowerCase();
@@ -225,11 +231,17 @@ export default function PublicUserProfile() {
   const isClient = p?.role === 'client';
 
   const imageDocs = useMemo(() => {
-    return (p?.documents || []).filter((d) => isImageDocType(pick(d, 'documentType', 'DocumentType')));
+    return (p?.documents || []).filter((d) => {
+      const name = String(pick(d, 'name', 'Name') || '');
+      return isImageDocument(pick(d, 'documentType', 'DocumentType'), name);
+    });
   }, [p?.documents]);
 
   const fileDocs = useMemo(() => {
-    return (p?.documents || []).filter((d) => !isImageDocType(pick(d, 'documentType', 'DocumentType')));
+    return (p?.documents || []).filter((d) => {
+      const name = String(pick(d, 'name', 'Name') || '');
+      return !isImageDocument(pick(d, 'documentType', 'DocumentType'), name);
+    });
   }, [p?.documents]);
 
   const clientStats = useMemo(() => {
@@ -485,7 +497,7 @@ export default function PublicUserProfile() {
                           <img
                             src={url}
                             alt={name}
-                            className="cs-profile-image-thumb h-36 w-full object-cover"
+                            className="cs-profile-image-thumb h-36 w-full bg-slate-100 object-contain dark:bg-slate-950/60"
                             loading="lazy"
                           />
                           <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
