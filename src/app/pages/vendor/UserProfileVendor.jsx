@@ -90,6 +90,12 @@ function isImageDocType(documentType) {
   return String(documentType || '').toLowerCase().startsWith('image/');
 }
 
+function isImageDocument(documentType, fileName) {
+  if (isImageDocType(documentType)) return true;
+  const n = String(fileName || '').toLowerCase();
+  return /\.(png|jpe?g|webp|gif|bmp|svg|avif)$/i.test(n);
+}
+
 function sampleFrameTone(index) {
   const tones = [
     'border-violet-300 bg-violet-50/35 dark:border-violet-400/35 dark:bg-violet-500/10',
@@ -312,7 +318,7 @@ export default function UserProfileVendor() {
       const url = resolveMediaUrl(rawUrl);
       const name = String(pick(d, 'name', 'Name') || 'File');
       const documentType = pick(d, 'documentType', 'DocumentType');
-      const kind = isImageDocType(documentType) ? 'image' : 'document';
+      const kind = isImageDocument(documentType, name) ? 'image' : 'document';
       const id = `${String(rawUrl || '')}-${index}`;
       return {
         id,
@@ -339,7 +345,7 @@ export default function UserProfileVendor() {
         const url = resolveMediaUrl(rawUrl);
         const name = String(pick(d, 'name', 'Name') || 'File');
         const documentType = pick(d, 'documentType', 'DocumentType');
-        const kind = isImageDocType(documentType) ? 'image' : 'document';
+        const kind = isImageDocument(documentType, name) ? 'image' : 'document';
         const id = `${String(rawUrl || '')}-${index}`;
         return {
           id,
@@ -839,7 +845,7 @@ export default function UserProfileVendor() {
                     style={{ animationDelay: `${40 + index * 55}ms` }}
                   >
                     <button type="button" onClick={() => setViewerSampleId(item.id)} className="group relative block w-full">
-                      <img src={item.url} alt={item.name} className="cs-profile-image-thumb h-36 w-full object-cover" />
+                      <img src={item.url} alt={item.name} className="cs-profile-image-thumb h-36 w-full bg-slate-100 object-contain dark:bg-slate-950/60" />
                       <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
                         <Eye className="h-3.5 w-3.5" /> View
                       </span>
