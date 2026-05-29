@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
+import { consumePostAuthRedirect } from '../context/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 import { getVendorVerificationStatusApi } from '../services/vendorVerifyApi';
 
@@ -165,6 +166,11 @@ function PublicOnlyRoute({ children }) {
   }
 
   if (user?.isAuthenticated && user?.token) {
+    const postAuthRedirect = consumePostAuthRedirect();
+    if (isSafeInternalRedirectPath(postAuthRedirect)) {
+      return <Navigate to={postAuthRedirect} replace />;
+    }
+
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
     if (isSafeInternalRedirectPath(redirect)) {
