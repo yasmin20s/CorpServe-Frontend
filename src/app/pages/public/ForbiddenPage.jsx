@@ -28,7 +28,7 @@ export default function ForbiddenPage() {
 			<div className="mx-auto grid min-h-[100dvh] w-full max-w-[1280px] grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,520px)_auto] lg:justify-center lg:gap-10 xl:gap-12">
 				<section className="order-2 mx-auto flex w-full max-w-[520px] flex-col items-start text-left lg:order-1 lg:mx-0">
 					<h1 className="mb-3 text-[86px] font-extrabold leading-none tracking-[-0.04em] text-[#3f3f46] sm:text-[102px] lg:mb-4 lg:text-[120px]">403</h1>
-					<h2 className="mb-5 text-[31px] font-medium leading-[1.2] tracking-[-0.02em] text-[#71717a] sm:text-[34px] lg:mb-6 lg:text-[36px]">Acess forbidden</h2>
+					<h2 className="mb-5 text-[31px] font-medium leading-[1.2] tracking-[-0.02em] text-[#71717a] sm:text-[34px] lg:mb-6 lg:text-[36px]">Access forbidden</h2>
 					<p className="mb-9 max-w-md text-[18px] leading-[1.55] text-[#71717a] sm:text-[19px] lg:mb-10 lg:text-[20px]">
 						You&apos;ve tried access a page you did not have prior authorization for.
 					</p>
