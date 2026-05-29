@@ -99,7 +99,7 @@ export default function Signup() {
         return;
       }
       toast.success(result.message);
-      navigate(result.redirectTo);
+      navigate(result.redirectTo, { replace: true });
     } finally {
       setIsSubmitting(false);
     }

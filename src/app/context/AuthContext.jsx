@@ -14,7 +14,27 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 import { toast } from '../lib/toast';
 
 const AUTH_STORAGE_KEY = 'corpserve-auth-profile';
+const POST_AUTH_REDIRECT_KEY = 'corpserve-post-auth-redirect';
 const JWT_REFRESH_LEEWAY_SECONDS = 120;
+
+export function setPostAuthRedirect(path) {
+  if (!path || typeof path !== 'string') return;
+  try {
+    sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, path);
+  } catch {
+    // sessionStorage may be unavailable
+  }
+}
+
+export function consumePostAuthRedirect() {
+  try {
+    const stored = sessionStorage.getItem(POST_AUTH_REDIRECT_KEY);
+    sessionStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+    return stored;
+  } catch {
+    return null;
+  }
+}
 
 const initialUserState = {
   fullName: '',
@@ -376,8 +396,16 @@ export function AuthProvider({ children }) {
       }
 
       const isClient = normalizedRole === 'client';
-      const clientRedirectTo =
-        isClient && nextUser?.isAuthenticated ? '/client/user-profile' : '/login';
+      const redirectTo =
+        normalizedRole === 'vendor'
+          ? '/vendor-verification'
+          : isClient && nextUser?.isAuthenticated
+            ? '/client/user-profile'
+            : '/login';
+
+      if (nextUser?.isAuthenticated && redirectTo !== '/login') {
+        setPostAuthRedirect(redirectTo);
+      }
 
       return {
         success: true,
@@ -385,7 +413,7 @@ export function AuthProvider({ children }) {
           normalizedRole === 'vendor'
             ? 'Account created successfully. Continue with vendor verification.'
             : 'Account created successfully. Please Complete your profile.',
-        redirectTo: normalizedRole === 'vendor' ? '/vendor-verification' : clientRedirectTo,
+        redirectTo,
       };
     } catch (error) {
       const message = error instanceof ApiError ? error.message : 'Signup failed. Please try again.';
