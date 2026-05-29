@@ -375,13 +375,17 @@ export function AuthProvider({ children }) {
         persistAuthProfile(nextUser);
       }
 
+      const isClient = normalizedRole === 'client';
+      const clientRedirectTo =
+        isClient && nextUser?.isAuthenticated ? '/client/user-profile' : '/login';
+
       return {
         success: true,
         message:
           normalizedRole === 'vendor'
             ? 'Account created successfully. Continue with vendor verification.'
-            : 'Account created successfully. Please login to continue.',
-        redirectTo: normalizedRole === 'vendor' ? '/vendor-verification' : '/login',
+            : 'Account created successfully. Please Complete your profile.',
+        redirectTo: normalizedRole === 'vendor' ? '/vendor-verification' : clientRedirectTo,
       };
     } catch (error) {
       const message = error instanceof ApiError ? error.message : 'Signup failed. Please try again.';
