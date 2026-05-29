@@ -61,6 +61,7 @@ export default function Login() {
       if (!result.success) {
         if (result.message?.toLowerCase().includes('suspended')) {
           setSuspendedMessage(result.message);
+          return;
         }
         toast.error(result.message);
         return;
